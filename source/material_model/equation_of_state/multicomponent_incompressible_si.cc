@@ -30,6 +30,17 @@ namespace aspect
   {
     namespace EquationOfState
     {
+
+      //template <int dim>
+      //void
+      //MulticomponentIncompressibleSI<dim>::
+      //evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+      //         const unsigned int input_index,
+      //         MaterialModel::EquationOfStateOutputs<dim> &out) const
+      //{
+      //  MulticomponentIncompressible<dim>::evaluate(in,input_index,out);
+      //}
+
       template <int dim>
       void
       MulticomponentIncompressibleSI<dim>::
@@ -46,20 +57,60 @@ namespace aspect
         std::cout << "in.temperature[input_index]=" << in.temperature[input_index]<< std::endl;
         std::cout << "in.pressure[input_index]=" << in.pressure[input_index]<< std::endl;
 
+        //std::vector<double> composition (in.composition[input_index]);
+
         for (unsigned int c=0; c<in.composition[input_index].size(); ++c)
         {
-            std::cout << "this->introspection().name_for_compositional_index(c)="
+            std::cout << "\nbef modif: this->introspection().name_for_compositional_index(c)="
                       << this->introspection().name_for_compositional_index(c) << std::endl;
-            std::cout << "in.composition[input_index][c]=" << in.composition[input_index][c] << std::endl;
+            std::cout << "bef modif: in.composition[input_index][c]=" << in.composition[input_index][c] << std::endl;
         }
 
-        // --- Dirty hack here to bypass the const MaterialModel::MaterialModelInputs<dim>
-        //((MaterialModel::MaterialModelInputs<dim>)in).composition[input_index][0]= in.composition[input_index][1];
+        const unsigned int asth_mtl_idx= this->introspection().
+           compositional_index_for_name(asthenospheric_mantle_nid);
+
+        const unsigned int oc_lith_mtl_idx= this->introspection().
+           compositional_index_for_name(oceanic_lithospheric_mantle_nid);
+
+        //const unsigned int oc_crust_basalts_idx= this->introspection().
+        //   compositional_index_for_name(oceanic_crust_basalts_nid);
+
+        // --- VERY UGLY TRICK done here to bypass the const MaterialModel::MaterialModelInputs<dim>
+        //     to be able to modify the composition on-the-fly
+        std::vector<double>* composition_ref=
+            (std::vector<double, std::allocator<double> >*)&in.composition[input_index];
+
+        // --- local copy of oc. ltih. mantle compo.
+        //const double oc_lith_mtl_compo_tmp= (*composition_ref)[oc_lith_mtl_idx];
+
+        (*composition_ref)[asth_mtl_idx]= 0.5;
+        (*composition_ref)[oc_lith_mtl_idx]= 0.25;
+
+        // --- NOTE: The asth. material now becomes oc. lith. mantle material at this input_index
+        //           BUT we need to keep the value of the oc. lith. mantle (could be
+        //           > 0.0) that was already defined and add the asth. compo value to
+        //           to it
+        (*composition_ref)[oc_lith_mtl_idx] += in.composition[input_index][asth_mtl_idx]; //(*composition_ref)[asth_mtl_idx]
+
+        // --- Avoid negative compo value
+        (*composition_ref)[oc_lith_mtl_idx]= std::max(0.0,(*composition_ref)[oc_lith_mtl_idx]);
+
+        // --- Can now set the asth. compo to 0.0 since this value has been
+        //     completely transferred to the oc. lith. mantle compo value.
+        //     (mass conservation principle)
+        (*composition_ref)[asth_mtl_idx]= 0.0; //oc_lith_mtl_compo_tmp;
+
+        for (unsigned int c=0; c<in.composition[input_index].size(); ++c)
+        {
+            std::cout << "\naft modif: this->introspection().name_for_compositional_index(c)="
+                      << this->introspection().name_for_compositional_index(c) << std::endl;
+            std::cout << "aft modif: in.composition[input_index][c]=" << in.composition[input_index][c] << std::endl;
+        }
 
         std::exit(0);
 
         // --- now resume with the usual MulticomponentIncompressible super class code exec.
-        MulticomponentIncompressible<dim>::evaluate(in,input_index,out);
+        MulticomponentIncompressible<dim>::evaluate((const MaterialModel::MaterialModelInputs<dim>)in,input_index,out);
       }
 
 

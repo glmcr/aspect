@@ -48,7 +48,6 @@ namespace aspect
            * index input_index that determines which entry of the vector of inputs is used.
            */
           void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-          //void evaluate(MaterialModel::MaterialModelInputs<dim> &in,
                         const unsigned int input_index,
                         MaterialModel::EquationOfStateOutputs<dim> &out) const;
 
@@ -83,6 +82,10 @@ namespace aspect
           void
           parse_parameters (ParameterHandler &prm,
                             const std::unique_ptr<std::vector<unsigned int>> &expected_n_phases_per_composition = nullptr);
+
+          static constexpr const char* const oceanic_crust_basalts_nid= "oceanicCrust"; // Only basalts for now, no sediments.
+          static constexpr const char* const asthenospheric_mantle_nid= "asthenosphere";
+          static constexpr const char* const oceanic_lithospheric_mantle_nid= "oceanicLithMantle";
 
         //private:
         //  /**
