@@ -34,12 +34,31 @@ namespace aspect
       void
       MulticomponentIncompressibleSI<dim>::
       evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+      //evaluate(MaterialModel::MaterialModelInputs<dim> &in,
                const unsigned int input_index,
                MaterialModel::EquationOfStateOutputs<dim> &out) const
       {
         // --- Add code to deal with the SI ad-hoc material changes here.
         //    (namely asthenosphere to oceanic lith. mantle and oceanic crust (i.e. basalt) to eclogite)
+        std::cout << std::fixed;
 
+        std::cout << "input_index=" << input_index << std::endl;
+        std::cout << "in.temperature[input_index]=" << in.temperature[input_index]<< std::endl;
+        std::cout << "in.pressure[input_index]=" << in.pressure[input_index]<< std::endl;
+
+        for (unsigned int c=0; c<in.composition[input_index].size(); ++c)
+        {
+            std::cout << "this->introspection().name_for_compositional_index(c)="
+                      << this->introspection().name_for_compositional_index(c) << std::endl;
+            std::cout << "in.composition[input_index][c]=" << in.composition[input_index][c] << std::endl;
+        }
+
+        // --- Dirty hack here to bypass the const MaterialModel::MaterialModelInputs<dim>
+        //((MaterialModel::MaterialModelInputs<dim>)in).composition[input_index][0]= in.composition[input_index][1];
+
+        std::exit(0);
+
+        // --- now resume with the usual MulticomponentIncompressible super class code exec.
         MulticomponentIncompressible<dim>::evaluate(in,input_index,out);
       }
 

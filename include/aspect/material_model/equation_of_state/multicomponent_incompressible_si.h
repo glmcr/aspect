@@ -48,6 +48,7 @@ namespace aspect
            * index input_index that determines which entry of the vector of inputs is used.
            */
           void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+          //void evaluate(MaterialModel::MaterialModelInputs<dim> &in,
                         const unsigned int input_index,
                         MaterialModel::EquationOfStateOutputs<dim> &out) const;
 
