@@ -23,7 +23,8 @@
 
 #include <aspect/material_model/interface.h>
 #include <aspect/simulator_access.h>
-#include <aspect/material_model/equation_of_state/interface.h>
+#include <aspect/material_model/equation_of_state/multicomponent_incompressible.h>
+//#include <aspect/material_model/equation_of_state/interface.h>
 
 
 namespace aspect
@@ -37,7 +38,8 @@ namespace aspect
       /**
        */
       template <int dim>
-      class MulticomponentIncompressibleSI :  public ::aspect::MaterialModel::EquationOfState::MulticomponentIncompressible<dim>
+      class MulticomponentIncompressibleSI :
+          public MaterialModel::EquationOfState::MulticomponentIncompressible<dim>
       {
         public:
           /**
