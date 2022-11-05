@@ -31,21 +31,10 @@ namespace aspect
     namespace EquationOfState
     {
 
-      //template <int dim>
-      //void
-      //MulticomponentIncompressibleSI<dim>::
-      //evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-      //         const unsigned int input_index,
-      //         MaterialModel::EquationOfStateOutputs<dim> &out) const
-      //{
-      //  MulticomponentIncompressible<dim>::evaluate(in,input_index,out);
-      //}
-
       template <int dim>
       void
       MulticomponentIncompressibleSI<dim>::
       evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-      //evaluate(MaterialModel::MaterialModelInputs<dim> &in,
                const unsigned int input_index,
                MaterialModel::EquationOfStateOutputs<dim> &out) const
       {
@@ -54,17 +43,17 @@ namespace aspect
         std::cout << std::fixed;
 
         std::cout << "input_index=" << input_index << std::endl;
-        std::cout << "in.temperature[input_index]=" << in.temperature[input_index]<< std::endl;
-        std::cout << "in.pressure[input_index]=" << in.pressure[input_index]<< std::endl;
+        //std::cout << "in.temperature[input_index]=" << in.temperature[input_index]<< std::endl;
+        //std::cout << "in.pressure[input_index]=" << in.pressure[input_index]<< std::endl;
 
         //std::vector<double> composition (in.composition[input_index]);
 
-        for (unsigned int c=0; c<in.composition[input_index].size(); ++c)
-        {
-            std::cout << "\nbef modif: this->introspection().name_for_compositional_index(c)="
-                      << this->introspection().name_for_compositional_index(c) << std::endl;
-            std::cout << "bef modif: in.composition[input_index][c]=" << in.composition[input_index][c] << std::endl;
-        }
+        //for (unsigned int c=0; c<in.composition[input_index].size(); ++c)
+        //{
+        //    std::cout << "\nbef modif: this->introspection().name_for_compositional_index(c)="
+        //              << this->introspection().name_for_compositional_index(c) << std::endl;
+        //    std::cout << "bef modif: in.composition[input_index][c]=" << in.composition[input_index][c] << std::endl;
+        //}
 
         const unsigned int asth_mtl_idx= this->introspection().
            compositional_index_for_name(asthenospheric_mantle_nid);
@@ -79,6 +68,10 @@ namespace aspect
         //     to be able to modify the composition on-the-fly
         std::vector<double>* composition_ref=
             (std::vector<double, std::allocator<double> >*)&in.composition[input_index];
+
+        //std::cout << "composition_ref=" <<
+        printf("in.composition=%xi\n",in.composition);
+        printf("composition_ref=%xi\n",composition_ref);
 
         // --- local copy of oc. ltih. mantle compo.
         //const double oc_lith_mtl_compo_tmp= (*composition_ref)[oc_lith_mtl_idx];
@@ -100,12 +93,12 @@ namespace aspect
         //     (mass conservation principle)
         (*composition_ref)[asth_mtl_idx]= 0.0; //oc_lith_mtl_compo_tmp;
 
-        for (unsigned int c=0; c<in.composition[input_index].size(); ++c)
-        {
-            std::cout << "\naft modif: this->introspection().name_for_compositional_index(c)="
-                      << this->introspection().name_for_compositional_index(c) << std::endl;
-            std::cout << "aft modif: in.composition[input_index][c]=" << in.composition[input_index][c] << std::endl;
-        }
+        //for (unsigned int c=0; c<in.composition[input_index].size(); ++c)
+        //{
+        //    std::cout << "\naft modif: this->introspection().name_for_compositional_index(c)="
+        //              << this->introspection().name_for_compositional_index(c) << std::endl;
+        //    std::cout << "aft modif: in.composition[input_index][c]=" << in.composition[input_index][c] << std::endl;
+        //}
 
         std::exit(0);
 
