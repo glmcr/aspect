@@ -121,9 +121,10 @@ namespace aspect
   namespace MaterialModel
   {
     ASPECT_REGISTER_MATERIAL_MODEL(ViscoPlasticSI,
-                                   "visco plastic_si",
-                                   "Temporary and implementation of a class that inherits from the ViscoPlastic class "
+                                   "visco plastic si",
+                                   "Temporary implementation of a class that inherits from the ViscoPlastic class "
                                    "and which allows to add ad-hoc material changes using the reaction rates. This is "
                                    "done in relation to a Ph. D. study on subduction initiation.")
   }
 }
+
