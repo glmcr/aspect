@@ -70,8 +70,8 @@ namespace aspect
             (std::vector<double, std::allocator<double> >*)&in.composition[input_index];
 
         //std::cout << "composition_ref=" <<
-        printf("in.composition=%xi\n",in.composition);
-        printf("composition_ref=%xi\n",composition_ref);
+        //printf("in.composition=%xi\n",in.composition);
+        //printf("composition_ref=%xi\n",composition_ref);
 
         // --- local copy of oc. ltih. mantle compo.
         //const double oc_lith_mtl_compo_tmp= (*composition_ref)[oc_lith_mtl_idx];
