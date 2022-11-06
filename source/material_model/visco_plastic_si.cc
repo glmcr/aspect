@@ -31,16 +31,16 @@ namespace aspect
   namespace MaterialModel
   {
 
-    template <int dim>
-    bool
-    ViscoPlasticSI<dim>::
-    is_yielding (const double pressure,
-                 const double temperature,
-                 const std::vector<double> &composition,
-                 const SymmetricTensor<2,dim> &strain_rate) const
-    {
-      return ViscoPlastic<dim>::is_yielding(pressure,temperature, composition, strain_rate) ; //plastic_yielding;
-    }
+    //template <int dim>
+    //bool
+    //ViscoPlasticSI<dim>::
+    //is_yielding (const double pressure,
+    //             const double temperature,
+    //             const std::vector<double> &composition,
+    //             const SymmetricTensor<2,dim> &strain_rate) const
+    //{
+    //  return ViscoPlastic<dim>::is_yielding(pressure,temperature, composition, strain_rate) ; //plastic_yielding;
+    //}
 
 
 

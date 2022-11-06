@@ -74,12 +74,12 @@ namespace aspect
          * @deprecated: Use the other function with this name instead, which allows
          * to pass in more general input variables.
          */
-        DEAL_II_DEPRECATED
-        bool
-        is_yielding (const double pressure,
-                     const double temperature,
-                     const std::vector<double> &composition,
-                     const SymmetricTensor<2,dim> &strain_rate) const;
+        //DEAL_II_DEPRECATED
+        //bool
+        //is_yielding (const double pressure,
+        //             const double temperature,
+        //             const std::vector<double> &composition,
+        //             const SymmetricTensor<2,dim> &strain_rate) const;
 
         /**
          * A function that returns whether the material is plastically
