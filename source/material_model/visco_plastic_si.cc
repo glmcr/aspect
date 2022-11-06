@@ -60,10 +60,11 @@ namespace aspect
     evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
              MaterialModel::MaterialModelOutputs<dim> &out) const
     {
+      //this->get_pcout() << std::endl <<"ViscoPlasticSI::evaluate(in,out) -> ViscoPlastic<dim>::evaluate(in,out)" << std::endl;
+
       ViscoPlastic<dim>::evaluate(in,out);
 
-      //std::cout << std::endl <<"Hello world from ViscoPlasticSI::evaluate() !! debug exit 0" << std::endl;
-      //std::exit(0);
+      //this->get_pcout() << std::endl <<"ViscoPlasticSI::evaluate(in,out) -> done with ViscoPlastic<dim>::evaluate(in,out)" << std::endl;
 
     }
 
@@ -100,7 +101,12 @@ namespace aspect
     void
     ViscoPlasticSI<dim>::parse_parameters (ParameterHandler &prm)
     {
+
+       //this->get_pcout() << std::endl <<"ViscoPlasticSI::parse_parameters(), Hello world!!" << std::endl;
+
        ViscoPlastic<dim>::parse_parameters(prm);
+
+       //this->get_pcout() << std::endl <<"ViscoPlasticSI::parse_parameters(), done with ViscoPlastic<dim>::parse_parameters(prm)" << std::endl;
     }
 
 
