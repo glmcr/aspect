@@ -89,6 +89,17 @@ namespace aspect
         bool
         is_yielding (const MaterialModelInputs<dim> &in) const;
 
+        // ---
+        //inline
+        static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
+
+        // ---
+        //inline
+        static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
+
+        // ---
+        static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
+
       //private:
       //
       //  /**

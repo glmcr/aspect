@@ -56,22 +56,43 @@ namespace aspect
 
       // --- Now take care of the ad-hoc material changes.
       const unsigned int asth_mtl_idx= this->introspection().
-           compositional_index_for_name(asthenospheric_mantle_nid);
+           compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
       const unsigned int oc_lith_mtl_idx= this->introspection().
-           compositional_index_for_name(oceanic_lithospheric_mantle_nid);
+           compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
 
       //const unsigned int oc_crust_basalts_idx= this->introspection().
       //   compositional_index_for_name(oceanic_crust_basalts_nid);
 
-      // Loop through all requested points
-      for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
-        {
-           if in.temperature[i] >= LAB_TEMPERATURE
-             {
-             }
-	}
+      this->get_pcout() << std::endl << "out T: this->get_timestep_number()=" << this->get_timestep_number() << std::endl;
 
+      // --- Do not apply the ad-hoc material change for the very 1st time step
+      if (this->get_timestep_number() > 1)
+        {
+
+        // --- Loop through all requested points
+        for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
+          {
+
+           if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS)
+             {
+
+               this->get_pcout() << std::endl << "in T: this->get_timestep_number()=" << this->get_timestep_number() << std::endl;
+               //this->get_pcout() << std::endl << "T: this->get_timestep()=" << this->get_timestep() << std::endl;
+
+               // --- ad-hoc material changes: the asthenosphere material becomes mantle lithosphere.
+               //     (in the next time step because of the usage of the reaction_terms) if
+               //     the T is less or equal to LAB_TEMPERATURE_IN_KELVINS.
+               out.reaction_terms[i][oc_lith_mtl_idx]= in.composition[i][asth_mtl_idx]; // /this->get_timestep();
+
+               // --- And the asthenosphere composition (concentration) will become zero.
+               //     (in the next time step because of the usage of the reaction_terms)
+               //     Note the minus sign here.
+               out.reaction_terms[i][asth_mtl_idx]= -in.composition[i][asth_mtl_idx]; // /this->get_timestep();
+
+             }
+	  }
+       }
     }
 
 
