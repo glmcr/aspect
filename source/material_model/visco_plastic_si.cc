@@ -31,18 +31,6 @@ namespace aspect
   namespace MaterialModel
   {
 
-    //template <int dim>
-    //bool
-    //ViscoPlasticSI<dim>::
-    //is_yielding (const double pressure,
-    //             const double temperature,
-    //             const std::vector<double> &composition,
-    //             const SymmetricTensor<2,dim> &strain_rate) const
-    //{
-    //  return ViscoPlastic<dim>::is_yielding(pressure,temperature, composition, strain_rate) ; //plastic_yielding;
-    //}
-
-
 
     template <int dim>
     bool
@@ -65,6 +53,24 @@ namespace aspect
       ViscoPlastic<dim>::evaluate(in,out);
 
       //this->get_pcout() << std::endl <<"ViscoPlasticSI::evaluate(in,out) -> done with ViscoPlastic<dim>::evaluate(in,out)" << std::endl;
+
+      // --- Now take care of the ad-hoc material changes.
+      const unsigned int asth_mtl_idx= this->introspection().
+           compositional_index_for_name(asthenospheric_mantle_nid);
+
+      const unsigned int oc_lith_mtl_idx= this->introspection().
+           compositional_index_for_name(oceanic_lithospheric_mantle_nid);
+
+      //const unsigned int oc_crust_basalts_idx= this->introspection().
+      //   compositional_index_for_name(oceanic_crust_basalts_nid);
+
+      // Loop through all requested points
+      for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
+        {
+           if in.temperature[i] >= LAB_TEMPERATURE
+             {
+             }
+	}
 
     }
 
