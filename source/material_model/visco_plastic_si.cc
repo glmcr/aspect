@@ -64,36 +64,62 @@ namespace aspect
       //const unsigned int oc_crust_basalts_idx= this->introspection().
       //   compositional_index_for_name(oceanic_crust_basalts_nid);
 
-      this->get_pcout() << std::endl << "out T: this->get_timestep_number()=" << this->get_timestep_number() << std::endl;
+      //this->get_pcout() << std::endl << "out T: this->get_timestep_number()=" << this->get_timestep_number() << std::endl;
 
-      // --- Do not apply the ad-hoc material change for the very 1st time step
-      if (this->get_timestep_number() > 1)
+      // --- Only apply the ad-hoc material changes if the simulator initialization
+      //     is done.
+      if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
         {
 
-        // --- Loop through all requested points
-        for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
-          {
+          const double zeTimeStep= this->get_timestep();
 
-           if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS)
-             {
+          // --- Loop through all requested points
+          for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
+            {
 
-               this->get_pcout() << std::endl << "in T: this->get_timestep_number()=" << this->get_timestep_number() << std::endl;
-               //this->get_pcout() << std::endl << "T: this->get_timestep()=" << this->get_timestep() << std::endl;
+               // --- 1st ad-hoc material change: asthenosphere becomes lithospheric mantle
+               //     if the former T at i is at or under LAB_TEMPERATURE_IN_KELVINS
+               if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS)
+                 {
 
-               // --- ad-hoc material changes: the asthenosphere material becomes mantle lithosphere.
-               //     (in the next time step because of the usage of the reaction_terms) if
-               //     the T is less or equal to LAB_TEMPERATURE_IN_KELVINS.
-               out.reaction_terms[i][oc_lith_mtl_idx]= in.composition[i][asth_mtl_idx]; // /this->get_timestep();
+                   this->get_pcout() << std::endl <<
+                      "in T: this->get_timestep_number()=" <<
+                         this->get_timestep_number() << std::endl;
 
-               // --- And the asthenosphere composition (concentration) will become zero.
-               //     (in the next time step because of the usage of the reaction_terms)
-               //     Note the minus sign here.
-               out.reaction_terms[i][asth_mtl_idx]= -in.composition[i][asth_mtl_idx]; // /this->get_timestep();
+                   this->get_pcout() << std::endl <<
+                      "in T: zeTimeStep=" << zeTimeStep << std::endl;
 
-             }
-	  }
-       }
-    }
+                   // --- ad-hoc material change: the asthenosphere material becomes lithospheric mantle.
+                   //     (in the next time step because of the usage of the reaction_terms) if the T is
+                   //     less or equal to LAB_TEMPERATURE_IN_KELVINS at evaluation point i.
+                   //     Need to use += to keep the already existing asthenosphere compo value.
+                   out.reaction_terms[i][oc_lith_mtl_idx] +=
+                      in.composition[i][asth_mtl_idx]/this->get_timestep();
+
+                   // --- And the asthenosphere composition (concentration) will become zero at
+                   //     evaluation point i in the next time step because of the usage of the
+                   //     reaction terms. Note the minus sign here.
+                   out.reaction_terms[i][asth_mtl_idx]=
+                      -in.composition[i][asth_mtl_idx]/this->get_timestep();
+
+                 }
+               else // --- Apply the opposite transformation if T > LAB_TEMPERATURE_IN_KELVINS
+                 {
+                   // --- Now the lithospheric mantle becomes asthenosphere at evaluation point i
+                   out.reaction_terms[i][asth_mtl_idx] +=
+                      in.composition[i][oc_lith_mtl_idx];
+
+                   // --- And the lithospheric mantle becomes 0.0 at evaluation point i
+                   out.reaction_terms[i][oc_lith_mtl_idx]= -in.composition[i][oc_lith_mtl_idx];
+
+                 } // --- inner if-else block
+
+               // --- 2nd and more complicated ad-hoc material change:
+               //     basaltic material of the oceanic crust becomes eclogite.
+
+	  } // --- for loop block
+        } // --- outer if block
+      } // --- method block
 
 
     template <int dim>
