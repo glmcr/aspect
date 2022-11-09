@@ -92,8 +92,7 @@ namespace aspect
                    // --- ad-hoc material change: the asthenosphere material becomes lithospheric mantle.
                    //     (in the next time step because of the usage of the reaction_terms) if the T is
                    //     less or equal to LAB_TEMPERATURE_IN_KELVINS at evaluation point i.
-                   //     Need to use += to keep the already existing asthenosphere compo value.
-                   out.reaction_terms[i][oc_lith_mtl_idx] +=
+                   out.reaction_terms[i][oc_lith_mtl_idx]=
                       in.composition[i][asth_mtl_idx]/this->get_timestep();
 
                    // --- And the asthenosphere composition (concentration) will become zero at
@@ -106,7 +105,7 @@ namespace aspect
                else // --- Apply the opposite transformation if T > LAB_TEMPERATURE_IN_KELVINS
                  {
                    // --- Now the lithospheric mantle becomes asthenosphere at evaluation point i
-                   out.reaction_terms[i][asth_mtl_idx] +=
+                   out.reaction_terms[i][asth_mtl_idx]=
                       in.composition[i][oc_lith_mtl_idx];
 
                    // --- And the lithospheric mantle becomes 0.0 at evaluation point i
