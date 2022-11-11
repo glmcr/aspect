@@ -71,7 +71,9 @@ namespace aspect
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
         {
 
-          const double zeTimeStep= this->get_timestep();
+          // --- replace divisions by this->get_timestep() by multiplication
+          //     by a const 1.0/this->get_timestep(). Probable perf. gain.
+          const double inv_current_time_step= 1.0/this->get_timestep();
 
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
@@ -82,35 +84,35 @@ namespace aspect
                if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS)
                  {
 
-                   this->get_pcout() << std::endl <<
-                      "in T: this->get_timestep_number()=" <<
-                         this->get_timestep_number() << std::endl;
+                   //this->get_pcout() << std::endl <<
+                   //   "in T: this->get_timestep_number()=" <<
+                   //      this->get_timestep_number() << std::endl;
 
-                   this->get_pcout() << std::endl <<
-                      "in T: zeTimeStep=" << zeTimeStep << std::endl;
+                   //this->get_pcout() << std::endl <<
+                   //   "in T: zeTimeStep=" << zeTimeStep << std::endl;
 
                    // --- ad-hoc material change: the asthenosphere material becomes lithospheric mantle.
                    //     (in the next time step because of the usage of the reaction_terms) if the T is
                    //     less or equal to LAB_TEMPERATURE_IN_KELVINS at evaluation point i.
                    out.reaction_terms[i][oc_lith_mtl_idx]=
-                      in.composition[i][asth_mtl_idx]/this->get_timestep();
+                      in.composition[i][asth_mtl_idx] * inv_current_time_step;
 
                    // --- And the asthenosphere composition (concentration) will become zero at
                    //     evaluation point i in the next time step because of the usage of the
                    //     reaction terms. Note the minus sign here.
                    out.reaction_terms[i][asth_mtl_idx]=
-                      -in.composition[i][asth_mtl_idx]/this->get_timestep();
+                      -in.composition[i][asth_mtl_idx] * inv_current_time_step;
 
                  }
                else // --- Apply the opposite transformation if T > LAB_TEMPERATURE_IN_KELVINS
                  {
                    // --- Now the lithospheric mantle becomes asthenosphere at evaluation point i
                    out.reaction_terms[i][asth_mtl_idx]=
-                      in.composition[i][oc_lith_mtl_idx]/this->get_timestep();
+                      in.composition[i][oc_lith_mtl_idx] * inv_current_time_step;
 
                    // --- And the lithospheric mantle becomes 0.0 at evaluation point i
                    out.reaction_terms[i][oc_lith_mtl_idx]=
-                      -in.composition[i][oc_lith_mtl_idx]/this->get_timestep();
+                      -in.composition[i][oc_lith_mtl_idx] * inv_current_time_step;
 
                  } // --- inner if-else block
 
