@@ -106,12 +106,16 @@ namespace aspect
                  {
                    // --- Now the lithospheric mantle becomes asthenosphere at evaluation point i
                    out.reaction_terms[i][asth_mtl_idx]=
-                      in.composition[i][oc_lith_mtl_idx];
+                      in.composition[i][oc_lith_mtl_idx]/this->get_timestep();
 
                    // --- And the lithospheric mantle becomes 0.0 at evaluation point i
-                   out.reaction_terms[i][oc_lith_mtl_idx]= -in.composition[i][oc_lith_mtl_idx];
+                   out.reaction_terms[i][oc_lith_mtl_idx]=
+                      -in.composition[i][oc_lith_mtl_idx]/this->get_timestep();
 
                  } // --- inner if-else block
+
+               // --- TODO: implement the lithospheric mantle -> basalt (one way only) material change
+               //           when T>= 873 (moho T)
 
                // --- 2nd and more complicated ad-hoc material change:
                //     basaltic material of the oceanic crust becomes eclogite.
