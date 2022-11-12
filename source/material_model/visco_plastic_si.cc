@@ -48,85 +48,66 @@ namespace aspect
     evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
              MaterialModel::MaterialModelOutputs<dim> &out) const
     {
-      //this->get_pcout() << std::endl <<"ViscoPlasticSI::evaluate(in,out) -> ViscoPlastic<dim>::evaluate(in,out)" << std::endl;
 
       ViscoPlastic<dim>::evaluate(in,out);
 
-      //this->get_pcout() << std::endl <<"ViscoPlasticSI::evaluate(in,out) -> done with ViscoPlastic<dim>::evaluate(in,out)" << std::endl;
-
-      // --- Now take care of the ad-hoc material changes.
+      // --- Now take care of the ad-hoc material changes
+      //     (i.e. rock type transformation depending only
+      //     on T or on both p and T)
       const unsigned int asth_mtl_idx= this->introspection().
            compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
       const unsigned int oc_lith_mtl_idx= this->introspection().
            compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
 
-      //const unsigned int oc_crust_basalts_idx= this->introspection().
-      //   compositional_index_for_name(oceanic_crust_basalts_nid);
-
-      //this->get_pcout() << std::endl << "out T: this->get_timestep_number()=" << this->get_timestep_number() << std::endl;
-
       // --- Only apply the ad-hoc material changes if the simulator initialization
       //     is done.
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
         {
 
-          // --- replace divisions by this->get_timestep() by multiplication
-          //     by a const 1.0/this->get_timestep(). Probable perf. gain.
-          const double inv_current_time_step= 1.0/this->get_timestep();
+          // --- No need to use this->get_timestep() here
+          //     (It's only relevant for the reaction rates it seems)
+          //const double inv_current_time_step= 1.0/this->get_timestep();
 
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
             {
 
-               // --- 1st ad-hoc material change: asthenosphere becomes lithospheric mantle
-               //     if the former T at i is at or under LAB_TEMPERATURE_IN_KELVINS
+               //this->get_pcout() << "ViscoPlasticSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl;
+
+               // --- 1st ad-hoc material change (rock type transformation):
+               //     asthenosphere becomes lithospheric mantle
+               //     if the T of the former at location i is at or under LAB_TEMPERATURE_IN_KELVINS
                if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS)
                  {
 
-                   //this->get_pcout() << std::endl <<
-                   //   "in T: this->get_timestep_number()=" <<
-                   //      this->get_timestep_number() << std::endl;
+                   // ---
+                   const double ast_2_lmt_reaction_term= in.composition[i][asth_mtl_idx];
 
-                   //this->get_pcout() << std::endl <<
-                   //   "in T: zeTimeStep=" << zeTimeStep << std::endl;
-
-                   // --- ad-hoc material change: the asthenosphere material becomes lithospheric mantle.
-                   //     (in the next time step because of the usage of the reaction_terms) if the T is
-                   //     less or equal to LAB_TEMPERATURE_IN_KELVINS at evaluation point i.
-                   //const double oc_lith_mtl_compo_val= out.reaction_terms[i][oc_lith_mtl_idx];
-
-                   out.reaction_terms[i][oc_lith_mtl_idx]=
-                      in.composition[i][asth_mtl_idx] * inv_current_time_step;
+                   out.reaction_terms[i][oc_lith_mtl_idx]= ast_2_lmt_reaction_term;
+                   //   in.composition[i][asth_mtl_idx]; // * inv_current_time_step;
 
                    // --- And the asthenosphere composition (concentration) will become zero at
-                   //     evaluation point i in the next time step because of the usage of the
-                   //     reaction terms. Note the minus sign here.
-                   out.reaction_terms[i][asth_mtl_idx]=
-                      -in.composition[i][asth_mtl_idx] * inv_current_time_step;
+                   //     evaluation point i at the next time step because of the usage of
+                   //     this reaction term (note the minus sign here)
+                   out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
+                   //   -in.composition[i][asth_mtl_idx]; //* inv_current_time_step;
 
                  }
-               else // --- Apply the opposite transformation if T > LAB_TEMPERATURE_IN_KELVINS
+               else // --- Apply the opposite rock type transformation if T > LAB_TEMPERATURE_IN_KELVINS
                  {
+
+                   const double lmt_2_ast_reaction_term= in.composition[i][oc_lith_mtl_idx];
 
                    // --- Now the lithospheric mantle transform to asthenosphere at evaluation point i
                    //     (but only if in.composition[i][oc_lith_mtl_idx] > 0.0)
-                   out.reaction_terms[i][asth_mtl_idx]=
-                      in.composition[i][oc_lith_mtl_idx] * inv_current_time_step;
+                   out.reaction_terms[i][asth_mtl_idx]= lmt_2_ast_reaction_term;
+                      //in.composition[i][oc_lith_mtl_idx]; // * inv_current_time_step;
 
-                   // --- And the lithospheric mantle becomes 0.0 at evaluation point i
-                   //     (but only if in.composition[i][oc_lith_mtl_idx] > 0.0)
-                   out.reaction_terms[i][oc_lith_mtl_idx]=
-                      -in.composition[i][oc_lith_mtl_idx] * inv_current_time_step;
-
-                   if (in.temperature[i] <= 1600.0) {
-                   this->get_pcout() << "T > LAB_TEMPERATURE_IN_KELVINS: " << in.temperature[i] << std::endl;
-                   this->get_pcout() << "in.composition[i][oc_lith_mtl_idx]= " << in.composition[i][oc_lith_mtl_idx] << std::endl;
-                   this->get_pcout() << "in.composition[i][asth_mtl_idx]= " << in.composition[i][asth_mtl_idx] << std::endl;
-                   this->get_pcout() << "out.reaction_terms[i][oc_lith_mtl_idx]= " << out.reaction_terms[i][oc_lith_mtl_idx] << std::endl;
-                   this->get_pcout() << "out.reaction_terms[i][asth_mtl_idx]= " << out.reaction_terms[i][asth_mtl_idx] << std::endl;
-                   }
-
+                   // --- And the lithospheric mantle disappear (if it was not 0.0!!)
+                   //     at evaluation point i
+                   out.reaction_terms[i][oc_lith_mtl_idx]= -lmt_2_ast_reaction_term;
+                   //   -in.composition[i][oc_lith_mtl_idx]; // * inv_current_time_step;
 
                  } // --- inner if-else block
 
