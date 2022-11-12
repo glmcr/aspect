@@ -94,6 +94,8 @@ namespace aspect
                    // --- ad-hoc material change: the asthenosphere material becomes lithospheric mantle.
                    //     (in the next time step because of the usage of the reaction_terms) if the T is
                    //     less or equal to LAB_TEMPERATURE_IN_KELVINS at evaluation point i.
+                   //const double oc_lith_mtl_compo_val= out.reaction_terms[i][oc_lith_mtl_idx];
+
                    out.reaction_terms[i][oc_lith_mtl_idx]=
                       in.composition[i][asth_mtl_idx] * inv_current_time_step;
 
@@ -106,13 +108,25 @@ namespace aspect
                  }
                else // --- Apply the opposite transformation if T > LAB_TEMPERATURE_IN_KELVINS
                  {
-                   // --- Now the lithospheric mantle becomes asthenosphere at evaluation point i
+
+                   // --- Now the lithospheric mantle transform to asthenosphere at evaluation point i
+                   //     (but only if in.composition[i][oc_lith_mtl_idx] > 0.0)
                    out.reaction_terms[i][asth_mtl_idx]=
                       in.composition[i][oc_lith_mtl_idx] * inv_current_time_step;
 
                    // --- And the lithospheric mantle becomes 0.0 at evaluation point i
+                   //     (but only if in.composition[i][oc_lith_mtl_idx] > 0.0)
                    out.reaction_terms[i][oc_lith_mtl_idx]=
                       -in.composition[i][oc_lith_mtl_idx] * inv_current_time_step;
+
+                   if (in.temperature[i] <= 1600.0) {
+                   this->get_pcout() << "T > LAB_TEMPERATURE_IN_KELVINS: " << in.temperature[i] << std::endl;
+                   this->get_pcout() << "in.composition[i][oc_lith_mtl_idx]= " << in.composition[i][oc_lith_mtl_idx] << std::endl;
+                   this->get_pcout() << "in.composition[i][asth_mtl_idx]= " << in.composition[i][asth_mtl_idx] << std::endl;
+                   this->get_pcout() << "out.reaction_terms[i][oc_lith_mtl_idx]= " << out.reaction_terms[i][oc_lith_mtl_idx] << std::endl;
+                   this->get_pcout() << "out.reaction_terms[i][asth_mtl_idx]= " << out.reaction_terms[i][asth_mtl_idx] << std::endl;
+                   }
+
 
                  } // --- inner if-else block
 
