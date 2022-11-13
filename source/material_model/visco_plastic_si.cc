@@ -87,7 +87,7 @@ namespace aspect
                    // ---
                    const double ast_2_lmt_reaction_term= in.composition[i][asth_mtl_idx];
 
-                   if (in.temperature[i] <= MOHO_PRESSURE_IN_PA)
+                   if (in.pressure[i] <= MOHO_PRESSURE_IN_PA)
                      {
 
                        // --- asth. transform to oc. crust via the out.reaction_terms
