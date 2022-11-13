@@ -60,6 +60,9 @@ namespace aspect
       const unsigned int oc_lith_mtl_idx= this->introspection().
            compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
 
+      const unsigned int oc_crust_idx= this->introspection().
+           compositional_index_for_name(OCEANIC_CRUST_NID);
+
       // --- Only apply the ad-hoc material changes if the simulator initialization
       //     is done.
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
@@ -84,15 +87,35 @@ namespace aspect
                    // ---
                    const double ast_2_lmt_reaction_term= in.composition[i][asth_mtl_idx];
 
-                   out.reaction_terms[i][oc_lith_mtl_idx]= ast_2_lmt_reaction_term;
-                   //   in.composition[i][asth_mtl_idx]; // * inv_current_time_step;
+                   if (in.temperature[i] <= MOHO_PRESSURE_IN_PA)
+                     {
 
-                   // --- And the asthenosphere composition (concentration) will become zero at
-                   //     evaluation point i at the next time step because of the usage of
-                   //     this reaction term (note the minus sign here)
-                   out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
-                   //   -in.composition[i][asth_mtl_idx]; //* inv_current_time_step;
+                       // --- asth. transform to oc. crust via the out.reaction_terms
+                       out.reaction_terms[i][oc_crust_idx]= ast_2_lmt_reaction_term;
 
+                       // --- And the asthenosphere composition (concentration) will become zero at
+                       //     evaluation point i at the next time step because of the usage of
+                       //     this reaction term (note the minus sign here)
+                       //out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
+
+                     }
+                   else
+                     {
+
+                       // --- asth. transform to Lithos. mantle via the out.reaction_terms
+                       out.reaction_terms[i][oc_lith_mtl_idx]= ast_2_lmt_reaction_term;
+
+                       // --- And the asthenosphere composition (concentration) will become zero at
+                       //     evaluation point i at the next time step because of the usage of
+                       //     this reaction term (note the minus sign here)
+                       //out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
+                       //   -in.composition[i][asth_mtl_idx]; //* inv_current_time_step;
+                     }
+
+                     // --- And the asthenosphere composition (concentration) will become zero at
+                     //     evaluation point i at the next time step because of the usage of
+                     //     this reaction term (note the minus sign here)
+                     out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
                  }
                else // --- Apply the opposite rock type transformation if T > LAB_TEMPERATURE_IN_KELVINS
                  {
