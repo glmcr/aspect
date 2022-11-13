@@ -100,13 +100,23 @@ namespace aspect
         // ---
         static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
 
-        // ---
+        // --- Lithosphere <-> asthenosphere T boundary
         static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
 
         // ---
         static constexpr const double GPA_2_PASCALS= 1e9;
 
-        static constexpr const double MOHO_PRESSURE_IN_PA= GPA_2_PASCALS * 0.22;
+        static constexpr const double KBARS_2_GPA= 0.1;
+
+        static constexpr const double KBARS_2_PASCALS= KBARS_2_GPA*GPA_2_PASCALS;
+
+        // --- ~2.5Kb is the lithostatic pressure at the oceanic moho depth (~7km)
+        //     It is used to separate the transformation of the upwelling asthenosphere
+        //     to lithospheric mantle (p>2.5Kb, Harzburgite) from the transformation
+        //     of the asthenosphere to the basalts-gabbros of the oceanic crust
+        //     (p<2.5Kb). Note that the temperature should also be <= LAB_TEMPERATURE_IN_KELVINS
+        //     to allow those transformation to take place under an active oceanic ridge.
+        static constexpr const double MOHO_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 2.5; //GPA_2_PASCALS * 0.25;
 
       //private:
       //
