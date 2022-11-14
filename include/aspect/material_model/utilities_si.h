@@ -30,7 +30,7 @@
 
 namespace aspect
 {
-  template <int dim> class SimulatorAccess;
+  //template <int dim> class SimulatorAccess;
 
   namespace MaterialModel
   {
@@ -46,15 +46,53 @@ namespace aspect
      */
     namespace MaterialUtilities
     {
-      struct thermodynamic_vertex
-        {
-                  
-          private:
 
-            double pressure;    // --- Pascals
-            double temperature; // --- Kelvins
+      class ThermodynamicStateMarker
+      {
 
-        }
+        public:
+
+          static constexpr const double UNDEFINED= std::numeric_limits<double>::max();
+
+          //struct thermodynamicStateMarker initialize();
+          ThermodynamicStateMarker();
+
+          ThermodynamicStateMarker(double pressure, double temperature);
+
+        private:
+
+          double pressure;    // --- Pascals
+          double temperature; // --- Kelvins
+
+          double specificVolume;
+          double specificEntropy;
+
+          double specificEnthalpy;
+          double specificGibbsEnergy;
+          double specificHelmoltzEnergy;
+          double specificInternalEnergy;
+
+      }; // --- class ThermodynamicStateMarker
+
+      // ---
+      //template <int nbStateVariables, int nbVertices>
+      class ThermodynamicStateMarkersPolytope
+      {
+
+       public:
+
+         //unsigned int dimension() const;
+         //bool inside(const ThermodynamicStateMarker tsm) const;
+
+         ThermodynamicStateMarkersPolytope(unsigned int nbStateVariables, unsigned int nbVertices);
+
+         bool pTAreInside(double pressure, double temperature) const
+
+       private:
+
+         std::vector<ThermodynamicStateMarker> markersVertices;
+
+      }; // --- class ThermodynamicStateMarkersPolytope
     }
   }
 }
