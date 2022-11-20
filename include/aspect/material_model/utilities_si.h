@@ -47,32 +47,83 @@ namespace aspect
     namespace MaterialUtilities
     {
 
+      // ---
       class ThermodynamicStateMarker
       {
 
         public:
 
-          static constexpr const double UNDEFINED= std::numeric_limits<double>::max();
+          //static constexpr const double UNDEFINED= std::numeric_limits<double>::max();
 
-          //struct thermodynamicStateMarker initialize();
           ThermodynamicStateMarker();
 
-          ThermodynamicStateMarker(double pressure, double temperature);
+          ThermodynamicStateMarker(bool moving);
+
+          bool isMoving() const;
+
+          bool isFixed() const;
+
+        private:
+
+          bool moving;
+      };
+
+      class PTStateMarker: public ThermodynamicStateMarker
+      {
+        public:
+
+           // --- 220 Kelvins
+           static constexpr const double MIN_TEMPERATURE= 220.0;
+
+           // --- CMB temperature (approx.)
+           static constexpr const double MAX_TEMPERATURE= 4000.0;
+
+           // --- ATM pressure
+           static constexpr const double MIN_PRESSURE= 101.5e3;
+
+           // --- CMB pressure (approx.)
+           static constexpr const double MAX_PRESSURE= 140.e9;
+
+           PTStateMarker();
+           PTStateMarker(double pressure, double temperature);
+           PTStateMarker(double pressure, double temperature, bool moving);
+
+           double getPressure() const;
+           double getTemperature() const;
+
+           bool insideValidPTRanges() const;
+
+           bool insideValidPressuresRange() const;
+           bool insideValidTemperaturesRange() const;
 
         private:
 
           double pressure;    // --- Pascals
           double temperature; // --- Kelvins
+      };
 
-          double specificVolume;
-          double specificEntropy;
-
-          double specificEnthalpy;
-          double specificGibbsEnergy;
-          double specificHelmoltzEnergy;
-          double specificInternalEnergy;
-
-      }; // --- class ThermodynamicStateMarker
+      //// ---
+      // class EnergyStateMarker: public PTStateMarker
+      //{
+      //
+      //  public:
+      //
+      //    //struct thermodynamicStateMarker initialize();
+      //    EnergyStateMarker();
+      //
+      //    //EnergyStateMarker(double pressure, double temperature);
+      //
+      //  private:
+      //
+      //    double specificVolume;
+      //    double specificEntropy;
+      //
+      //    double specificEnthalpy;
+      //    double specificGibbsEnergy;
+      //    double specificHelmoltzEnergy;
+      //    double specificInternalEnergy;
+      //
+      //}; // --- class ThermodynamicStateMarker
 
       // ---
       //template <int nbStateVariables, int nbVertices>
@@ -84,9 +135,11 @@ namespace aspect
          //unsigned int dimension() const;
          //bool inside(const ThermodynamicStateMarker tsm) const;
 
-         ThermodynamicStateMarkersPolytope(unsigned int nbStateVariables, unsigned int nbVertices);
+         ThermodynamicStateMarkersPolytope();
+         //ThermodynamicStateMarkersPolytope(unsigned int nbStateVariables, unsigned int nbVertices);
+         ThermodynamicStateMarkersPolytope(unsigned int nbVertices);
 
-         bool pTAreInside(double pressure, double temperature) const
+         bool pTAreInside(double pressure, double temperature) const;
 
        private:
 
@@ -96,6 +149,5 @@ namespace aspect
     }
   }
 }
-
 
 #endif
