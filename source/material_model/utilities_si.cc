@@ -33,107 +33,110 @@ namespace aspect
     namespace MaterialUtilities
     {
 
-    // ---
-    ThermodynamicStateMarker::ThermodynamicStateMarker()
-    {
-      this->moving= false;
-    }
+      // ---
+      ThermodynamicStateMarker::ThermodynamicStateMarker()
+      {
+        this->moving= false;
+      }
 
-    // ---
-    ThermodynamicStateMarker::ThermodynamicStateMarker(bool moving)
-    {
-      this->moving= moving;
-    }
+      // ---
+      ThermodynamicStateMarker::ThermodynamicStateMarker(bool moving)
+      {
+        this->moving= moving;
+      }
 
-    // ---
-    bool ThermodynamicStateMarker::isMoving() const
-    {
-      return this->moving;
-    }
+      // ---
+      bool ThermodynamicStateMarker::isMoving() const
+      {
+        return this->moving;
+      }
 
-    // ---
-    bool ThermodynamicStateMarker::isFixed() const
-    {
-      return not this->moving;
-    }
+      // ---
+      bool ThermodynamicStateMarker::isFixed() const
+      {
+        return not this->moving;
+      }
 
-    PTStateMarker::PTStateMarker(): ThermodynamicStateMarker::ThermodynamicStateMarker()
-    {
-      //ThermodynamicStateMarker::ThermodynamicStateMarker();
+      PTStateMarker::PTStateMarker(): ThermodynamicStateMarker::ThermodynamicStateMarker()
+      {
+        //ThermodynamicStateMarker::ThermodynamicStateMarker();
 
-       this->temperature= this->pressure= std::numeric_limits<double>::max();
-    }
+         this->temperature= this->pressure= std::numeric_limits<double>::max();
+      }
 
-    PTStateMarker::PTStateMarker(double pressure, double temperature): ThermodynamicStateMarker::ThermodynamicStateMarker()
-    {
-      // ThermodynamicStateMarker::ThermodynamicStateMarker();
+      PTStateMarker::PTStateMarker(double pressure, double temperature): ThermodynamicStateMarker::ThermodynamicStateMarker()
+      {
+        // ThermodynamicStateMarker::ThermodynamicStateMarker();
 
-       this->pressure= pressure;
-       this->temperature= temperature;
-    }
+        this->pressure= pressure;
+        this->temperature= temperature;
+      }
 
-    PTStateMarker::PTStateMarker(double pressure, double temperature, bool moving):  ThermodynamicStateMarker::ThermodynamicStateMarker(moving)
-    {
-      //ThermodynamicStateMarker::ThermodynamicStateMarker(moving);
+      PTStateMarker::PTStateMarker(double pressure, double temperature, bool moving):  ThermodynamicStateMarker::ThermodynamicStateMarker(moving)
+      {
+        //ThermodynamicStateMarker::ThermodynamicStateMarker(moving);
 
-       AssertThrow(this->insideValidPressuresRange(pressure)," Invalid pressure -> " << pressure );
-       AssertThrow(this->insideValidTemperaturesRange(temperature)," Invalid temperature -> " << temperature );
+        //AssertThrow(this->insideValidPressuresRange(pressure)," Invalid pressure -> " + std::to_string(pressure) );
+        //AssertThrow(this->insideValidTemperaturesRange(temperature)," Invalid temperature -> " + std::to_string(temperature) );
 
-       this->pressure= pressure;
-       this->temperature= temperature;
-    }
+         this->pressure= pressure;
+         this->temperature= temperature;
+      }
 
-    double PTStateMarker::getPressure() const
-    {
-       return this->pressure;
-    }
+      double PTStateMarker::getPressure() const
+      {
+         return this->pressure;
+      }
 
-    double PTStateMarker::getTemperature() const
-    {
-       return this->temperature;
-    }
+      double PTStateMarker::getTemperature() const
+      {
+         return this->temperature;
+      }
 
-    bool PTStateMarker::insideValidPressuresRange(double pressure)
-    {
-      return (pressure < PTStateMarker::MAX_PRESSURE and pressure > PTStateMarker::MIN_PRESSURE);
-    }
+      bool PTStateMarker::insideValidPressuresRange(double pressure)
+      {
+        return (pressure < PTStateMarker::MAX_PRESSURE and pressure > PTStateMarker::MIN_PRESSURE);
+      }
 
-    bool PTStateMarker::insideValidTemperaturesRange(double temperature)
-    {
-      return (temperature < PTStateMarker::MAX_TEMPERATURE and temperature > PTStateMarker::MIN_TEMPERATURE);
-    }
+      bool PTStateMarker::insideValidTemperaturesRange(double temperature)
+      {
+        return (temperature < PTStateMarker::MAX_TEMPERATURE and temperature > PTStateMarker::MIN_TEMPERATURE);
+      }
 
-    bool PTStateMarker::insideValidPressuresRange() const
-    {
-       return (this->pressure < MAX_PRESSURE
-               and this->pressure > MIN_PRESSURE);
-    }
+      bool PTStateMarker::insideValidPressuresRange() const
+      {
+         return (this->pressure < MAX_PRESSURE
+                 and this->pressure > MIN_PRESSURE);
+      }
 
-    bool PTStateMarker::insideValidTemperaturesRange() const
-    {
-       return (this->temperature < MAX_TEMPERATURE
-               and this->temperature > MIN_TEMPERATURE);
-    }
+      bool PTStateMarker::insideValidTemperaturesRange() const
+      {
+         return (this->temperature < MAX_TEMPERATURE
+                 and this->temperature > MIN_TEMPERATURE);
+      }
 
-    bool PTStateMarker::insideValidPTRanges() const
-    {
-      return (this->insideValidPressuresRange() and this->insideValidTemperaturesRange());
-    }
+      bool PTStateMarker::insideValidPTRanges() const
+      {
+        return (this->insideValidPressuresRange() and this->insideValidTemperaturesRange());
+      }
 
-    ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope()
-    {
-      this->markersVertices= {};
-    }
+      ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope()
+      {
+        this->markersVertices= {};
+      }
 
-    bool ThermodynamicStateMarkersPolytope::pTAreInside(double pressure, double temperature) const
-    {
-       AssertThrow(PTStateMarker::insideValidPressuresRange(pressure)," Invalid pressure -> " << pressure );
-       AssertThrow(PTStateMarker::insideValidTemperaturesRange(temperature)," Invalid temperature -> " << temperature );
-
-       bool isInside= true;
-       
-       return isInside;
-    } 
+      //bool ThermodynamicStateMarkersPolytope::pTAreInside(double pressure, double temperature) const
+      //{
+      ////AssertThrow(PTStateMarker::insideValidPressuresRange(pressure)," Invalid pressure -> " + std::to_string(pressure) );
+      ////AssertThrow(PTStateMarker::insideValidTemperaturesRange(temperature)," Invalid temperature -> " + std::to_string(temperature) );
+      //
+      // bool isInside= true;
+      //
+      // // --- TODO: implement code!
+      //
+      // return isInside;
+      //}
+      
     } // --- namespace MaterialUtilities
   }
 }

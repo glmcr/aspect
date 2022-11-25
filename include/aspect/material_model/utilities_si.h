@@ -95,11 +95,11 @@ namespace aspect
 
            bool insideValidPTRanges() const;
 
-           bool insideValidPressuresRange() const;
-           bool insideValidTemperaturesRange() const;	
+	   bool insideValidPressuresRange() const;
+	   bool insideValidTemperaturesRange() const;	
 
-           static bool insideValidPressuresRange(double pressure);
-           static bool insideValidTemperaturesRange(double temperature);
+	  static bool insideValidPressuresRange(double pressure);
+	  static bool insideValidTemperaturesRange(double temperature);
 
         private:
 
@@ -151,8 +151,8 @@ namespace aspect
          std::vector<ThermodynamicStateMarker> markersVertices;
 
       }; // --- class ThermodynamicStateMarkersPolytope
-    }
-  }
-}
+    } // --- namespace MaterialUtilities
+  } // --- namespace MaterialModel
+} // --- namespace aspect
 
 #endif
