@@ -30,6 +30,8 @@ namespace aspect
 {
   namespace MaterialModel
   {
+    namespace MaterialUtilities
+    {
 
     // ---
     ThermodynamicStateMarker::ThermodynamicStateMarker()
@@ -134,7 +136,12 @@ namespace aspect
     {
        AssertThrow(PTStateMarker::insideValidPressuresRange(pressure)," Invalid pressure -> " << pressure );
        AssertThrow(PTStateMarker::insideValidTemparaturesRange(temperature)," Invalid temperature -> " << temperature );
-    }
+
+       bool isInside= true;
+       
+       return isInside;
+    } 
+    } // --- namespace MaterialUtilities
   }
 }
 

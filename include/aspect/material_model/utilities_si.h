@@ -34,6 +34,7 @@ namespace aspect
 
   namespace MaterialModel
   {
+    
     using namespace dealii;
 
     //template <int dim> struct MaterialModelOutputs;
@@ -44,9 +45,10 @@ namespace aspect
      * might be used in many different places in the material
      * model to prevent code duplication.
      */
+
     namespace MaterialUtilities
     {
-
+      
       // ---
       class ThermodynamicStateMarker
       {
