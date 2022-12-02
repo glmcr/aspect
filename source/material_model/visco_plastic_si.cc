@@ -41,7 +41,6 @@ namespace aspect
     }
 
 
-
     template <int dim>
     void
     ViscoPlasticSI<dim>::
@@ -117,7 +116,7 @@ namespace aspect
                      //     this reaction term (note the minus sign here)
                      out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
                  }
-               else // --- Apply the opposite rock type transformation if T > LAB_TEMPERATURE_IN_KELVINS
+               else // --- here T > LAB_TEMPERATURE_IN_KELVINS
                  {
 
                    const double lmt_2_ast_reaction_term= in.composition[i][oc_lith_mtl_idx];

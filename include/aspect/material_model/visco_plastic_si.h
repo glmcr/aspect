@@ -98,6 +98,10 @@ namespace aspect
         //inline
         static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
 
+        //// --- Oceanic lithos.  <-> asthenoshperic hybrid material
+        ////     (asth. flow law but OLM thermal cond)
+        //static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid";
+      
         // ---
         static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
 
