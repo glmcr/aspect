@@ -63,7 +63,7 @@ namespace aspect
 
       const unsigned int olm_asth_hybrid_idx=
 	this->introspection().compositional_index_for_name(OLM_ASTH_HYBRID_NID);
-	
+
       // --- Only apply the ad-hoc material changes if the simulator initialization
       //     is done.
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
@@ -88,7 +88,7 @@ namespace aspect
 	       //     gradient (i.e. we do not assume that their vertical components are
 	       //     always larger than their respective horizontal components)
 	       const bool decompression= (in.velocity[i] * in.pressure_gradient[i] < 0.0);
-	      
+
                // --- 1st ad-hoc material change (rock type transformation):
                //     asthenosphere becomes basaltic oceanic crust, lithospheric
 	       //     mantle or an hybrid between the two depending on the temperature,
@@ -131,24 +131,23 @@ namespace aspect
 
                         } // --- end inner if-else block
 		     }
-		   
-		   else // --- Here the material is undergoing cooling and compression -> no partial fusion 
-		     {
 
+		   else // --- Here the material is undergoing cooling and compression -> no partial fusion
+		     {
 		        // --- The asthenospheric mantle here become an hybrid rock material having the thermal cond.
 		        //     of the lithospheric mantle and having the asthenospheric mantle viscous flow law
                         out.reaction_terms[i][olm_asth_hybrid_idx]= ast_2_lmt_reaction_term;
-			
+
 		     } // --- end outer if-else block
-		   
-                     // --- And finally the asthenosphere composition (concentration) need to become zero
-                     //     at evaluation point i at the next time step because its local concentration
-                     //     has now been transferred to another rock material at the same evaluation point
-		     //     (note the usage of the minus sign here on the rhs for the assignation of the
-		     //      out.reaction_terms[i][asth_mtl_idx] on the lhs).
-                     out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
+
+                   // --- And finally the asthenosphere composition (concentration) need to become zero
+                   //     at evaluation point i at the next time step because its local concentration
+                   //     has now been transferred to another rock material at the same evaluation point
+		   //     (note the usage of the minus sign here on the rhs for the assignation of the
+		   //      out.reaction_terms[i][asth_mtl_idx] on the lhs).
+                   out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
                  }
-	       
+
                //else // --- here T > LAB_TEMPERATURE_IN_KELVINS
                //  {
                //
