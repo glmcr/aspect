@@ -98,9 +98,17 @@ namespace aspect
         //inline
         static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
 
-        //// --- Oceanic lithos.  <-> asthenoshperic hybrid material
-        ////     (asth. flow law but OLM thermal cond)
-        //static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid";
+        // --- Oceanic lithos.  <-> asthenoshperic hybrid material
+        //     (asth. flow law but OLM thermal cond. to parametrize
+        //     the conversion of convecting asth. mantle to lithospheric
+        //     mantle by cooling only i.e. not by partial fusion)
+        //     It does not exists at the beginning and is produced
+        //     when the asthenospheric material cools because of
+        //     the downward migration of the 1573K (1300C) isotherm
+        //     and the adiabatic heating is positive (implying
+        //     very slow downward material advection which would
+        //     be slower than the isotherm downward migration itself)
+        static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid";
       
         // ---
         static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
