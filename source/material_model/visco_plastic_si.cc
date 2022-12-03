@@ -31,7 +31,6 @@ namespace aspect
   namespace MaterialModel
   {
 
-
     template <int dim>
     bool
     ViscoPlasticSI<dim>::
@@ -51,17 +50,20 @@ namespace aspect
       ViscoPlastic<dim>::evaluate(in,out);
 
       // --- Now take care of the ad-hoc material changes
-      //     (i.e. rock type transformation depending only
-      //     on T or on both p and T)
-      const unsigned int asth_mtl_idx= this->introspection().
-           compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
+      //     (i.e. rock type transformation depending on
+      //     the dynamic and thermodynamic conditions)
+      const unsigned int asth_mtl_idx=
+	this->introspection().compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
-      const unsigned int oc_lith_mtl_idx= this->introspection().
-           compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
+      const unsigned int oc_lith_mtl_idx=
+	this->introspection().compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
 
-      const unsigned int oc_crust_idx= this->introspection().
-           compositional_index_for_name(OCEANIC_CRUST_NID);
+      const unsigned int oc_crust_idx=
+	this->introspection().compositional_index_for_name(OCEANIC_CRUST_NID);
 
+      const unsigned int olm_asth_hybrid_idx=
+	this->introspection().compositional_index_for_name(OLM_ASTH_HYBRID_NID);
+	
       // --- Only apply the ad-hoc material changes if the simulator initialization
       //     is done.
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
@@ -77,61 +79,92 @@ namespace aspect
 
                //this->get_pcout() << "ViscoPlasticSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl;
 
+               // --- Determine if the material is locally undergoing decompression or
+	       //     compression at this ith evaluation point. We are using the sign
+	       //     of the scalar product of the velocity and the pressure_gradient
+	       //     for doing so in an almost self-consistent manner. We have decompression
+	       //     if this scalar product is negative and compression if it is positive
+	       //     regardless of the respective orientations of the velocity and pressure
+	       //     gradient (i.e. we do not assume that their vertical components are
+	       //     always larger than their respective horizontal components)
+	       const bool decompression= (in.velocity[i] * in.pressure_gradient[i] < 0.0);
+	      
                // --- 1st ad-hoc material change (rock type transformation):
-               //     asthenosphere becomes lithospheric mantle
-               //     if the T of the former at location i is at or under LAB_TEMPERATURE_IN_KELVINS
+               //     asthenosphere becomes basaltic oceanic crust, lithospheric
+	       //     mantle or an hybrid between the two depending on the temperature,
+	       //     pressure, velocity direction and pressure gradient direction.
                if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS)
                  {
 
                    // ---
                    const double ast_2_lmt_reaction_term= in.composition[i][asth_mtl_idx];
 
-                   if (in.pressure[i] <= MOHO_PRESSURE_IN_PASCALS)
-                     {
+                   if (decompression)
+		     {
+		       // --- Within the parametrized ad-hoc SI context here the decompression implies that
+		       //     the asthenospheric mantle is undergoing partial fusion (even if the material is cooling)
+		       //     and the basaltic crust is then created (i.e. appears suddenly) if the local pressure is
+		       //     <= MOHO_PRESSURE_IN_PASCALS or the lithospheric mantle (harzburgite) is created here
+		       //     otherwise if the local pressure is > MOHO_PRESSURE_IN_PASCALS.
+                       if (in.pressure[i] <= MOHO_PRESSURE_IN_PASCALS)
+                         {
 
-                       // --- asth. transform to oc. crust via the out.reaction_terms
-                       out.reaction_terms[i][oc_crust_idx]= ast_2_lmt_reaction_term;
+                         // --- asth. transform to oc. crust via the out.reaction_terms
+                         out.reaction_terms[i][oc_crust_idx]= ast_2_lmt_reaction_term;
 
-                       // --- And the asthenosphere composition (concentration) will become zero at
-                       //     evaluation point i at the next time step because of the usage of
-                       //     this reaction term (note the minus sign here)
-                       //out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
+                         // --- And the asthenosphere composition (concentration) will become zero at
+                         //     evaluation point i at the next time step because of the usage of
+                         //     this reaction term (note the minus sign here)
+                         //out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
 
-                     }
-                   else
-                     {
+                        }
+		       else // --- local pressure is > MOHO_PRESSURE_IN_PASCALS
+                        {
 
-                       // --- asth. transform to Lithos. mantle via the out.reaction_terms
-                       out.reaction_terms[i][oc_lith_mtl_idx]= ast_2_lmt_reaction_term;
+                         // --- Here the SI ad-hoc parametrization implies that the asth. transform to Lithos.
+			 //     mantle (harzburgite) via the out.reaction_terms data vector.
+			 //     (In reality, the harzburgite is the solid residue of the partial
+			 //      fusion of the asthenospheric mantle which is dynamically accreted
+			 //      to the solid sides of the oceanic ridge or supra-subduction zone
+			 //      oceanic lithosphere).
+                         out.reaction_terms[i][oc_lith_mtl_idx]= ast_2_lmt_reaction_term;
 
-                       // --- And the asthenosphere composition (concentration) will become zero at
-                       //     evaluation point i at the next time step because of the usage of
-                       //     this reaction term (note the minus sign here)
-                       //out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
-                       //   -in.composition[i][asth_mtl_idx]; //* inv_current_time_step;
-                     }
+                        } // --- end inner if-else block
+		     }
+		   
+		   else // --- Here the material is undergoing cooling and compression -> no partial fusion 
+		     {
 
-                     // --- And the asthenosphere composition (concentration) will become zero at
-                     //     evaluation point i at the next time step because of the usage of
-                     //     this reaction term (note the minus sign here)
+		        // --- The asthenospheric mantle here become an hybrid rock material having the thermal cond.
+		        //     of the lithospheric mantle and having the asthenospheric mantle viscous flow law
+                        out.reaction_terms[i][olm_asth_hybrid_idx]= ast_2_lmt_reaction_term;
+			
+		     } // --- end outer if-else block
+		   
+                     // --- And finally the asthenosphere composition (concentration) need to become zero
+                     //     at evaluation point i at the next time step because its local concentration
+                     //     has now been transferred to another rock material at the same evaluation point
+		     //     (note the usage of the minus sign here on the rhs for the assignation of the
+		     //      out.reaction_terms[i][asth_mtl_idx] on the lhs).
                      out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
                  }
-               else // --- here T > LAB_TEMPERATURE_IN_KELVINS
-                 {
+	       
+               //else // --- here T > LAB_TEMPERATURE_IN_KELVINS
+               //  {
+               //
+               //    const double lmt_2_ast_reaction_term= in.composition[i][oc_lith_mtl_idx];
+               //
+               //    // --- Now the lithospheric mantle transform to asthenosphere at evaluation point i
+               //    //     (but only if in.composition[i][oc_lith_mtl_idx] > 0.0)
+               //    out.reaction_terms[i][asth_mtl_idx]= lmt_2_ast_reaction_term;
+               //       //in.composition[i][oc_lith_mtl_idx]; // * inv_current_time_step;
+               //
+               //    // --- And the lithospheric mantle disappear (if it was not 0.0!!)
+               //    //     at evaluation point i
+               //    out.reaction_terms[i][oc_lith_mtl_idx]= -lmt_2_ast_reaction_term;
+               //    //   -in.composition[i][oc_lith_mtl_idx]; // * inv_current_time_step;
 
-                   const double lmt_2_ast_reaction_term= in.composition[i][oc_lith_mtl_idx];
-
-                   // --- Now the lithospheric mantle transform to asthenosphere at evaluation point i
-                   //     (but only if in.composition[i][oc_lith_mtl_idx] > 0.0)
-                   out.reaction_terms[i][asth_mtl_idx]= lmt_2_ast_reaction_term;
-                      //in.composition[i][oc_lith_mtl_idx]; // * inv_current_time_step;
-
-                   // --- And the lithospheric mantle disappear (if it was not 0.0!!)
-                   //     at evaluation point i
-                   out.reaction_terms[i][oc_lith_mtl_idx]= -lmt_2_ast_reaction_term;
-                   //   -in.composition[i][oc_lith_mtl_idx]; // * inv_current_time_step;
-
-                 } // --- inner if-else block
+               //  } // --- inner if-else block
 
                // --- TODO: implement the lithospheric mantle -> basalt (one way only) material change
                //           when T>= 873 (moho T)
@@ -139,7 +172,7 @@ namespace aspect
                // --- 2nd and more complicated ad-hoc material change:
                //     basaltic material of the oceanic crust becomes eclogite.
 
-	  } // --- for loop block
+	  } // --- inner for loop block on  in.n_evaluation_points()
         } // --- outer if block
       } // --- method block
 
