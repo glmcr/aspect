@@ -79,15 +79,15 @@ namespace aspect
 
                //this->get_pcout() << "ViscoPlasticSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl;
 
-               // --- Determine if the material is locally undergoing decompression or
-	       //     compression at this ith evaluation point. We are using the sign
-	       //     of the scalar product of the velocity and the pressure_gradient
-	       //     for doing so in an almost self-consistent manner. We have decompression
-	       //     if this scalar product is negative and compression if it is positive
-	       //     regardless of the respective orientations of the velocity and pressure
-	       //     gradient (i.e. we do not assume that their vertical components are
-	       //     always larger than their respective horizontal components)
-	       const bool decompression= (in.velocity[i] * in.pressure_gradient[i] < 0.0);
+               //// --- Determine if the material is locally undergoing decompression or
+	       ////     compression at this ith evaluation point. We are using the sign
+	       ////     of the scalar product of the velocity and the pressure_gradient
+	       ////     for doing so in an almost self-consistent manner. We have decompression
+	       ////     if this scalar product is negative and compression if it is positive
+	       ////     regardless of the respective orientations of the velocity and pressure
+	       ////     gradient (i.e. we do not assume that their vertical components are
+	       ////     always larger than their respective horizontal components)
+	       //const bool decompression= (in.velocity[i] * in.pressure_gradient[i] < 0.0);
 
                // --- 1st ad-hoc material change (rock type transformation):
                //     asthenosphere becomes basaltic oceanic crust, lithospheric
@@ -96,8 +96,23 @@ namespace aspect
                if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS)
                  {
 
-                   // ---
-                   const double ast_2_lmt_reaction_term= in.composition[i][asth_mtl_idx];
+                   // --- Determine if the material is locally undergoing decompression or
+                   //     compression at this ith evaluation point. We are using the sign
+                   //     of the scalar product of the velocity and the pressure_gradient
+                   //     for doing so in an almost self-consistent manner. We have decompression
+                   //     if this scalar product is negative and compression if it is positive
+                   //     regardless of the respective orientations of the velocity and pressure
+                   //     gradient (i.e. we do not assume that their vertical components are
+                   //     always larger than their respective horizontal components)
+                   const bool decompression= (in.velocity[i] * in.pressure_gradient[i] < 0.0);
+
+                   // --- Get the asthenospheric composition value (if any, could be 0.0)
+                   const double ast_reaction_term= in.composition[i][asth_mtl_idx];
+
+                   // --- Also need to transform the hybrid material (if any) that was created
+                   //     with the asthenospheric mantle in compression conditions to the "normal"
+                   //     lithospheric mantle
+                   const double hyb_reaction_term= in.composition[i][olm_asth_hybrid_idx];
 
                    if (decompression)
 		     {
@@ -109,43 +124,55 @@ namespace aspect
                        if (in.pressure[i] <= MOHO_PRESSURE_IN_PASCALS)
                          {
 
-                         // --- asth. transform to oc. crust via the out.reaction_terms
-                         out.reaction_terms[i][oc_crust_idx]= ast_2_lmt_reaction_term;
+                         // --- Upwelling asth. mantle and hybrid material transform to oc. crust via
+                         //     the out.reaction_terms
+                         out.reaction_terms[i][oc_crust_idx]=
+                           ast_reaction_term + hyb_reaction_term;
 
-                         // --- And the asthenosphere composition (concentration) will become zero at
-                         //     evaluation point i at the next time step because of the usage of
-                         //     this reaction term (note the minus sign here)
-                         //out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
+                         //// --- hybrid material transformed to lithospheric mantle
+                         //out.reaction_terms[i][oc_lith_mtl_idx]= hyb_2_lmt_reaction_term;
 
                         }
 		       else // --- local pressure is > MOHO_PRESSURE_IN_PASCALS
                         {
 
-                         // --- Here the SI ad-hoc parametrization implies that the asth. transform to Lithos.
-			 //     mantle (harzburgite) via the out.reaction_terms data vector.
+                         // --- Here the SI ad-hoc parametrization implies that the asth. transform to
+                         //     the lithos. mantle (harzburgite) via the out.reaction_terms data vector.
 			 //     (In reality, the harzburgite is the solid residue of the partial
 			 //      fusion of the asthenospheric mantle which is dynamically accreted
 			 //      to the solid sides of the oceanic ridge or supra-subduction zone
-			 //      oceanic lithosphere).
-                         out.reaction_terms[i][oc_lith_mtl_idx]= ast_2_lmt_reaction_term;
+			 //      oceanic lithosphere). We also need to add the hybrid material
+                         //      since it is supposed to behave like asthenospheric material here.
+                         out.reaction_terms[i][oc_lith_mtl_idx]=
+                           ast_reaction_term + hyb_reaction_term;
 
                         } // --- end inner if-else block
+
+                        // --- Need to remove the hybrid material reaction term from
+                        //     itself here because it was used in one of the two above
+                        //     transformations (to oc. crust OR to lith. mantle).
+                        out.reaction_terms[i][olm_asth_hybrid_idx]= -hyb_reaction_term;
 		     }
 
 		   else // --- Here the material is undergoing cooling and compression -> no partial fusion
 		     {
 		        // --- The asthenospheric mantle here become an hybrid rock material having the thermal cond.
-		        //     of the lithospheric mantle and having the asthenospheric mantle viscous flow law
-                        out.reaction_terms[i][olm_asth_hybrid_idx]= ast_2_lmt_reaction_term;
+		        //     of the lithospheric mantle and having the asthenospheric mantle viscous flow law. We
+                        //     also suppose that this hybrid material has the same geochemistry as the
+                        //     asth. mantle. This seems to be going against the fact that the thermal cond.
+                        //     should increase when a material cools, not decrease.
+                        out.reaction_terms[i][olm_asth_hybrid_idx]= ast_reaction_term;
 
 		     } // --- end outer if-else block
 
-                   // --- And finally the asthenosphere composition (concentration) need to become zero
-                   //     at evaluation point i at the next time step because its local concentration
-                   //     has now been transferred to another rock material at the same evaluation point
-		   //     (note the usage of the minus sign here on the rhs for the assignation of the
-		   //      out.reaction_terms[i][asth_mtl_idx] on the lhs).
-                   out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
+                   // --- And finally the asthenospheric mantle composition (concentration) need to
+                   //     to become zero at this evaluation point i at the next time step because its
+                   //     concentration has now been transferred to another rock material (either oc. crust
+                   //     OR lith. mantle OR hybrid material) at the same evaluation point (Note the usage
+                   //     of the minus sign here on the rhs for the assignation of the out.reaction_terms[i][asth_mtl_idx]
+                   //     on the lhs).
+                   out.reaction_terms[i][asth_mtl_idx]= -ast_reaction_term;
+
                  }
 
                //else // --- here T > LAB_TEMPERATURE_IN_KELVINS
