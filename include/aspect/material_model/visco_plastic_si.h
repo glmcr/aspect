@@ -109,7 +109,7 @@ namespace aspect
         //     very slow downward material advection which would
         //     be slower than the isotherm downward migration itself)
         static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid";
-      
+
         // ---
         static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
 
@@ -130,6 +130,11 @@ namespace aspect
         //     (p<2.5Kb). Note that the temperature should also be <= LAB_TEMPERATURE_IN_KELVINS
         //     to allow those transformation to take place under an active oceanic ridge.
         static constexpr const double MOHO_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 2.5; //GPA_2_PASCALS * 0.25;
+
+        // --- Max. pressure at which oc. lith. mantle can be formed from
+        //     the solid residue (i.e. harzburgite) of the partial fusion
+        //     of the asth. mantle.
+        static constexpr const double OLM_MAX_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 9.5;
 
       //private:
       //
