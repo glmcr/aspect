@@ -110,6 +110,7 @@ namespace aspect
                    const double ast_reaction_term= in.composition[i][asth_mtl_idx];
 
                    // --- The asth. is not allowed to exist at T < LAB_TEMPERATURE_IN_KELVINS
+		   //     It will become 0.0 for the next time step.
                    out.reaction_terms[i][asth_mtl_idx]= -ast_reaction_term;
 
                    // --- Also we possibly need to transform the hybrid material (if any) that was created
@@ -187,7 +188,7 @@ namespace aspect
                    //     on the lhs).
                    //out.reaction_terms[i][asth_mtl_idx]= -ast_reaction_term;
 
-                 }  // --- end if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS) block
+	       }  // --- end if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS) block
 
                //else // --- here T > LAB_TEMPERATURE_IN_KELVINS
                //  {
