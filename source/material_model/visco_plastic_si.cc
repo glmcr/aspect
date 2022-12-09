@@ -116,7 +116,7 @@ namespace aspect
                    // --- Also we possibly need to transform the hybrid material (if any) that was created
                    //     with the asthenospheric mantle in compression conditions to the "normal"
                    //     lithospheric mantle OR oceanic crust
-                   const double hyb_reaction_term= in.composition[i][olm_asth_hybrid_idx];
+                   double hyb_reaction_term= in.composition[i][olm_asth_hybrid_idx];
 
 		   // --- Within the parametrized ad-hoc SI context here the decompression implies that
 		   //     the asthenospheric mantle is undergoing partial fusion (even if the material is cooling)
@@ -165,7 +165,7 @@ namespace aspect
                       //     first two above transformations (to oc. crust OR to lith. mantle).
                       //     But hyb_reaction_term could be zero if the 3rd transformation
                       //     need to be done.
-                      out.reaction_terms[i][olm_asth_hybrid_idx]= -hyb_reaction_term
+                      out.reaction_terms[i][olm_asth_hybrid_idx]= -hyb_reaction_term;
 
 		   //else // --- Here the material is undergoing cooling and compression -> no partial fusion
 		   //  {
