@@ -116,7 +116,7 @@ namespace aspect
                    // --- Also we possibly need to transform the hybrid material (if any) that was created
                    //     with the asthenospheric mantle in compression conditions to the "normal"
                    //     lithospheric mantle OR oceanic crust
-                   double hyb_reaction_term= in.composition[i][olm_asth_hybrid_idx];
+                   const double hyb_reaction_term= in.composition[i][olm_asth_hybrid_idx];
 
 		   // --- Within the parametrized ad-hoc SI context here the decompression implies that
 		   //     the asthenospheric mantle is undergoing partial fusion (even if the material is cooling)
@@ -126,37 +126,41 @@ namespace aspect
                    if (in.pressure[i] <= MOHO_PRESSURE_IN_PASCALS)
                      {
 
-                         // --- Upwelling asth. mantle and hybrid material transform to oc. crust via
-                         //     the out.reaction_terms
-                         out.reaction_terms[i][oc_crust_idx]=
-                           ast_reaction_term + hyb_reaction_term;
+                        // --- Upwelling asth. mantle and hybrid material transform to oc. crust via
+                        //     the out.reaction_terms
+                        out.reaction_terms[i][oc_crust_idx]=
+                          ast_reaction_term + hyb_reaction_term;
 
-                         //// --- hybrid material transformed to lithospheric mantle
-                         //out.reaction_terms[i][oc_lith_mtl_idx]= hyb_2_lmt_reaction_term;
+                        // --- hybrid material transformed to oceanic crust
+			//     it needs to be removed at ith evaluation point
+                        out.reaction_terms[i][olm_asth_hybrid_idx]= -hyb_reaction_term;
 
                      }
 		   else if (in.pressure[i] <= OLM_MAX_PRESSURE_IN_PASCALS)
                      {
 
-                      // --- Here the SI ad-hoc parametrization implies that the asth. transform to
-                      //     the lithos. mantle (harzburgite) via the out.reaction_terms data vector.
-	              //     (In reality, the harzburgite is the solid residue of the partial
-	              //      fusion of the asthenospheric mantle which is dynamically accreted
-	              //      to the solid sides of the oceanic ridge or supra-subduction zone
-		      //      oceanic lithosphere). We also need to add the hybrid material
-                      //      since it is supposed to behave like asthenospheric material here.
-                      out.reaction_terms[i][oc_lith_mtl_idx]=
-                        ast_reaction_term + hyb_reaction_term;
+                       // --- Here the SI ad-hoc parametrization implies that the asth. transform to
+                       //     the lithos. mantle (harzburgite) via the out.reaction_terms data vector.
+	               //     (In reality, the harzburgite is the solid residue of the partial
+	               //      fusion of the asthenospheric mantle which is dynamically accreted
+	               //      to the solid sides of the oceanic ridge or supra-subduction zone
+		       //      oceanic lithosphere). We also need to add the hybrid material
+                       //      since it is supposed to behave like asthenospheric material here.
+                       out.reaction_terms[i][oc_lith_mtl_idx]=
+                         ast_reaction_term + hyb_reaction_term;
+                      
+		       out.reaction_terms[i][olm_asth_hybrid_idx]= -hyb_reaction_term;
+		       
                      }
                     else
                       {
-                        // ---  pressure > OLM_MAX_PRESSURE_IN_PASCALS.
+                        // --- pressure > OLM_MAX_PRESSURE_IN_PASCALS.
                         //     No partial fusion, asth. becomes the hybrid material here.
                         out.reaction_terms[i][olm_asth_hybrid_idx]= ast_reaction_term;
 
-                        // --- Since there is no loss of the hybrid material here
-                        //     then its reaction term need to be zero.
-                        hyb_reaction_term= 0.0;
+                        /// --- Since there is no loss of the hybrid material here
+                        ////     then its reaction term need to be zero.
+                        //hyb_reaction_term= 0.0;
 
                       } // --- end inner if-else block
 
@@ -165,7 +169,7 @@ namespace aspect
                       //     first two above transformations (to oc. crust OR to lith. mantle).
                       //     But hyb_reaction_term could be zero if the 3rd transformation
                       //     need to be done.
-                      out.reaction_terms[i][olm_asth_hybrid_idx]= -hyb_reaction_term;
+                      //out.reaction_terms[i][olm_asth_hybrid_idx]= -hyb_reaction_term;
 
 		   //else // --- Here the material is undergoing cooling and compression -> no partial fusion
 		   //  {
