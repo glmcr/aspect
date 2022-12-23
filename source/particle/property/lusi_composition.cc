@@ -43,12 +43,102 @@ namespace aspect
                                                  const std::vector<Tensor<1,dim>> &/*gradients*/,
                                                  typename ParticleHandler<dim>::particle_iterator &particle) const
       {
-        for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
+
+	// --- Now take care of the ad-hoc material changes
+        //     (i.e. rock type transformation depending on
+        //     the dynamic and thermodynamic conditions)
+        const unsigned int asth_mtl_idx=
+          this->introspection().compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
+
+        const unsigned int lith_mtl_idx=
+          this->introspection().compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
+
+        const unsigned int oc_crust_idx=
+          this->introspection().compositional_index_for_name(OCEANIC_CRUST_NID);
+
+        const unsigned int olm_asth_hybrid_idx=
+          this->introspection().compositional_index_for_name(OLM_ASTH_HYBRID_NID);
+
+	const double pressure_here= \
+	  solution[this->introspection().component_indices.pressure];
+
+	const double temperature_here= \
+	  solution[this->introspection().component_indices.temperature];	
+
+	//--- pointer shortcut to the particle->get_properties()[data_position]
+	//
+        //ArrayView<double> part_compo_prop= particle->get_properties()[data_position];
+        //double* part_compo_prop= particle->get_properties().data();// [data_position];
+	double* part_compo_props= &particle->get_properties().data()[data_position];
+	
+        if (temperature_here <= LAB_TEMPERATURE_IN_KELVINS)
           {
-            const unsigned int solution_component = this->introspection().component_indices.compositional_fields[i];
-            //particle->get_properties()[data_position+i] = solution[solution_component];
-          }
-      }
+	    if (pressure_here <= MOHO_PRESSURE_IN_PASCALS)
+	      {
+		 //--- asthenosphere and-or hybrid material transforms to basaltic oceanic crust
+		 particle->get_properties()[data_position+oc_crust_idx]=
+		   particle->get_properties()[data_position+asth_mtl_idx] +
+		     particle->get_properties()[data_position+olm_asth_hybrid_idx];
+
+		   //--- Set the asthenosphere and hybrid material to 0.0
+		   //   since their compositions have been transferred to oceanic crust
+		   particle->get_properties()[data_position+asth_mtl_idx]=
+		     particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;
+		   
+	      }
+            else if (pressure_here<= OLM_MAX_PRESSURE_IN_PASCALS)
+              {
+		//--- asthenosphere and-or hybrid material transforms to (oceanic or continental)
+		//    lithos. mantle
+		particle->get_properties()[data_position+lith_mtl_idx]=
+		  particle->get_properties()[data_position+asth_mtl_idx] +
+		    particle->get_properties()[data_position+olm_asth_hybrid_idx];
+
+		//--- Set the asthenosphere and hybrid material to 0.0
+		//    since their compositions have been transferred to
+		//    the lithos. mantle
+		particle->get_properties()[data_position+asth_mtl_idx]=
+		  particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;  
+		  
+	      }
+	    else 
+	      {
+		
+		//--- asthenosphere transforms to the hybrid material
+                particle->get_properties()[data_position+olm_asth_hybrid_idx]=
+		  particle->get_properties()[data_position+asth_mtl_idx];
+
+		//--- Set the asthenosphere to 0.0 since its composition has been
+		//    transferred to the bybrid material.
+		particle->get_properties()[data_position+asth_mtl_idx]= 0.0;  
+		  
+	      }
+	  } //--- if (temperature_here <= LAB_TEMPERATURE_IN_KELVINS)
+	
+	else
+          {
+	    //--- Here T > LAB_TEMPERATURE_IN_KELVINS so the hybrid material is
+	    //    transforming back to asthenosphere whatever the pressure.
+	    
+	    //--- asthenosphere transforms to the hybrid material
+            particle->get_properties()[data_position+asth_mtl_idx]=
+	      particle->get_properties()[data_position+olm_asth_hybrid_idx];
+
+	    //--- Set the hybrid material property to 0.0 since its composition has been
+	    //    transferred to the bybrid material.
+	    particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;  
+	  }
+	   
+        //for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
+        //  {
+        //    const unsigned int solution_component=
+	//      this->introspection().component_indices.compositional_fields[i];
+        //
+	//      
+	//    //particle->get_properties()[data_position+i] = solution[solution_component];
+        //  }
+	
+      } //--- update_particle_property
 
       template <int dim>
       UpdateTimeFlags

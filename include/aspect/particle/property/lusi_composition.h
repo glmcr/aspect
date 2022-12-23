@@ -91,6 +91,53 @@ namespace aspect
            */
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override;
+	
+	  // ---
+          //inline
+          static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
+
+          // ---
+          //inline
+          static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
+
+          // --- Oceanic lithos.  <-> asthenoshperic hybrid material
+          //     (asth. flow law but OLM thermal cond. to parametrize
+          //     the conversion of convecting asth. mantle to lithospheric
+          //     mantle by cooling only i.e. not by partial fusion)
+          //     It does not exists at the beginning and is produced
+          //     when the asthenospheric material cools because of
+          //     the downward migration of the 1573K (1300C) isotherm
+          //     and the adiabatic heating is positive (implying
+          //     very slow downward material advection which would
+          //     be slower than the isotherm downward migration itself)
+          static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid";
+
+          // ---
+          static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+
+          // --- Lithosphere <-> asthenosphere T boundary
+          static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
+
+          // ---
+          static constexpr const double GPA_2_PASCALS= 1e9;
+
+          static constexpr const double KBARS_2_GPA= 0.1;
+
+          static constexpr const double KBARS_2_PASCALS= KBARS_2_GPA*GPA_2_PASCALS;
+
+          // --- ~2.5Kb is the lithostatic pressure at the oceanic moho depth (~7km)
+          //     It is used to separate the transformation of the upwelling asthenosphere
+          //     to lithospheric mantle (p>2.5Kb, Harzburgite) from the transformation
+          //     of the asthenosphere to the basalts-gabbros of the oceanic crust
+          //     (p<2.5Kb). Note that the temperature should also be <= LAB_TEMPERATURE_IN_KELVINS
+          //     to allow those transformation to take place under an active oceanic ridge.
+          static constexpr const double MOHO_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 2.5; //GPA_2_PASCALS * 0.25;
+
+          // --- Max. pressure at which oc. lith. mantle can be formed from
+          //     the solid residue (i.e. harzburgite) of the partial fusion
+          //     of the asth. mantle.
+          static constexpr const double OLM_MAX_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 9.5;
+	
       };
     }
   }
