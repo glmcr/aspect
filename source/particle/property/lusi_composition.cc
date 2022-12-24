@@ -194,22 +194,24 @@ namespace aspect
       LUSIComposition<dim>::get_property_information() const
       {
 
-        return Composition<dim>::get_property_information();
+        AssertThrow(this->n_compositional_fields() > 0,
+                    ExcMessage("You have requested the particle property <lusi "
+                               "composition>, but the number of compositional fields is 0. "
+                               "Please add compositional fields to your model, or remove "
+                               "this particle property."));
 
-        //AssertThrow(this->n_compositional_fields() > 0,
-        //            ExcMessage("You have requested the particle property <composition>, "
-        //                       "but the number of compositional fields is 0. "
-        //                       "Please add compositional fields to your model, or remove "
-        //                       "this particle property."));
-        //std::vector<std::pair<std::string,unsigned int>> property_information;
-        //for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
-        //  {
-        //    const std::string field_name = this->introspection().name_for_compositional_index(i);
-        //    property_information.emplace_back(field_name,1);
-        //  }
-        //return property_information;
+        std::vector<std::pair<std::string,unsigned int>> property_information;
+
+        for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
+          {
+            std::ostringstream field_name;
+            field_name << "lusi " << this->introspection().name_for_compositional_index(i);
+            property_information.emplace_back(field_name.str(),1);
+          }
+
+        return property_information;
+
       }
-
     }
   }
 }
