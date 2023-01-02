@@ -137,6 +137,9 @@ namespace aspect
           //     the solid residue (i.e. harzburgite) of the partial fusion
           //     of the asth. mantle.
           static constexpr const double OLM_MAX_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 9.5;
+
+	  // --- Approx lithos. pressure of a 1.5km column of oceanic sediments.
+	  static constexpr const double SURF_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
 	
       };
     }

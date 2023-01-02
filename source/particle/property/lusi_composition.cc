@@ -72,8 +72,14 @@ namespace aspect
 	double* const part_compo_props= &particle->get_properties().data()[data_position];
 	
         if (temperature_here <= LAB_TEMPERATURE_IN_KELVINS)
-          { 
-	    if (pressure_here <= MOHO_PRESSURE_IN_PASCALS)
+          {
+            if (pressure_here < SURF_PRESSURE_THRESHOLD_IN_PASCALS)
+	      {
+		// --- Add an oceanic sediments particle at y+1.0 meters over the current particle (x,y) position
+
+		
+              }		
+	    else if (pressure_here <= MOHO_PRESSURE_IN_PASCALS)
 	      {
 		 //--- asthenosphere and-or hybrid material transforms to basaltic oceanic crust
 		 //particle->get_properties()[data_position+oc_crust_idx]=
@@ -146,7 +152,7 @@ namespace aspect
 	else
           {
 	    //--- Here T > LAB_TEMPERATURE_IN_KELVINS so the hybrid material is
-	    //    transforming back to asthenosphere whatever the pressure.
+	    //    transforming back to asthenosphere whatever the pressure is.
 	    
 	    //--- asthenosphere transforms to the hybrid material
             //particle->get_properties()[data_position+asth_mtl_idx]=
