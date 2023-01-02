@@ -63,22 +63,23 @@ namespace aspect
 	  solution[this->introspection().component_indices.pressure];
 
 	const double temperature_here= \
-	  solution[this->introspection().component_indices.temperature];	
+	  solution[this->introspection().component_indices.temperature];
 
 	//--- pointer shortcut to the particle->get_properties()[data_position]
 	//
 	//double* const __restrict__ part_compo_props= &particle->get_properties().data()[data_position];
         //double* const part_compo_props= &particle->get_properties().data()[data_position];
 	double* const part_compo_props= &particle->get_properties().data()[data_position];
-	
+
         if (temperature_here <= LAB_TEMPERATURE_IN_KELVINS)
           {
             if (pressure_here < SURF_PRESSURE_THRESHOLD_IN_PASCALS)
 	      {
-		// --- Add an oceanic sediments particle at y+1.0 meters over the current particle (x,y) position
-
-		
-              }		
+		// --- Add oceanic sediments composition to the particles properties when p < SURF_PRESSURE_THRESHOLD_IN_PASCALS
+                //     (particle y position must be in a top FE grid cell at such a low pressure) and when its oceanic seds compo is
+		//     < 0.75 to ensure that all the top FE cells have a significant proportion of this material to help with the
+                //     lubrication at the subduction trench location.
+              }
 	    else if (pressure_here <= MOHO_PRESSURE_IN_PASCALS)
 	      {
 		 //--- asthenosphere and-or hybrid material transforms to basaltic oceanic crust
