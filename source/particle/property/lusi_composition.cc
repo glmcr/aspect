@@ -58,10 +58,10 @@ namespace aspect
 
         const unsigned int olm_asth_hybrid_idx=
           this->introspection().compositional_index_for_name(OLM_ASTH_HYBRID_NID);
-	
+
         const unsigned int oc_seds_idx=
           this->introspection().compositional_index_for_name(OCEANIC_SEDS_NID);
-	
+
 	const double pressure_here= \
 	  solution[this->introspection().component_indices.pressure];
 
@@ -88,11 +88,9 @@ namespace aspect
 		     part_compo_props[lith_mtl_idx] > 0.1 ||
 		     part_compo_props[olm_asth_hybrid_idx] > 0.1)
 		  {
-		    part_compo_props[oc_seds_idx] += 0.75;
-
-		    //--- Keeping compo prop between 0.0 and 1.0
+		    //--- Keeping oc. seds compo prop between 0.75 and 1.0
                     part_compo_props[oc_seds_idx]=
-		      std::max(0.0,std::min(1.0,part_compo_props[oc_seds_idx]));
+		      std::max(0.75,std::min(1.0,part_compo_props[oc_seds_idx]));
 		  }
               }
 	    else if (pressure_here <= MOHO_PRESSURE_IN_PASCALS)
