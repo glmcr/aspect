@@ -114,7 +114,10 @@ namespace aspect
 
           // ---
           static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
-
+  
+          // ---
+          static constexpr const char* OCEANIC_SEDS_NID= "oceanicSeds";
+	
           // --- Lithosphere <-> asthenosphere T boundary
           static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
 
