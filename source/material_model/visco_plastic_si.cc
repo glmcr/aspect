@@ -41,7 +41,6 @@ namespace aspect
     }
 
 
-
     template <int dim>
     void
     ViscoPlasticSI<dim>::
@@ -58,7 +57,7 @@ namespace aspect
            compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
       const unsigned int oc_lith_mtl_idx= this->introspection().
-           compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
+           compositional_index_for_name(OCEANIC_LITHOSPHERIC_MANTLE_NID);
 
       const unsigned int oc_crust_idx= this->introspection().
            compositional_index_for_name(OCEANIC_CRUST_NID);
@@ -84,9 +83,14 @@ namespace aspect
                if (in.temperature[i] <= LAB_TEMPERATURE_IN_KELVINS)
                  {
 
-                   // ---
-                   const double ast_2_lmt_reaction_term= in.composition[i][asth_mtl_idx];
+		   if (in.pressure[i] <= SURF_PRESSURE_THRESHOLD_IN_PASCALS)
+		     {
+		       if 
+		     }
 
+                   // --- Mat. changes (a-la-SOPALE) section
+                   const double ast_2_lmt_reaction_term= in.composition[i][asth_mtl_idx];
+                
                    if (in.pressure[i] <= MOHO_PRESSURE_IN_PASCALS)
                      {
 
@@ -99,7 +103,7 @@ namespace aspect
                        //out.reaction_terms[i][asth_mtl_idx]= -ast_2_lmt_reaction_term;
 
                      }
-                   else
+                   else if (in.pressure[i] <= ASTH_2_OLM_MAX_PRESSURE_IN_PASCALS)
                      {
 
                        // --- asth. transform to Lithos. mantle via the out.reaction_terms

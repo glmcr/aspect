@@ -91,16 +91,25 @@ namespace aspect
         is_yielding (const MaterialModelInputs<dim> &in) const;
 
         // ---
-        //inline
-        static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
+        static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "AAUM";
 
         // ---
-        //inline
-        static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
+        static constexpr const char* OCEANIC_LITHOSPHERIC_MANTLE_NID= "SOLM";
+
+        static constexpr const char* CONT_LITHOSPHERIC_MANTLE_NID= "SCLM";
+
+        // ---                                           
+        static constexpr const char* OCEANIC_CRUST_NID= "oceanicUppCrust";
 
         // ---
-        static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+        static constexpr const char* OCEANIC_SEDIMENTS_NID= "oceanicSeds";
 
+        // ---
+        static constexpr const char* CONT_UPP_CRUST_NID= "contUppCrust";
+
+        // ---
+        static constexpr const char* CONT_LOW_CRUST_NID= "contLowCrust";
+      
         // --- Lithosphere <-> asthenosphere T boundary
         static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
 
@@ -119,6 +128,14 @@ namespace aspect
         //     to allow those transformation to take place under an active oceanic ridge.
         static constexpr const double MOHO_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 2.5; //GPA_2_PASCALS * 0.25;
 
+        // --- Max. pressure at which oc. lith. mantle can be formed from
+        //     the solid residue (i.e. harzburgite) of the partial fusion
+        //     of the asth. mantle.
+        static constexpr const double ASTH_2_OLM_MAX_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 9.5;
+
+        // --- Approx lithos. pressure of a 1.5km column of oceanic sediments.
+        static constexpr const double SURF_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
+      
       //private:
       //
       //  /**
