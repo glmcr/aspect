@@ -94,29 +94,38 @@ namespace aspect
 	
 	  // ---
           //inline
-          static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
+          static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "AAUM";
 
           // ---
           //inline
-          static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
+          static constexpr const char* OCEANIC_LITHOSPHERIC_MANTLE_NID= "SOLM";
 
-          // --- Oceanic lithos.  <-> asthenoshperic hybrid material
-          //     (asth. flow law but OLM thermal cond. to parametrize
-          //     the conversion of convecting asth. mantle to lithospheric
-          //     mantle by cooling only i.e. not by partial fusion)
-          //     It does not exists at the beginning and is produced
-          //     when the asthenospheric material cools because of
-          //     the downward migration of the 1573K (1300C) isotherm
-          //     and the adiabatic heating is positive (implying
-          //     very slow downward material advection which would
-          //     be slower than the isotherm downward migration itself)
-          static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid";
+          static constexpr const char* CONT_LITHOSPHERIC_MANTLE_NID= "SCLM";
+
+	  //// NO NEED FOR THIS HYBRID MATERIAL FOR THE BB-EPSL-2017 SETUP FOR NOW
+          //// --- Oceanic lithos.  <-> asthenoshperic hybrid material
+          ////     (asth. flow law but OLM thermal cond. to parametrize
+          ////     the conversion of convecting asth. mantle to lithospheric
+          ////     mantle by cooling only i.e. not by partial fusion)
+          ////     It does not exists at the beginning and is produced
+          ////     when the asthenospheric material cools because of
+          ////     the downward migration of the 1573K (1300C) isotherm
+          ////     and the adiabatic heating is positive (implying
+          ////     very slow downward material advection which would
+          ////     be slower than the isotherm downward migration itself)
+          //static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid";
 
           // ---
-          static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+          static constexpr const char* OCEANIC_CRUST_NID= "oceanicUppCrust";
   
           // ---
           static constexpr const char* OCEANIC_SEDS_NID= "oceanicSeds";
+
+          // ---
+          static constexpr const char* CONT_UPP_CRUST_NID= "contUppCrust";
+
+	  // ---
+          static constexpr const char* CONT_LOW_CRUST_NID= "contLowCrust";
 	
           // --- Lithosphere <-> asthenosphere T boundary
           static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
