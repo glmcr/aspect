@@ -184,7 +184,7 @@ namespace aspect
 	      std::max(0.0,std::min(1.0,part_compo_props[asth_mtl_idx]));		    
 
 	    //--- Set the hybrid material property to 0.0 since its composition has been
-	    //    transferred to the bybrid material.
+	    //    transferred to the asthenospheric material.
 	    //particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;
 	    part_compo_props[olm_asth_hybrid_idx]= 0.0;  
 	  }
