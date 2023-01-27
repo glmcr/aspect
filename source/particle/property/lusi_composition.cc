@@ -45,7 +45,7 @@ namespace aspect
       {
 
 	// --- Use the super class method to be sure to update the strain accumulator fields (if any)
-	Composition<dim>::update_particle_property(data_position,solution,gradients,particle)
+	Composition<dim>::update_particle_property(data_position,solution,gradients,particle);
 
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
