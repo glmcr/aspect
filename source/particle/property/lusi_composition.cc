@@ -40,9 +40,12 @@ namespace aspect
       void
       LUSIComposition<dim>::update_particle_property(const unsigned int data_position,
                                                  const Vector<double> &solution,
-                                                 const std::vector<Tensor<1,dim>> &/*gradients*/,
+                                                 const std::vector<Tensor<1,dim>> &gradients,
                                                  typename ParticleHandler<dim>::particle_iterator &particle) const
       {
+
+	// --- Use the super class method to be sure to update the strain accumulator fields (if any)
+	Composition<dim>::update_particle_property(data_position,solution,gradients,particle)
 
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
@@ -185,15 +188,6 @@ namespace aspect
 	    //particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;
 	    part_compo_props[olm_asth_hybrid_idx]= 0.0;  
 	  }
-	   
-        //for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
-        //  {
-        //    const unsigned int solution_component=
-	//      this->introspection().component_indices.compositional_fields[i];
-        //
-	//      
-	//    //particle->get_properties()[data_position+i] = solution[solution_component];
-        //  }
 	
       } //--- update_particle_property
 
