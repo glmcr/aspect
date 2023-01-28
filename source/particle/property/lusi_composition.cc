@@ -56,8 +56,8 @@ namespace aspect
         const unsigned int oc_crust_idx=
           this->introspection().compositional_index_for_name(OCEANIC_CRUST_NID);
 
-        const unsigned int olm_asth_hybrid_idx=
-          this->introspection().compositional_index_for_name(OLM_ASTH_HYBRID_NID);
+        //const unsigned int olm_asth_hybrid_idx=
+        //  this->introspection().compositional_index_for_name(OLM_ASTH_HYBRID_NID);
 
         const unsigned int oc_seds_idx=
           this->introspection().compositional_index_for_name(OCEANIC_SEDS_NID);
@@ -85,14 +85,14 @@ namespace aspect
                 //     lubrication at the subduction trench location.
 
 		if ( part_compo_props[oc_crust_idx] > 0.1 ||
-		     part_compo_props[lith_mtl_idx] > 0.1 ||
-		     part_compo_props[olm_asth_hybrid_idx] > 0.1)
+		     part_compo_props[lith_mtl_idx] > 0.1 ) //||
+		     //part_compo_props[olm_asth_hybrid_idx] > 0.1)
 		  {
-		    part_compo_props[oc_seds_idx] += 1.5; //0.75;
+		    part_compo_props[oc_seds_idx] += 0.75; //+= 1.5; //0.75;
 
-		    //--- Keeping oc. seds compo prop between 1.0 and 1.5 here.
+		    //--- Keeping oc. seds compo prop between 0.75 and 1.0 here.
                     part_compo_props[oc_seds_idx]=
-		      std::max(1.0,std::min(1.5,part_compo_props[oc_seds_idx]));
+		      std::max(0.75,std::min(1.0,part_compo_props[oc_seds_idx]));
 		  }
               }
 	    else if (pressure_here <= MOHO_PRESSURE_IN_PASCALS)
@@ -103,8 +103,8 @@ namespace aspect
 		 //    particle->get_properties()[data_position+olm_asth_hybrid_idx];
 
 		 part_compo_props[oc_crust_idx] +=
-	           part_compo_props[asth_mtl_idx] +
-		     part_compo_props[olm_asth_hybrid_idx];
+	           part_compo_props[asth_mtl_idx]; //+
+                   //part_compo_props[olm_asth_hybrid_idx];
 
 		 //--- Keeping compo prop between 0.0 and 1.0
                  part_compo_props[oc_crust_idx]=
@@ -115,22 +115,22 @@ namespace aspect
 		 //particle->get_properties()[data_position+asth_mtl_idx]=
 		 //  particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;
 
-		 part_compo_props[asth_mtl_idx]=
-		   part_compo_props[olm_asth_hybrid_idx]= 0.0;
+		 part_compo_props[asth_mtl_idx]= 0.0;
+                 //part_compo_props[olm_asth_hybrid_idx]= 0.0;
 		   
 	      }
             else if (pressure_here<= OLM_MAX_PRESSURE_IN_PASCALS)
               {
 		
-		//--- asthenosphere and-or hybrid material transforms to (oceanic or continental)
-		//    lithos. mantle
+		//--- asthenosphere and-or hybrid material transforms to oceanic
+		//    lithos. mantle (harzburgite)
 		//particle->get_properties()[data_position+lith_mtl_idx]=
 		//  particle->get_properties()[data_position+asth_mtl_idx] +
 		//    particle->get_properties()[data_position+olm_asth_hybrid_idx];
 		
 		 part_compo_props[lith_mtl_idx] +=
-	           part_compo_props[asth_mtl_idx] +
-		     part_compo_props[olm_asth_hybrid_idx];
+	           part_compo_props[asth_mtl_idx]; //+
+                   //part_compo_props[olm_asth_hybrid_idx];
 
 		 //--- Keeping compo prop between 0.0 and 1.0
                  part_compo_props[lith_mtl_idx]=
@@ -141,60 +141,51 @@ namespace aspect
 		//    the lithos. mantle
 		//particle->get_properties()[data_position+asth_mtl_idx]=
 		//  particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;  
-		part_compo_props[asth_mtl_idx]=
-		  part_compo_props[olm_asth_hybrid_idx] = 0.0;
+                 part_compo_props[asth_mtl_idx]= 0.0;
+                 //part_compo_props[olm_asth_hybrid_idx] = 0.0;
 		
 	      }
-	    else 
-	      {
+                //else 
+                //{
+		//
+		////--- asthenosphere transforms to the hybrid material
+                ////particle->get_properties()[data_position+olm_asth_hybrid_idx]=
+		////  particle->get_properties()[data_position+asth_mtl_idx];
+                //part_compo_props[olm_asth_hybrid_idx] += part_compo_props[asth_mtl_idx];
+                //
+		// //--- Keeping compo prop between 0.0 and 1.0
+                // part_compo_props[olm_asth_hybrid_idx]=
+		//   std::max(0.0,std::min(1.0,part_compo_props[olm_asth_hybrid_idx]));		
 		
-		//--- asthenosphere transforms to the hybrid material
-                //particle->get_properties()[data_position+olm_asth_hybrid_idx]=
-		//  particle->get_properties()[data_position+asth_mtl_idx];
-                part_compo_props[olm_asth_hybrid_idx] += part_compo_props[asth_mtl_idx];
-
-		 //--- Keeping compo prop between 0.0 and 1.0
-                 part_compo_props[olm_asth_hybrid_idx]=
-		   std::max(0.0,std::min(1.0,part_compo_props[olm_asth_hybrid_idx]));		
-		
-		//--- Set the asthenosphere to 0.0 since its composition has been
-		//    transferred to the bybrid material.
-		//particle->get_properties()[data_position+asth_mtl_idx]= 0.0;  
-		part_compo_props[asth_mtl_idx]= 0.0;
-		
-	      }
+		////--- Set the asthenosphere to 0.0 since its composition has been
+		////    transferred to the bybrid material.
+		////particle->get_properties()[data_position+asth_mtl_idx]= 0.0;  
+		//part_compo_props[asth_mtl_idx]= 0.0;	
+                //}
+            
 	  } //--- if (temperature_here <= LAB_TEMPERATURE_IN_KELVINS)
 	
-	else
-          {
-	    //--- Here T > LAB_TEMPERATURE_IN_KELVINS so the hybrid material is
-	    //    transforming back to asthenosphere whatever the pressure is.
-	    
-	    //--- asthenosphere transforms to the hybrid material
-            //particle->get_properties()[data_position+asth_mtl_idx]=
-	    //  particle->get_properties()[data_position+olm_asth_hybrid_idx];
-	    part_compo_props[asth_mtl_idx] +=
-	      part_compo_props[olm_asth_hybrid_idx];
-
-	    //--- Keeping compo prop between 0.0 and 1.0
-            part_compo_props[asth_mtl_idx]=
-	      std::max(0.0,std::min(1.0,part_compo_props[asth_mtl_idx]));		    
-
-	    //--- Set the hybrid material property to 0.0 since its composition has been
-	    //    transferred to the bybrid material.
-	    //particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;
-	    part_compo_props[olm_asth_hybrid_idx]= 0.0;  
-	  }
-	   
-        //for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
+	//else
         //  {
-        //    const unsigned int solution_component=
-	//      this->introspection().component_indices.compositional_fields[i];
+	//    //--- Here T > LAB_TEMPERATURE_IN_KELVINS so the hybrid material is
+	//    //    transforming back to asthenosphere whatever the pressure is.
+	//    
+	//    //--- asthenosphere transforms to the hybrid material
+        //    //particle->get_properties()[data_position+asth_mtl_idx]=
+	//    //  particle->get_properties()[data_position+olm_asth_hybrid_idx];
+	//    part_compo_props[asth_mtl_idx] +=
+	//      part_compo_props[olm_asth_hybrid_idx];
         //
-	//      
-	//    //particle->get_properties()[data_position+i] = solution[solution_component];
-        //  }
-	
+	//    //--- Keeping compo prop between 0.0 and 1.0
+        //    part_compo_props[asth_mtl_idx]=
+	//      std::max(0.0,std::min(1.0,part_compo_props[asth_mtl_idx]));		    
+        //
+	//    //--- Set the hybrid material property to 0.0 since its composition has been
+	//    //    transferred to the bybrid material.
+	//    //particle->get_properties()[data_position+olm_asth_hybrid_idx]= 0.0;
+	//    part_compo_props[olm_asth_hybrid_idx]= 0.0;  
+	//  }
+	   
       } //--- update_particle_property
 
       template <int dim>
