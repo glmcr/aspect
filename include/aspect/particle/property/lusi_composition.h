@@ -91,7 +91,7 @@ namespace aspect
            */
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override;
-	
+
 	  // ---
           //inline
           static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "AAUM";
@@ -117,7 +117,7 @@ namespace aspect
 
           // ---
           static constexpr const char* OCEANIC_CRUST_NID= "oceanicUppCrust";
-  
+
           // ---
           static constexpr const char* OCEANIC_SEDS_NID= "oceanicSeds";
 
@@ -126,7 +126,7 @@ namespace aspect
 
 	  // ---
           static constexpr const char* CONT_LOW_CRUST_NID= "contLowCrust";
-	
+
           // --- Lithosphere <-> asthenosphere T boundary
           static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
 
@@ -152,7 +152,7 @@ namespace aspect
 
 	  // --- Approx lithos. pressure of a 1.5km column of oceanic sediments.
 	  static constexpr const double SURF_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
-	
+
       };
     }
   }
