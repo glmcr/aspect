@@ -231,6 +231,8 @@ namespace aspect
         bool
         is_yielding (const MaterialModelInputs<dim> &in) const;
 
+        const EquationOfState::MulticomponentIncompressible<dim> &equation_of_state_constref= equation_of_state;
+
       private:
 
         /**

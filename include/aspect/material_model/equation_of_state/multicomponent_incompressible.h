@@ -95,6 +95,9 @@ namespace aspect
           parse_parameters (ParameterHandler &prm,
                             const std::unique_ptr<std::vector<unsigned int>> &expected_n_phases_per_composition = nullptr);
 
+	  const std::vector<double> &densities_constref= densities;
+	  const std::vector<double> &thermal_expansivities_constref= thermal_expansivities;
+
         private:
           /**
            * Vector of reference densities $\rho_0$ with one entry per composition and phase plus one
