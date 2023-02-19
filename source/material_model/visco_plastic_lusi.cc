@@ -57,13 +57,25 @@ namespace aspect
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
         {
 
+          const ComponentMask volumetric_compositions = rheology->get_volumetric_composition_mask();
+
           const EquationOfState::MulticomponentIncompressible<dim> eos_cref= this->equation_of_state_constref;
 
           const double reference_T_cref= eos_cref.reference_T_constref;
           
           const std::vector<double> densities_cref= eos_cref.densities_constref;
           const std::vector<double> thermal_expansivities_cref= eos_cref.thermal_expansivities_constref;
-  
+
+          //EquationOfStateOutputs<dim> eos_out; //(this->n_compositional_fields()+1);
+          //eos_out.specific_heat_capacities= eos_cref.specific_heats;
+
+          std::vector<double> densities(eos_cref.densities);
+          std::vector<double> thermal_expansion_coefficients(eos_out.thermal_expansion_coefficients);
+          
+          //eos_out.compressibilities= std::vector<double>(this->n_compositional_fields()+1,0.0);
+          //eos_out.entropy_derivative_pressure= std::vector<double>(this->n_compositional_fields()+1,0.0);
+          //eos_out.entropy_derivative_temperature= std::vector<double>(this->n_compositional_fields()+1,0.0);
+            
           // --- No need to use this->get_timestep() here
           //     (It's only relevant for the reaction rates it seems)
           //const double inv_current_time_step= 1.0/this->get_timestep();
@@ -86,11 +98,27 @@ namespace aspect
                    const double thExpFact= 1.0 +
                        (in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
        
-		   out.densities[asth_mtl_idx]= densities_cref[asth_mtl_idx] *
-                       (1 - thExpFact*thermal_expansivities_cref[asth_mtl_idx] * (in.temperature[i] - reference_temperature));
+		   //out.densities[asth_mtl_idx]= densities_cref[asth_mtl_idx] *
+                   thermal_expansion_coefficients[asth_mtl_idx]= 
+                        thExpFact*thermal_expansivities_cref[asth_mtl_idx];
                    
-		   out.densities[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
-                       (1 - thExpFact*thermal_expansivities_cref[oc_lith_mtl_idx] * (in.temperature[i] - reference_temperature));
+                   densities[asth_mtl_idx]=  
+                      (1 - thermal_expansion_coefficients[asth_mtl_idx]* (in.temperature[i] - reference_temperature));
+                   
+		   //out.densities[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
+                   thermal_expansion_coefficients[oc_lith_mtl_idx]=
+                       thExpFact*thermal_expansivities_cref[oc_lith_mtl_idx];
+                   
+                   densities[oc_lith_mtl_idx]=
+                    (1 -  thermal_expansion_coefficients[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
+
+                   const std::vector<double> volume_fractions =
+                     MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions);
+
+                   out.densities[i] = MaterialUtilities::average_value (volume_fractions, densities, MaterialUtilities::arithmetic);
+                   
+                   out.thermal_expansion_coefficients[i]=
+                      MaterialUtilities::average_value (volume_fractions, thermal_expansion_coefficients, MaterialUtilities::arithmetic);
                    
 		 }
             } // --- inner for loop

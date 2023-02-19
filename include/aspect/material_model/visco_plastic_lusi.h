@@ -41,8 +41,8 @@ namespace aspect
     {
       public:
 
-        void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-                      MaterialModel::MaterialModelOutputs<dim> &out) const override;
+      void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+                    MaterialModel::MaterialModelOutputs<dim> &out) const override;
         // /**
         //  * Return whether the model is compressible or not.  Incompressibility
         //  * does not necessarily imply that the density is constant; rather, it
