@@ -97,6 +97,7 @@ namespace aspect
 
 	  const std::vector<double> &densities_constref= densities;
 	  const std::vector<double> &thermal_expansivities_constref= thermal_expansivities;
+          const double &reference_T_constref= reference_T;
 
         private:
           /**

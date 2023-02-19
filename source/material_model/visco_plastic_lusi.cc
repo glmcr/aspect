@@ -44,19 +44,26 @@ namespace aspect
       //     (i.e. rock type transformation depending only
       //     on T or on both p and T)
       const unsigned int asth_mtl_idx= this->introspection().
-           compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
+                         compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
       const unsigned int oc_lith_mtl_idx= this->introspection().
-           compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
+                         compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
 
-      const unsigned int oc_crust_idx= this->introspection().
-           compositional_index_for_name(OCEANIC_CRUST_NID);
+      //const unsigned int oc_crust_idx= this->introspection().
+      //                   compositional_index_for_name(OCEANIC_CRUST_NID);
 
       // --- Only apply the ad-hoc material changes if the simulator initialization
       //     is done.
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
         {
 
+          const EquationOfState::MulticomponentIncompressible<dim> eos_cref= this->equation_of_state_constref;
+
+          const double reference_T_cref= eos_cref.reference_T_constref;
+          
+          const std::vector<double> densities_cref= eos_cref.densities_constref;
+          const std::vector<double> thermal_expansivities_cref= eos_cref.thermal_expansivities_constref;
+  
           // --- No need to use this->get_timestep() here
           //     (It's only relevant for the reaction rates it seems)
           //const double inv_current_time_step= 1.0/this->get_timestep();
@@ -64,13 +71,29 @@ namespace aspect
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
             {
-
                //this->get_pcout() << "ViscoPlasticSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl;
                if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD)
                  {
 
-		   
+                   // If adiabatic heating is used, the reference temperature used to calculate density should be the adiabatic
+                   // temperature at the current position. This definition is consistent with the Extended Boussinesq Approximation.
+                   const double reference_temperature = (this->include_adiabatic_heating()
+                                                         ?
+                                                         this->get_adiabatic_conditions().temperature(in.position[i])
+                                                         :
+                                                         reference_T_cref);
+       
+                   const double thExpFact= 1.0 +
+                       (in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
+       
+		   out.densities[asth_mtl_idx]= densities_cref[asth_mtl_idx] *
+                       (1 - thExpFact*thermal_expansivities_cref[asth_mtl_idx] * (in.temperature[i] - reference_temperature));
+                   
+		   out.densities[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
+                       (1 - thExpFact*thermal_expansivities_cref[oc_lith_mtl_idx] * (in.temperature[i] - reference_temperature));
+                   
 		 }
+            } // --- inner for loop
         } // --- outer if block
     } // --- method block
   }

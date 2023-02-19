@@ -26,7 +26,7 @@
 #include <aspect/material_model/visco_plastic.h>
 //#include <aspect/material_model/equation_of_state/multicomponent_incompressible_lusi.h>
 //#include <aspect/material_model/rheology/visco_plastic.h>
-#include <aspect/material_model/utilities_si.h>
+//#include <aspect/material_model/utilities_si.h>
 
 #include<deal.II/fe/component_mask.h>
 
@@ -91,17 +91,20 @@ namespace aspect
 
         // // ---
         // //inline
-        // static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
+        static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
 
         // // ---
         // //inline
-        // static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
+        static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
 
         // // ---
-        // static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+        static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
 
-        // static constexpr const double THERMAL_EXP_LOW_T_IN_K_THRESHOLD= 500.0;
-        // static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
+        static constexpr const double THERMAL_EXP_LOW_T_IN_K_THRESHOLD= 500.0;
+        static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
+
+        static constexpr const double THERMAL_EXP_T_IN_K_THRD_FACT=
+          0.22/(THERMAL_EXP_UPP_T_IN_K_THRESHOLD-THERMAL_EXP_LOW_T_IN_K_THRESHOLD);
       
       //private:
       //
