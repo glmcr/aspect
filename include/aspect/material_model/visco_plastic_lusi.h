@@ -24,10 +24,6 @@
 #include <aspect/simulator_access.h>
 #include <aspect/material_model/interface.h>
 #include <aspect/material_model/visco_plastic.h>
-//#include <aspect/material_model/equation_of_state/multicomponent_incompressible_lusi.h>
-//#include <aspect/material_model/rheology/visco_plastic.h>
-//#include <aspect/material_model/utilities_si.h>
-
 #include<deal.II/fe/component_mask.h>
 
 namespace aspect
@@ -37,7 +33,7 @@ namespace aspect
     using namespace dealii;
 
     template <int dim>
-    class ViscoPlasticLUSI : public MaterialModel::ViscoPlastic<dim> //, public ::aspect::SimulatorAccess<dim>
+    class ViscoPlasticLUSI : public MaterialModel::ViscoPlastic<dim>
     {
       public:
 
