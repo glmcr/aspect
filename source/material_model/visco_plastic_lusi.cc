@@ -67,8 +67,8 @@ namespace aspect
 
           //EquationOfStateOutputs<dim> eos_out();
 	  
-          std::vector<double> densities(eos_cref.densities_constref);
-          std::vector<double> thermal_expansivities(eos_cref.thermal_expansivities_constref);
+          std::vector<double> densities_local(eos_cref.densities_constref);
+          std::vector<double> thermal_expansivities_local(eos_cref.thermal_expansivities_constref);
           
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
@@ -88,25 +88,26 @@ namespace aspect
                    const double thExpFact= 1.0 +
                        (in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
        
-                   thermal_expansivities[asth_mtl_idx]= 
+                   thermal_expansivities_local[asth_mtl_idx]= 
                         thExpFact*thermal_expansivities_cref[asth_mtl_idx];
                    
-                   densities[asth_mtl_idx]=  
-                      (1 - thermal_expansivities[asth_mtl_idx]* (in.temperature[i] - reference_temperature));
+                   densities_local[asth_mtl_idx]= densities_cref[asth_mtl_idx] *
+                      (1 - thermal_expansivities_local[asth_mtl_idx]* (in.temperature[i] - reference_temperature));
                    
-                   thermal_expansivities[oc_lith_mtl_idx]=
+                   thermal_expansivities_local[oc_lith_mtl_idx]=
                        thExpFact*thermal_expansivities_cref[oc_lith_mtl_idx];
                    
-                   densities[oc_lith_mtl_idx]=
-                    (1 - thermal_expansivities[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
+                   densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
+                    (1 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
                    const std::vector<double> volume_fractions =
                      MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions);
 
-                   out.densities[i] = MaterialUtilities::average_value (volume_fractions, densities, MaterialUtilities::arithmetic);
+                   out.densities[i]=
+		      MaterialUtilities::average_value (volume_fractions, densities_local, MaterialUtilities::arithmetic);
                    
                    out.thermal_expansion_coefficients[i]=
-                      MaterialUtilities::average_value (volume_fractions, thermal_expansivities, MaterialUtilities::arithmetic);         
+                      MaterialUtilities::average_value (volume_fractions, thermal_expansivities_local, MaterialUtilities::arithmetic);         
 		 }
             } // --- inner for loop
         } // --- outer if block
