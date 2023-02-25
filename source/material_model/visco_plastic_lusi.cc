@@ -73,7 +73,8 @@ namespace aspect
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
             {
-               //this->get_pcout() << "ViscoPlasticSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl;
+               this->get_pcout() << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl;
+	       
                if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD)
                  {
 
@@ -90,15 +91,21 @@ namespace aspect
        
                    thermal_expansivities_local[asth_mtl_idx]= 
                         thExpFact*thermal_expansivities_cref[asth_mtl_idx];
+
+		   this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[asth_mtl_idx]= " << thermal_expansivities_cref[asth_mtl_idx] << std::endl;
+		   this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[asth_mtl_idx]= " << thermal_expansivities_local[asth_mtl_idx] << std::endl;
                    
                    densities_local[asth_mtl_idx]= densities_cref[asth_mtl_idx] *
-                      (1 - thermal_expansivities_local[asth_mtl_idx]* (in.temperature[i] - reference_temperature));
-                   
+                      (1.0 - thermal_expansivities_local[asth_mtl_idx]* (in.temperature[i] - reference_temperature));
+		   
                    thermal_expansivities_local[oc_lith_mtl_idx]=
                        thExpFact*thermal_expansivities_cref[oc_lith_mtl_idx];
+
+		   this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[oc_lith_mtl_idx]= " << thermal_expansivities_cref[oc_lith_mtl_idx] << std::endl;
+		   this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[oc_lith_mtl_idx]= " << thermal_expansivities_local[oc_lith_mtl_idx] << std::endl;		   
                    
                    densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
-                    (1 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
+                    (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
                    const std::vector<double> volume_fractions =
                      MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions);
