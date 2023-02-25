@@ -40,17 +40,18 @@ namespace aspect
 
       ViscoPlastic<dim>::evaluate(in,out);
 
-      // --- Now take care of the ad-hoc material changes
-      //     (i.e. rock type transformation depending only
-      //     on T or on both p and T)
+      // --- ***IMPORTANT*** Need to add one to the indices
+      //     since the material models properties arrays are always using
+      //     a background field at index 0 so the compositions indices
+      //     are shifted by one in the material models properties arrays
       const unsigned int asth_mtl_idx= this->introspection().
-                         compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
+                         compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID) + 1;
 
       const unsigned int oc_lith_mtl_idx= this->introspection().
-                         compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
+                         compositional_index_for_name(LITHOSPHERIC_MANTLE_NID) + 1;
 
       //const unsigned int oc_crust_idx= this->introspection().
-      //                   compositional_index_for_name(OCEANIC_CRUST_NID);
+      //                   compositional_index_for_name(OCEANIC_CRUST_NID) + 1;
 
       // --- Only apply the ad-hoc material changes if the simulator initialization
       //     is done.
@@ -70,40 +71,51 @@ namespace aspect
           std::vector<double> densities_local(eos_cref.densities_constref);
           std::vector<double> thermal_expansivities_local(eos_cref.thermal_expansivities_constref);
           
+          const double reference_temperature = reference_T_cref;
+
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
             {
-               this->get_pcout() << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl;
-	       
+               //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl ;
+
                if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD)
                  {
 
+                   //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= "
+                   //                  << in.temperature[i] << std::endl ;
+
                    // If adiabatic heating is used, the reference temperature used to calculate density should be the adiabatic
                    // temperature at the current position. This definition is consistent with the Extended Boussinesq Approximation.
-                   const double reference_temperature = (this->include_adiabatic_heating()
-                                                         ?
-                                                         this->get_adiabatic_conditions().temperature(in.position[i])
-                                                         :
-                                                         reference_T_cref);
-       
+                   //const double reference_temperature = (this->include_adiabatic_heating()
+                   //                                      ?
+                   //                                      this->get_adiabatic_conditions().temperature(in.position[i])
+                   //                                      :
+                   //                                      reference_T_cref);
+
+                   //this->get_pcout() << "ViscoPlasticLUSI:: reference_temperature=" << reference_temperature << std::endl ;
+
                    const double thExpFact= 1.0 +
                        (in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
-       
-                   thermal_expansivities_local[asth_mtl_idx]= 
+
+                   thermal_expansivities_local[asth_mtl_idx]=
                         thExpFact*thermal_expansivities_cref[asth_mtl_idx];
 
-		   this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[asth_mtl_idx]= " << thermal_expansivities_cref[asth_mtl_idx] << std::endl;
-		   this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[asth_mtl_idx]= " << thermal_expansivities_local[asth_mtl_idx] << std::endl;
-                   
+		   //this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[asth_mtl_idx]= "
+                   //                  << thermal_expansivities_cref[asth_mtl_idx] << std::endl;
+		   //this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[asth_mtl_idx]= "
+                   //                  << thermal_expansivities_local[asth_mtl_idx] << std::endl;
+
                    densities_local[asth_mtl_idx]= densities_cref[asth_mtl_idx] *
-                      (1.0 - thermal_expansivities_local[asth_mtl_idx]* (in.temperature[i] - reference_temperature));
-		   
+                      (1.0 - thermal_expansivities_local[asth_mtl_idx] * (in.temperature[i] - reference_temperature));
+
                    thermal_expansivities_local[oc_lith_mtl_idx]=
                        thExpFact*thermal_expansivities_cref[oc_lith_mtl_idx];
 
-		   this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[oc_lith_mtl_idx]= " << thermal_expansivities_cref[oc_lith_mtl_idx] << std::endl;
-		   this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[oc_lith_mtl_idx]= " << thermal_expansivities_local[oc_lith_mtl_idx] << std::endl;		   
-                   
+		   //this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[oc_lith_mtl_idx]= "
+                   //                  << thermal_expansivities_cref[oc_lith_mtl_idx] << std::endl;
+		   //this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[oc_lith_mtl_idx]= "
+                   //                  << thermal_expansivities_local[oc_lith_mtl_idx] << std::endl << std::endl;
+
                    densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
                     (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
@@ -112,9 +124,27 @@ namespace aspect
 
                    out.densities[i]=
 		      MaterialUtilities::average_value (volume_fractions, densities_local, MaterialUtilities::arithmetic);
-                   
+
                    out.thermal_expansion_coefficients[i]=
-                      MaterialUtilities::average_value (volume_fractions, thermal_expansivities_local, MaterialUtilities::arithmetic);         
+                      MaterialUtilities::average_value (volume_fractions, thermal_expansivities_local, MaterialUtilities::arithmetic);
+
+                   //if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < 1600) {
+                   //  this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= "
+                   //                  << in.temperature[i] << std::endl ;
+                   //  this->get_pcout() << "asth_mtl_idx=" << asth_mtl_idx << std::endl ;
+                   //  this->get_pcout() << "oc_lith_mtl_idx=" << oc_lith_mtl_idx << std::endl ;
+                   //  this->get_pcout() << "oc_crust_idx=" << oc_crust_idx << std::endl ;
+                   //  this->get_pcout() << "ViscoPlasticLUSI:: reference_temperature="
+                   //                     << reference_temperature << std::endl ;
+                   //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[asth_mtl_idx]= "
+                   //                  << thermal_expansivities_cref[asth_mtl_idx] << std::endl;
+                   //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[asth_mtl_idx]= "
+                   //                  << thermal_expansivities_local[asth_mtl_idx] << std::endl;
+                   //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[oc_lith_mtl_idx]= "
+                   //                    << thermal_expansivities_cref[oc_lith_mtl_idx] << std::endl;
+                   //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[oc_lith_mtl_idx]= "
+                   //                  << thermal_expansivities_local[oc_lith_mtl_idx] << std::endl << std::endl;
+                   //}
 		 }
             } // --- inner for loop
         } // --- outer if block
