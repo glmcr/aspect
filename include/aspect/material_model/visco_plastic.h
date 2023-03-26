@@ -239,6 +239,8 @@ namespace aspect
 
         std::unique_ptr<Rheology::ViscoPlastic<dim>> rheology;
 
+        std::vector<double> thermal_diffusivities;
+      
       private:
 
         /**
@@ -254,7 +256,7 @@ namespace aspect
          */
         //std::unique_ptr<Rheology::ViscoPlastic<dim>> rheology;
 
-        std::vector<double> thermal_diffusivities;
+        //std::vector<double> thermal_diffusivities;
 
         /**
          * Whether to use user-defined thermal conductivities instead of thermal diffusivities.

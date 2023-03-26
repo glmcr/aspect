@@ -76,7 +76,11 @@ namespace aspect
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
             {
+
                //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl ;
+
+	       const std::vector<double> volume_fractions= MaterialUtilities::
+		     compute_composition_fractions(in.composition[i], volumetric_compositions);
 
                if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD)
                  {
@@ -119,8 +123,9 @@ namespace aspect
                    densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
                     (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
-                   const std::vector<double> volume_fractions =
-                     MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions);
+		   // moved up before this if block:
+                   //const std::vector<double> volume_fractions =
+                   //  MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions);
 
                    out.densities[i]=
 		      MaterialUtilities::average_value (volume_fractions, densities_local, MaterialUtilities::arithmetic);
@@ -145,7 +150,27 @@ namespace aspect
                    //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[oc_lith_mtl_idx]= "
                    //                  << thermal_expansivities_local[oc_lith_mtl_idx] << std::endl << std::endl;
                    //}
-		 }
+		 } // --- if block for thermal exp. dependance on T
+           
+	       if ( in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD) {
+
+		 double thermal_diffusivity= 0.0;
+
+		 for (unsigned int j=0; j < volume_fractions.size(); ++j) {
+                    thermal_diffusivity += volume_fractions[j] * this->thermal_diffusivities[j];
+                 }
+
+		 // --- NOTE: We assume here that the reference T is 273K
+		 //     Limit the thDiffFactor between 1.0 and 0.25
+		 const double thDiffFactor=
+		   std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.25));
+		 
+		 thermal_diffusivity *= thDiffFactor ;
+
+		 out.thermal_conductivities[i]= thermal_diffusivity * out.specific_heat[i] * out.densities[i];
+		 
+	       } // --- end if block for thermal cond. dependance on T
+	       
             } // --- inner for loop
         } // --- outer if block
     } // --- method block

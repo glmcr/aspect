@@ -102,6 +102,15 @@ namespace aspect
         static constexpr const double THERMAL_EXP_T_IN_K_THRD_FACT=
           0.22/(THERMAL_EXP_UPP_T_IN_K_THRESHOLD-THERMAL_EXP_LOW_T_IN_K_THRESHOLD);
       
+        // --- Factor to apply to the thermal diff. to parametrize its dependance on
+        //     the temperature. Note that the thermal cond. is already depending on
+        //     the material density (which itself depends on the temperature) for the
+        //     visco-plastic material but we want to have the thermal cond. depending
+        //     on both the density AND the thermal diff.
+        //     NOTE: We assume here that the reference T is 273K
+        //           1573K is the T threshold for the asth. vs lith. mantle limit.
+        static constexpr const double THERMAL_DIFF_T_IN_K_FACT= 1.0/(2.0*(1573.0-273.0));
+      
       //private:
       //
       //  /**
