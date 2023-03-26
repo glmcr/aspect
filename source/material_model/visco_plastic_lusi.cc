@@ -161,9 +161,9 @@ namespace aspect
                  }
 
 		 // --- NOTE: We assume here that the reference T is 273K
-		 //     Limit the thDiffFactor between 1.0 and 0.25
+		 //     Limit the thDiffFactor between 1.0 and 0.45
 		 const double thDiffFactor=
-		   std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.25));
+		   std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.45));
 		 
 		 thermal_diffusivity *= thDiffFactor ;
 
