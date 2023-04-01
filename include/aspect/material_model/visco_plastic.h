@@ -231,6 +231,16 @@ namespace aspect
         bool
         is_yielding (const MaterialModelInputs<dim> &in) const;
 
+        const EquationOfState::MulticomponentIncompressible<dim> &equation_of_state_constref= equation_of_state;
+
+        const std::unique_ptr<Rheology::ViscoPlastic<dim>> &rheology_constref= rheology;
+
+      protected:
+
+        std::unique_ptr<Rheology::ViscoPlastic<dim>> rheology;
+
+        std::vector<double> thermal_diffusivities;
+      
       private:
 
         /**
@@ -244,9 +254,9 @@ namespace aspect
          * contains further objects and/or pointers to objects that provide
          * functions and parameters for all subordinate rheologies.
          */
-        std::unique_ptr<Rheology::ViscoPlastic<dim>> rheology;
+        //std::unique_ptr<Rheology::ViscoPlastic<dim>> rheology;
 
-        std::vector<double> thermal_diffusivities;
+        //std::vector<double> thermal_diffusivities;
 
         /**
          * Whether to use user-defined thermal conductivities instead of thermal diffusivities.
