@@ -32,10 +32,11 @@ namespace aspect
 {
   //template <int dim> class SimulatorAccess;
 
-  namespace Particles
+  namespace Particle
   {
 
-    //using namespace dealii;
+     //using namespace dealii;
+     //using namespace dealii::Particles;
 
     //template <int dim> struct MaterialModelOutputs;
     //template <int dim> struct EquationOfStateOutputs;
@@ -46,8 +47,10 @@ namespace aspect
      * related code to prevent code duplication.
      */
 
-    namespace ParticlesUtilities
+    namespace ParticleUtilities
     {
+
+      //static inline double crossProd2D(
 
       // ---
       class ThermodynamicStateMarker
@@ -90,16 +93,16 @@ namespace aspect
            PTStateMarker(double pressure, double temperature);
            PTStateMarker(double pressure, double temperature, bool moving);
 
-           double getPressure() const;
-           double getTemperature() const;
+	double getPressure() const { return pressure; };
+	double getTemperature() const { return temperature; };
 
            bool insideValidPTRanges() const;
 
 	   bool insideValidPressuresRange() const;
 	   bool insideValidTemperaturesRange() const;
 
-	  static bool insideValidPressuresRange(double pressure);
-	  static bool insideValidTemperaturesRange(double temperature);
+	   static bool insideValidPressuresRange(double pressure);
+	   static bool insideValidTemperaturesRange(double temperature);
 
         private:
 
@@ -151,8 +154,14 @@ namespace aspect
          std::vector<ThermodynamicStateMarker> markersVertices;
 
       }; // --- class ThermodynamicStateMarkersPolytope
-    } // --- namespace ParticlesUtilities
-  } // --- namespace Particles
+
+      static inline double PTStateMarkerCrossProd(const PTStateMarker& PTSM1, const PTStateMarker& PTSM2) {
+
+	return PTSM1.getTemperature() * PTSM2.getPressure() - PTSM2.getTemperature() * PTSM1.getPressure();
+      }
+	
+    } // --- namespace ParticleUtilities
+  } // --- namespace Particle
 } // --- namespace aspect
 
 #endif

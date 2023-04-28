@@ -18,7 +18,7 @@
   <http://www.gnu.org/licenses/>.
 */
 
-#include <aspect/particles/utilities_lusi.h>
+#include <aspect/particle/utilities_lusi.h>
 //#include <aspect/utilities.h>
 //#include <deal.II/fe/fe_values.h>
 #include <deal.II/base/signaling_nan.h>
@@ -28,9 +28,9 @@
 
 namespace aspect
 {
-  namespace Particles
+  namespace Particle
   {
-    namespace ParticlesUtilities
+    namespace ParticleUtilities
     {
 
       // ---
@@ -83,15 +83,17 @@ namespace aspect
          this->temperature= temperature;
       }
 
-      double PTStateMarker::getPressure() const
-      {
-         return this->pressure;
-      }
+      // inlined in include file
+      //double PTStateMarker::getPressure() const
+      //{
+      //   return this->pressure;
+      //}
 
-      double PTStateMarker::getTemperature() const
-      {
-         return this->temperature;
-      }
+      // inlined in include file
+      //double PTStateMarker::getTemperature() const
+      //{
+      // return this->temperature;
+      //}
 
       bool PTStateMarker::insideValidPressuresRange(double pressure)
       {

@@ -19,6 +19,8 @@
  */
 
 
+#include <aspect/particle/utilities_lusi.h>
+//#include <aspect/initial_composition/interface.h>
 #include <aspect/particle/property/lusi_composition.h>
 #include <aspect/initial_composition/interface.h>
 
