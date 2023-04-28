@@ -88,11 +88,11 @@ namespace aspect
 		     part_compo_props[lith_mtl_idx] > 0.1 ) //||
 		     //part_compo_props[olm_asth_hybrid_idx] > 0.1)
 		  {
-		    part_compo_props[oc_seds_idx] += 0.75; //+= 1.5; //0.75;
+		    part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
 
-		    //--- Keeping oc. seds compo prop between 0.75 and 1.0 here.
+		    //--- Keeping oc. seds compo prop between 0.25 and 0.5 here.
                     part_compo_props[oc_seds_idx]=
-		      std::max(0.75,std::min(1.0,part_compo_props[oc_seds_idx]));
+		      std::max(0.25,std::min(0.5,part_compo_props[oc_seds_idx]));
 		  }
               }
 	    else if (pressure_here <= MOHO_PRESSURE_IN_PASCALS)
