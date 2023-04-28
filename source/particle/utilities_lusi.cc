@@ -18,7 +18,7 @@
   <http://www.gnu.org/licenses/>.
 */
 
-#include <aspect/material_model/utilities_si.h>
+#include <aspect/particles/utilities_lusi.h>
 //#include <aspect/utilities.h>
 //#include <deal.II/fe/fe_values.h>
 #include <deal.II/base/signaling_nan.h>
@@ -28,9 +28,9 @@
 
 namespace aspect
 {
-  namespace MaterialModel
+  namespace Particles
   {
-    namespace MaterialUtilities
+    namespace ParticlesUtilities
     {
 
       // ---
@@ -136,7 +136,7 @@ namespace aspect
       //
       // return isInside;
       //}
-      
+
     } // --- namespace MaterialUtilities
   }
 }

@@ -18,37 +18,37 @@
   <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _aspect_material_model_utilities_si_h
-#define _aspect_material_model_utilities_si_h
+#ifndef _aspect_particles_utilities_lusi_h
+#define _aspect_particles_utilities_lusi_h
 
 #include <aspect/global.h>
 #include <deal.II/base/point.h>
-#include <deal.II/base/symmetric_tensor.h>
-#include <deal.II/fe/component_mask.h>
-#include <deal.II/base/signaling_nan.h>
-#include <deal.II/base/parameter_handler.h>
+//#include <deal.II/base/symmetric_tensor.h>
+//#include <deal.II/fe/component_mask.h>
+//#include <deal.II/base/signaling_nan.h>
+//#include <deal.II/base/parameter_handler.h>
 
 namespace aspect
 {
   //template <int dim> class SimulatorAccess;
 
-  namespace MaterialModel
+  namespace Particles
   {
-    
-    using namespace dealii;
+
+    //using namespace dealii;
 
     //template <int dim> struct MaterialModelOutputs;
     //template <int dim> struct EquationOfStateOutputs;
 
     /**
      * A namespace in which we define utility functions that
-     * might be used in many different places in the material
-     * model to prevent code duplication.
+     * might be used in many different places by the particles
+     * related code to prevent code duplication.
      */
 
-    namespace MaterialUtilities
+    namespace ParticlesUtilities
     {
-      
+
       // ---
       class ThermodynamicStateMarker
       {
@@ -96,7 +96,7 @@ namespace aspect
            bool insideValidPTRanges() const;
 
 	   bool insideValidPressuresRange() const;
-	   bool insideValidTemperaturesRange() const;	
+	   bool insideValidTemperaturesRange() const;
 
 	  static bool insideValidPressuresRange(double pressure);
 	  static bool insideValidTemperaturesRange(double temperature);
@@ -151,8 +151,8 @@ namespace aspect
          std::vector<ThermodynamicStateMarker> markersVertices;
 
       }; // --- class ThermodynamicStateMarkersPolytope
-    } // --- namespace MaterialUtilities
-  } // --- namespace MaterialModel
+    } // --- namespace ParticlesUtilities
+  } // --- namespace Particles
 } // --- namespace aspect
 
 #endif
