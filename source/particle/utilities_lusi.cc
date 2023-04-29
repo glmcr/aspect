@@ -18,6 +18,7 @@
   <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h> 
 #include <aspect/particle/utilities_lusi.h>
 //#include <aspect/utilities.h>
 //#include <deal.II/fe/fe_values.h>
@@ -92,7 +93,7 @@ namespace aspect
       // inlined in include file
       //double PTStateMarker::getTemperature() const
       //{
-      // return this->temperature;
+      //   return this->temperature;
       //}
 
       bool PTStateMarker::insideValidPressuresRange(double pressure)
@@ -127,6 +128,50 @@ namespace aspect
         this->markersVertices= {};
       }
 
+      // ThermodynamicStateMarkersPolytope::~ThermodynamicStateMarkersPolytope()
+      // {
+      // 	//for (
+      //   //this->markersVertices
+      // }      
+
+      // ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(const std::vector<ThermodynamicStateMarker*> tsmVector)
+      // //ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(const std::vector<PTStateMarker>& ptsmVector)
+      // {
+      //   const int nbVertices= tsmVector.size();
+      
+      // 	assert(nbVertices == 3 || nbVertices == 2);
+      
+      //   this->markersVertices.clear();
+      	 
+      // 	if ( nbVertices == 3)
+      // 	  {
+      // 	     // --- Triangle: Just do a shallow copy of the tsmVector
+      //        //     
+      // 	    this->markersVertices= tsmVector;
+      //   } 
+      
+      // 	else
+      // 	  {
+      //     //--- Just two vertices here, build a rectangular polygon with them
+      //     //    assuming that the two vertices are forming the diagonal of
+      //     //    a rectangle which means that the all the vertices values are
+      //     //    reasonably different
+      
+      //      this->markersVertices.push_back(tsmVector[0]);
+      //      this->markersVertices.push_back(tsmVector[1]);
+
+      // 	   // --- Build the other two vertices.
+      //      const PTStateMarker ptsm0= static_cast<PTStateMarker>(tsmVector[0]);
+	   
+      // 	   //this->markersVertices.push_back( PTStateMarker( tsmVector[0].PTStateMarker::getPressure(),
+      // 	   //				                   tsmVector[1].PTStateMarker::getTemperature()));
+	   
+      // 	   //this->markersVertices.push_back( PTStateMarker( ((PTStateMarker)tsmVector[1]).getPressure(),
+      // 	   //					          ((PTStateMarker)tsmVector[0]).getTemperature()));
+      	    
+      // 	  }
+      // }
+      
       //bool ThermodynamicStateMarkersPolytope::pTAreInside(double pressure, double temperature) const
       //{
       ////AssertThrow(PTStateMarker::insideValidPressuresRange(pressure)," Invalid pressure -> " + std::to_string(pressure) );

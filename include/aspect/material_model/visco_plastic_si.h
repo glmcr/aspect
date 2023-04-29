@@ -26,7 +26,7 @@
 #include <aspect/material_model/visco_plastic.h>
 //#include <aspect/material_model/equation_of_state/multicomponent_incompressible.h>
 //#include <aspect/material_model/rheology/visco_plastic.h>
-#include <aspect/material_model/utilities_si.h>
+//#include <aspect/material_model/utilities_si.h>
 
 #include<deal.II/fe/component_mask.h>
 

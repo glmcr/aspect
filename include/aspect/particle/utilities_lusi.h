@@ -67,7 +67,10 @@ namespace aspect
           bool isMoving() const;
 
           bool isFixed() const;
-
+	
+	//virtual double getPressure() const = 0;
+	//virtual double getTemperature() const = 0;
+	
         private:
 
           bool moving;
@@ -93,9 +96,12 @@ namespace aspect
            PTStateMarker(double pressure, double temperature);
            PTStateMarker(double pressure, double temperature, bool moving);
 
-	double getPressure() const { return pressure; };
-	double getTemperature() const { return temperature; };
+	//double getPressure() const final override; //{ return pressure; }
+	//double getTemperature() const final override; //{ return temperature; }
 
+	   inline virtual double getPressure() const final { return pressure; }
+	   inline virtual double getTemperature() const final { return temperature; }
+	
            bool insideValidPTRanges() const;
 
 	   bool insideValidPressuresRange() const;
@@ -144,10 +150,16 @@ namespace aspect
          //bool inside(const ThermodynamicStateMarker tsm) const;
 
          ThermodynamicStateMarkersPolytope();
+	//~ThermodynamicStateMarkersPolytope();
+	
          //ThermodynamicStateMarkersPolytope(unsigned int nbStateVariables, unsigned int nbVertices);
          ThermodynamicStateMarkersPolytope(unsigned int nbVertices);
 
-         bool pTAreInside(double pressure, double temperature) const;
+	  //ThermodynamicStateMarkersPolytope(const std::vector<ThermodynamicStateMarker*> tsmVector);
+	  //ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(const std::vector<PTStateMarker>&);
+	
+          //bool pTAreInside(double pressure, double temperature) const;
+	  bool ptsmInside(const PTStateMarker&) const;
 
        private:
 
@@ -155,6 +167,9 @@ namespace aspect
 
       }; // --- class ThermodynamicStateMarkersPolytope
 
+      // class ThermodynamicStateMarkersTriangle: public  ThermodynamicStateMarkersPolytope {};
+      // class ThermodynamicStateMarkersRectangle: public  ThermodynamicStateMarkersPolytope {};
+      
       static inline double PTStateMarkerCrossProd(const PTStateMarker& PTSM1, const PTStateMarker& PTSM2) {
 
 	return PTSM1.getTemperature() * PTSM2.getPressure() - PTSM2.getTemperature() * PTSM1.getPressure();
