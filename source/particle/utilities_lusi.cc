@@ -143,11 +143,38 @@ namespace aspect
 	this->PTSMSRefs[2]= &ptsm2;
       }
 
+      PTStateMarkersRectangle::PTStateMarkersRectangle()
+      {
+	this->PTSMSRefs[0]=
+	  this->PTSMSRefs[1]= NULL;
+      }
+
+      PTStateMarkersRectangle::PTStateMarkersRectangle(const PTStateMarker& ptsm00, const PTStateMarker& ptsm11)
+      {
+        this->PTSMSRefs[0]= &ptsm00; // (p0,T0)
+	this->PTSMSRefs[1]= &ptsm11; // (p1,T1)
+      }
+
       // ---
-      bool PTStateMarkersTriangle::ptInside(double pressure, double temperature) const {
+      bool PTStateMarkersRectangle::ptInside(double pressure, double temperature) const
+      {
+        return (pressure > this->PTSMSRefs[0]->getPressure() && pressure < this->PTSMSRefs[1]->getPressure() &&
+		temperature > this->PTSMSRefs[0]->getTemperature() && temperature < this->PTSMSRefs[1]->getTemperature() );
+	
+	//const bool isInside= (pressure > this->PTSMSRefs[0]->getPressure() && pressure < this->PTSMSRefs[1]->getPressure() &&
+	//		      temperature > this->PTSMSRefs[0]->getTemperature() && temperature < this->PTSMSRefs[1]->getTemperature() );
+	//return isInside;
+      }
+      
+      // ---
+      bool PTStateMarkersTriangle::ptInside(double pressure, double temperature) const
+      {
 	
         bool isInside= false;
 
+	// --- Local PTStateMarker object to use to see
+	//     if (pressure,temperature) combo is inside
+	//     this PTStateMarkersTriangle object
 	const PTStateMarker ptsmCheck(pressure,temperature);
 
 	// python code
@@ -203,7 +230,6 @@ namespace aspect
 	
 	return isInside;
       }
-      
 
     } // --- namespace ParticleUtilities
   } // --- namespace Particle

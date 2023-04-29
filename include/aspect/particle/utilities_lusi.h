@@ -176,13 +176,30 @@ namespace aspect
         public:
 	  PTStateMarkersTriangle();
 	  PTStateMarkersTriangle(const PTStateMarker& ptsm0, const PTStateMarker& ptsm1, const PTStateMarker& ptsm2);
-
-	//virtual bool ptsmInside(const ThermodynamicStateMarker&) const final override;
-        //  virtual bool ptsmInside(const PTStateMarker&) const final override;
-	virtual bool ptInside(double pressure, double temperature) const final override;
+	
+	  virtual bool ptInside(double pressure, double temperature) const final override;
 	
         private:
 	  const PTStateMarker* PTSMSRefs [3]; //= { null, null, null };	  
+      };
+
+      class PTStateMarkersRectangle: public ThermodynamicStateMarkersPolytope
+      {
+
+	//   Regular p,T, rectangle p1 > p0, T1 > T0
+	//    (p1,T0) --------- (p1,T1)
+	//       |                 | 
+	//       |                 |
+	//    (p0,T0) --------- (p0,T1)
+
+        public:
+	  PTStateMarkersRectangle();
+	  PTStateMarkersRectangle(const PTStateMarker& ptsm0, const PTStateMarker& ptsm1);
+
+	  virtual bool ptInside(double pressure, double temperature) const final override;
+	
+        private:
+	  const PTStateMarker* PTSMSRefs [2];  	
       };
       
       static inline double PTStateMarkerCrossProd(const PTStateMarker& PTSM1, const PTStateMarker& PTSM2) {

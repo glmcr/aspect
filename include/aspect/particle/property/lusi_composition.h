@@ -23,6 +23,7 @@
 
 //#include <aspect/particle/property/interface.h>
 #include <aspect/particle/property/composition.h>
+#include <aspect/particle/utilities_lusi.h>
 #include <aspect/simulator_access.h>
 
 namespace aspect
@@ -31,6 +32,9 @@ namespace aspect
   {
     namespace Property
     {
+
+      using namespace Particle::ParticleUtilities;
+      
       /**
        * Implementation of a plugin in which the particle property is defined by the
        * Laval U. Subductiion Initiation (LUSI, G. Mercier Ph.D. thesis) compositional fields in
@@ -40,7 +44,7 @@ namespace aspect
        * @ingroup ParticleProperties
        */
       template <int dim>
-      class LUSIComposition : public Property::Composition<dim> //, public ::aspect::SimulatorAccess<dim>
+      class LUSIComposition final : public Property::Composition<dim> //, public ::aspect::SimulatorAccess<dim>
       {
         public:
           /**
@@ -117,9 +121,18 @@ namespace aspect
   
           // ---
           static constexpr const char* OCEANIC_SEDS_NID= "oceanicSeds";
+
+	  // --- Surf T 273.25
+	  static constexpr const double SURF_TEMPERATURE= 273.5;
+
+	  // --- Surf pressure (atmos. pressure at sea level
+	  static constexpr const double SURF_ATMOS_PRESSURE= 101500.0;
 	
           // --- Lithosphere <-> asthenosphere T boundary
           static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
+
+	  // --- T at the moho
+	  static constexpr const double MOHO_TEMPERATURE_IN_KELVINS= 850.0;
 
           // ---
           static constexpr const double GPA_2_PASCALS= 1e9;
@@ -143,7 +156,35 @@ namespace aspect
 
 	  // --- Approx lithos. pressure of a 1.5km column of oceanic sediments.
 	  static constexpr const double SURF_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
+
+         private:
+
+	   // --- The PTStateMarkersRectangle object that defines the p,T conditions where
+	   //     asth. transform to oc. crust.	
+	   const PTStateMarkersRectangle asth2SSZCrustPTRect=
+	         PTStateMarkersRectangle( PTStateMarker(SURF_ATMOS_PRESSURE,SURF_TEMPERATURE),
+					  PTStateMarker(MOHO_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS));
+										    
+	   // --- The PTStateMarkersRectangle object that defines the p,T conditions where
+	   //     asth. transform to oc. lith. mantle.
+	   const PTStateMarkersRectangle asth2SSZOlmPTRect=
+	         PTStateMarkersRectangle( PTStateMarker(MOHO_PRESSURE_IN_PASCALS,MOHO_TEMPERATURE_IN_KELVINS),
+					  PTStateMarker(OLM_MAX_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS) );
 	
+	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   //     the greenschists facies (prograde only)
+	   const PTStateMarkersTriangle greenSchistsPTTri1=
+	         PTStateMarkersTriangle (PTStateMarker(0.15*1e9,573.0),PTStateMarker(0.2*1e9,773.0),PTStateMarker(0.95*1e9,773.0));
+
+	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   //     the greenschists facies (prograde only)
+	   const PTStateMarkersTriangle greenSchistsPTTri2=
+	         PTStateMarkersTriangle (PTStateMarker(0.15*1e9,573.0),PTStateMarker(0.75*1e9,623.0),PTStateMarker(0.95*1e9,773.0));
+	
+	   // --- Define the p,T triangle where oc. crust material transforms to
+	   //     the amphibolites facies.
+	   //const PTStateMarkersTriangle amphibolitesPTTri=
+	   //      PTStateMarkersTriangle (PTStateMarker(,),PTStateMarker(,),PTStateMarker(,));	
       };
     }
   }
