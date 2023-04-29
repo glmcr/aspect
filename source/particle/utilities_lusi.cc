@@ -123,68 +123,89 @@ namespace aspect
         return (this->insideValidPressuresRange() and this->insideValidTemperaturesRange());
       }
 
-      ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope()
-      {
-        this->markersVertices= {};
-      }
-
-      // ThermodynamicStateMarkersPolytope::~ThermodynamicStateMarkersPolytope()
-      // {
-      // 	//for (
-      //   //this->markersVertices
-      // }      
-
-      // ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(const std::vector<ThermodynamicStateMarker*> tsmVector)
-      // //ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(const std::vector<PTStateMarker>& ptsmVector)
-      // {
-      //   const int nbVertices= tsmVector.size();
-      
-      // 	assert(nbVertices == 3 || nbVertices == 2);
-      
-      //   this->markersVertices.clear();
-      	 
-      // 	if ( nbVertices == 3)
-      // 	  {
-      // 	     // --- Triangle: Just do a shallow copy of the tsmVector
-      //        //     
-      // 	    this->markersVertices= tsmVector;
-      //   } 
-      
-      // 	else
-      // 	  {
-      //     //--- Just two vertices here, build a rectangular polygon with them
-      //     //    assuming that the two vertices are forming the diagonal of
-      //     //    a rectangle which means that the all the vertices values are
-      //     //    reasonably different
-      
-      //      this->markersVertices.push_back(tsmVector[0]);
-      //      this->markersVertices.push_back(tsmVector[1]);
-
-      // 	   // --- Build the other two vertices.
-      //      const PTStateMarker ptsm0= static_cast<PTStateMarker>(tsmVector[0]);
-	   
-      // 	   //this->markersVertices.push_back( PTStateMarker( tsmVector[0].PTStateMarker::getPressure(),
-      // 	   //				                   tsmVector[1].PTStateMarker::getTemperature()));
-	   
-      // 	   //this->markersVertices.push_back( PTStateMarker( ((PTStateMarker)tsmVector[1]).getPressure(),
-      // 	   //					          ((PTStateMarker)tsmVector[0]).getTemperature()));
-      	    
-      // 	  }
-      // }
-      
-      //bool ThermodynamicStateMarkersPolytope::pTAreInside(double pressure, double temperature) const
+      ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope() {}
       //{
-      ////AssertThrow(PTStateMarker::insideValidPressuresRange(pressure)," Invalid pressure -> " + std::to_string(pressure) );
-      ////AssertThrow(PTStateMarker::insideValidTemperaturesRange(temperature)," Invalid temperature -> " + std::to_string(temperature) );
-      //
-      // bool isInside= true;
-      //
-      // // --- TODO: implement code!
-      //
-      // return isInside;
+      //  //this->markersVertices= {};
       //}
 
-    } // --- namespace MaterialUtilities
-  }
+      PTStateMarkersTriangle::PTStateMarkersTriangle()
+      {
+	
+	this->PTSMSRefs[0]=
+	  this->PTSMSRefs[1]=
+	    this->PTSMSRefs[2]= NULL;
+      }
+
+      PTStateMarkersTriangle::PTStateMarkersTriangle(const PTStateMarker& ptsm0, const PTStateMarker& ptsm1, const PTStateMarker& ptsm2)
+      {
+        this->PTSMSRefs[0]= &ptsm0;
+	this->PTSMSRefs[1]= &ptsm1;
+	this->PTSMSRefs[2]= &ptsm2;
+      }
+
+      // ---
+      bool PTStateMarkersTriangle::ptInside(double pressure, double temperature) const {
+	
+        bool isInside= false;
+
+	const PTStateMarker ptsmCheck(pressure,temperature);
+
+	// python code
+	//denom= crossProd2D(vertex1,vertex2) + crossProd2D(vertex2,vertex3) + crossProd2D(vertex3,vertex1)
+
+	// --- Ordering is important
+        const double crossProd01= PTStateMarkerCrossProd(*this->PTSMSRefs[0],*this->PTSMSRefs[1]);
+	const double crossProd12= PTStateMarkerCrossProd(*this->PTSMSRefs[1],*this->PTSMSRefs[2]);
+	const double crossProd20= PTStateMarkerCrossProd(*this->PTSMSRefs[2],*this->PTSMSRefs[0]);
+	
+	// --- Ordering is important:
+        const double denom= crossProd01 + crossProd12 + crossProd20;
+	
+	//PTStateMarkerCrossProd(*this->PTSMSRefs[1],*this->PTSMSRefs[2]) +
+	//PTStateMarkerCrossProd(*this->PTSMSRefs[2],*this->PTSMSRefs[0]);
+
+        if (std::abs(denom) > PTStateMarker::VERY_SMALL_EPSILON) {
+
+	  //python code
+	  //v1MinusV2= ( vertex1[0]-vertex2[0], vertex1[1]-vertex2[1])
+	  //v3MinusV1= ( vertex3[0]-vertex1[0], vertex3[1]-vertex1[1])
+	  //v2MinusV3= ( vertex2[0]-vertex3[0], vertex2[1]-vertex3[1])
+     
+	  const PTStateMarker ptsm0MinusPtsm1 (this->PTSMSRefs[0]->getTemperature() - this->PTSMSRefs[1]->getTemperature(),
+					       this->PTSMSRefs[0]->getPressure()    - this->PTSMSRefs[1]->getPressure()    );
+
+	  const PTStateMarker ptsm2MinusPtsm0 (this->PTSMSRefs[2]->getTemperature() - this->PTSMSRefs[0]->getTemperature(),
+					       this->PTSMSRefs[2]->getPressure()    - this->PTSMSRefs[0]->getPressure()    );
+
+	  const PTStateMarker ptsm1MinusPtsm2 (this->PTSMSRefs[1]->getTemperature() - this->PTSMSRefs[2]->getTemperature(),
+	 				       this->PTSMSRefs[1]->getPressure()    - this->PTSMSRefs[2]->getPressure()    );
+
+	  // python code:
+	  //weight12= ( crossProd2D(vertex1,vertex2) + crossProd2D(point2D,v1MinusV2) )/denom
+	  //weight31= ( crossProd2D(vertex3,vertex1) + crossProd2D(point2D,v3MinusV1) )/denom
+	  //weight23= ( crossProd2D(vertex2,vertex3) + crossProd2D(point2D,v2MinusV3) )/denom      	  
+
+	  const double weight01= ( crossProd01 + PTStateMarkerCrossProd(ptsmCheck, ptsm0MinusPtsm1)) / denom;
+	  const double weight20= ( crossProd20 + PTStateMarkerCrossProd(ptsmCheck, ptsm2MinusPtsm0)) / denom;
+	  const double weight12= ( crossProd12 + PTStateMarkerCrossProd(ptsmCheck, ptsm1MinusPtsm2)) / denom;
+
+	  // python code:
+	  /*if ( weight12 > _minus_epsilon or math.ceil(weight12) == 1) \
+	   *and ( weight31 > _minus_epsilon or math.ceil(weight31) == 1 ) \
+           *and ( weight23 > _minus_epsilon or math.ceil(weight23) == 1 ) : ret = True
+	   */
+	  
+          isInside= ( ( weight01 > PTStateMarker::NGV_VERY_SMALL_EPSILON || std::ceil(weight01) == 1) && 
+		        ( weight20 > PTStateMarker::NGV_VERY_SMALL_EPSILON || std::ceil(weight20) == 1) &&
+		          ( weight12 > PTStateMarker::NGV_VERY_SMALL_EPSILON || std::ceil(weight12) == 1) );
+	  
+	}
+	
+	return isInside;
+      }
+      
+
+    } // --- namespace ParticleUtilities
+  } // --- namespace Particle
 }
 

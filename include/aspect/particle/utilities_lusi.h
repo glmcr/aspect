@@ -80,6 +80,10 @@ namespace aspect
       {
         public:
 
+	   static constexpr const double VERY_SMALL_EPSILON= 1e-75;
+
+	   static constexpr const double NGV_VERY_SMALL_EPSILON= -VERY_SMALL_EPSILON;
+	
            // --- 220 Kelvins
            static constexpr const double MIN_TEMPERATURE= 220.0;
 
@@ -95,9 +99,6 @@ namespace aspect
            PTStateMarker();
            PTStateMarker(double pressure, double temperature);
            PTStateMarker(double pressure, double temperature, bool moving);
-
-	//double getPressure() const final override; //{ return pressure; }
-	//double getTemperature() const final override; //{ return temperature; }
 
 	   inline virtual double getPressure() const final { return pressure; }
 	   inline virtual double getTemperature() const final { return temperature; }
@@ -159,19 +160,32 @@ namespace aspect
 	  //ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(const std::vector<PTStateMarker>&);
 	
           //bool pTAreInside(double pressure, double temperature) const;
-	  bool ptsmInside(const PTStateMarker&) const;
+          //virtual bool ptsmInside(const ThermodynamicStateMarker&) const= 0;
+	  virtual bool ptInside(double pressure, double temperature) const= 0;
 
-       private:
-
-         std::vector<ThermodynamicStateMarker> markersVertices;
+	//private:
+        // std::vector<ThermodynamicStateMarker> markersVertices;
 
       }; // --- class ThermodynamicStateMarkersPolytope
 
       // class ThermodynamicStateMarkersTriangle: public  ThermodynamicStateMarkersPolytope {};
       // class ThermodynamicStateMarkersRectangle: public  ThermodynamicStateMarkersPolytope {};
+
+      class PTStateMarkersTriangle: public ThermodynamicStateMarkersPolytope
+      {
+        public:
+	  PTStateMarkersTriangle();
+	  PTStateMarkersTriangle(const PTStateMarker& ptsm0, const PTStateMarker& ptsm1, const PTStateMarker& ptsm2);
+
+	//virtual bool ptsmInside(const ThermodynamicStateMarker&) const final override;
+        //  virtual bool ptsmInside(const PTStateMarker&) const final override;
+	virtual bool ptInside(double pressure, double temperature) const final override;
+	
+        private:
+	  const PTStateMarker* PTSMSRefs [3]; //= { null, null, null };	  
+      };
       
       static inline double PTStateMarkerCrossProd(const PTStateMarker& PTSM1, const PTStateMarker& PTSM2) {
-
 	return PTSM1.getTemperature() * PTSM2.getPressure() - PTSM2.getTemperature() * PTSM1.getPressure();
       }
 	
