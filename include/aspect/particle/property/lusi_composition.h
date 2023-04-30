@@ -104,6 +104,8 @@ namespace aspect
           //inline
           static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
 
+          static constexpr const char* SSZ_LITHOSPHERIC_MANTLE_NID= "oceanicLithMantleSSZ";
+	
           //// --- Oceanic lithos.  <-> asthenoshperic hybrid material
           ////     (asth. flow law but OLM thermal cond. to parametrize
           ////     the conversion of convecting asth. mantle to lithospheric
@@ -114,14 +116,27 @@ namespace aspect
           ////     and the adiabatic heating is positive (implying
           ////     very slow downward material advection which would
           ////     be slower than the isotherm downward migration itself)
-          //static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid";
+          //static constexpr const char* OLM_ASTH_HYBRID_NID= "olmAsthHybrid"
 
           // ---
           static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+
+	  static constexpr const char* SSZ_OCEANIC_CRUST_NID= "oceanicCrustSSZ";
   
           // ---
           static constexpr const char* OCEANIC_SEDS_NID= "oceanicSeds";
 
+	  // --- prograde MTM facies for oc. crust
+	  static constexpr const char* GREENSCHISTS_NID= "greenschists";
+
+	  static constexpr const char* AMPHIBOLITES_NID= "amphibolites";
+
+	  static constexpr const char* GRANULITES_NID= "granulites";
+
+          static constexpr const char* ECLOGITES_NID= "eclogites";
+
+	  static constexpr const char* BLUESCHISTS_NID= "blueschists";
+	
 	  // --- Surf T 273.25
 	  static constexpr const double SURF_TEMPERATURE= 273.5;
 
@@ -155,7 +170,7 @@ namespace aspect
           static constexpr const double OLM_MAX_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 9.5;
 
 	  // --- Approx lithos. pressure of a 1.5km column of oceanic sediments.
-	  static constexpr const double SURF_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
+	  static constexpr const double SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
 
          private:
 
@@ -174,17 +189,67 @@ namespace aspect
 	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the greenschists facies (prograde only)
 	   const PTStateMarkersTriangle greenSchistsPTTri1=
-	         PTStateMarkersTriangle (PTStateMarker(0.15*1e9,573.0),PTStateMarker(0.2*1e9,773.0),PTStateMarker(0.95*1e9,773.0));
+	         PTStateMarkersTriangle (PTStateMarker(0.15e9,573.0),PTStateMarker(0.2e9,753.0),PTStateMarker(0.95e9,773.0));
 
 	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   //     the greenschists facies (prograde only)
 	   const PTStateMarkersTriangle greenSchistsPTTri2=
-	         PTStateMarkersTriangle (PTStateMarker(0.15*1e9,573.0),PTStateMarker(0.75*1e9,623.0),PTStateMarker(0.95*1e9,773.0));
+	         PTStateMarkersTriangle (PTStateMarker(0.15e9,573.0),PTStateMarker(0.8e9, 623.0),PTStateMarker(0.95e9,773.0));
 	
-	   // --- Define the p,T triangle where oc. crust material transforms to
+	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the amphibolites facies.
-	   //const PTStateMarkersTriangle amphibolitesPTTri=
-	   //      PTStateMarkersTriangle (PTStateMarker(,),PTStateMarker(,),PTStateMarker(,));	
+	   const PTStateMarkersTriangle amphibolitesPTTri1=
+	         PTStateMarkersTriangle (PTStateMarker(0.2e9, 753.0),PTStateMarker(0.95e9,773.0),PTStateMarker(1.15e9,1023.0));
+
+	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   //     the amphibolites facies.
+	   const PTStateMarkersTriangle amphibolitesPTTri2=
+	         PTStateMarkersTriangle (PTStateMarker(0.2e9, 753.0),PTStateMarker(0.25e9,973.0),PTStateMarker(1.15e9,1023.0));
+
+	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   //     the granulites facies.
+	   const PTStateMarkersTriangle granulitesPTTri1=
+	         PTStateMarkersTriangle (PTStateMarker(0.25e9, 973.0),PTStateMarker(1.15e9,1023.0),PTStateMarker(1.4e9,1273.0));
+
+	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   //     the granulites facies.
+	   const PTStateMarkersTriangle granulitesPTTri2=
+	         PTStateMarkersTriangle (PTStateMarker(0.25e9, 973.0),PTStateMarker(0.25e9,1273.0),PTStateMarker(1.4e9,1273.0));
+	
+	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   //     the eclogites facies.
+	   const PTStateMarkersTriangle eclogitesPTTri1=
+	         PTStateMarkersTriangle (PTStateMarker(0.95e9,773.0),PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0));
+
+	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   //     the eclogites facies.
+	   const PTStateMarkersTriangle eclogitesPTTri2=
+	         PTStateMarkersTriangle (PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
+
+	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   //     the eclogites facies.
+	   const PTStateMarkersTriangle blueschistsPTTri1=
+	         PTStateMarkersTriangle (PTStateMarker(0.8e9,423.0),PTStateMarker(2.0e9,673.0),PTStateMarker(0.95e9,773.0));
+
+	   //// --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   ////     the eclogites facies.
+	   //const PTStateMarkersTriangle blueschistsPTTri2=
+	   //      PTStateMarkersTriangle (PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
+
+	   static inline void lusiMaterialChange(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
+	   {
+	     // --- Transfer particle matFrom material (could be 0.0) concentration to
+	     //     to the matTo material
+	     part_compo_props[matToIdx] += part_compo_props[matFromIdx];
+
+	     //--- Keeping matTo compo prop between matToMin and matToMax
+             part_compo_props[matToIdx]=
+                std::max(matToMin,std::min(matToMax,part_compo_props[matToIdx]));
+
+	     // --- Need to set matFrom to zero here once its concentration
+	     //     has been transfered to ssz oc. crust.
+	     part_compo_props[matFromIdx]= 0.0; 
+	   }   
       };
     }
   }
