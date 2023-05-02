@@ -100,6 +100,10 @@ namespace aspect
 	// --- p,T conditions under which asth. transforms to SSZ crust (from the surface down to the moho)
         if ( asth2SSZCrustPTRect.ptInside(pressure_here,temperature_here))
 	  {
+
+            this->get_pcout() << "LUSIComposition<dim>::update_particle_property: at surf.: pressure_here="
+                              << pressure_here << ", temperature_here=" << temperature_here << std::endl;
+
 	   // --- Pour some oc. seds. but only where pressure is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
 	   if (pressure_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
 	     {
@@ -109,6 +113,9 @@ namespace aspect
                part_compo_props[oc_seds_idx]=
 		   std::max(0.25,std::min(0.5,part_compo_props[oc_seds_idx]));
 	     }
+
+           this->get_pcout() << "LUSIComposition<dim>::update_particle_property: at surf.: part_compo_props[oc_seds_idx]="
+                             << part_compo_props[oc_seds_idx] << std::endl;
 
 	   // --- Transfer particle asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.
