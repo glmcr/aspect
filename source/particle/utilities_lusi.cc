@@ -18,7 +18,7 @@
   <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h> 
+#include <assert.h>
 #include <aspect/particle/utilities_lusi.h>
 //#include <aspect/utilities.h>
 //#include <deal.II/fe/fe_values.h>
@@ -158,6 +158,16 @@ namespace aspect
       // ---
       bool PTStateMarkersRectangle::ptInside(double pressure, double temperature) const
       {
+
+        //this->get_pcout() << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[0]->getPressure()=" << 
+         //                    this->PTSMSRefs[0]->getPressure() << std::endl;
+        //this->get_pcout() << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[0]->getTemperature()=" << 
+         //                    this->PTSMSRefs[0]->getPressure() << std::endl;
+        //this->get_pcout() << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getPressure()=" << 
+         //                    this->PTSMSRefs[0]->getPressure() << std::endl;
+        //this->get_pcout() << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getTemperature()=" << 
+          //                   this->PTSMSRefs[0]->getPressure() << std::endl;
+
         return (pressure > this->PTSMSRefs[0]->getPressure() && pressure < this->PTSMSRefs[1]->getPressure() &&
 		temperature > this->PTSMSRefs[0]->getTemperature() && temperature < this->PTSMSRefs[1]->getTemperature() );
 	

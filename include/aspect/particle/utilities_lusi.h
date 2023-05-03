@@ -23,6 +23,7 @@
 
 #include <aspect/global.h>
 #include <deal.II/base/point.h>
+//#include <aspect/simulator_access.h>
 //#include <deal.II/base/symmetric_tensor.h>
 //#include <deal.II/fe/component_mask.h>
 //#include <deal.II/base/signaling_nan.h>

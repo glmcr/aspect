@@ -97,6 +97,9 @@ namespace aspect
         //double* const part_compo_props= &particle->get_properties().data()[data_position];
 	double* const part_compo_props= &particle->get_properties().data()[data_position];
 
+        this->get_pcout() << "LUSIComposition<dim>::update_particle_property: pressure_here=" << pressure_here << std::endl;
+        this->get_pcout() << "LUSIComposition<dim>::update_particle_property: temperature_here=" << temperature_here << std::endl;
+
 	// --- p,T conditions under which asth. transforms to SSZ crust (from the surface down to the moho)
         if ( asth2SSZCrustPTRect.ptInside(pressure_here,temperature_here))
 	  {
