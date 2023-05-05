@@ -245,19 +245,20 @@ namespace aspect
 	   }   
       };
 
+      template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-           asth2SSZCrustPTRect00(PTStateMarker(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,
-                                               LUSIComposition<dim>::SURF_TEMPERATURE);
-
+           asth2SSZCrustPTRect00(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,
+                                 LUSIComposition<dim>::SURF_TEMPERATURE);
+      template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-           asth2SSZCrustPTRect11(PTStateMarker(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,
-                                               LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+           asth2SSZCrustPTRect11(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,
+                                 LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
 
       // --- Define the p,T rectangle where the SSZ oc. crust is formed with
       //     upwelling asthenosphere
       template <int dim>
       const PTStateMarkersRectangle LUSIComposition<dim>::
-            asth2SSZCrustPTRect(LUSIComposition<dim>::asth2SSZCrustPTRect00,asth2SSZCrustPTRect11)
+            asth2SSZCrustPTRect(LUSIComposition<dim>::asth2SSZCrustPTRect00,LUSIComposition<dim>::asth2SSZCrustPTRect11);
 
             //asth2SSZCrustPTRect(PTStateMarker(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,LUSIComposition<dim>::SURF_TEMPERATURE),
 	   //		        PTStateMarker(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS));
