@@ -98,8 +98,8 @@ namespace aspect
 	double* const part_compo_props= &particle->get_properties().data()[data_position];
 
         if (pressure_here <= MOHO_PRESSURE_IN_PASCALS) {
-         std::cout << "LUSIComposition<dim>::update_particle_property: pressure_here=" << pressure_here << std::flush;
-         std::cout << "LUSIComposition<dim>::update_particle_property: temperature_here=" << temperature_here << std::flush;
+         std::cout << "LUSIComposition<dim>::update_particle_property: pressure_here=" << pressure_here << std::endl;
+         std::cout << "LUSIComposition<dim>::update_particle_property: temperature_here=" << temperature_here << std::endl;
         }
 
 	// --- p,T conditions under which asth. transforms to SSZ crust (from the surface down to the moho)
@@ -107,7 +107,7 @@ namespace aspect
 	  {
 
             std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: pressure_here="
-                              << pressure_here << ", temperature_here=" << temperature_here << std::flush;
+                              << pressure_here << ", temperature_here=" << temperature_here << std::endl;
 
 	   // --- Pour some oc. seds. but only where pressure is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
 	   if (pressure_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
@@ -120,7 +120,7 @@ namespace aspect
 	     }
 
            std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: part_compo_props[oc_seds_idx]="
-                             << part_compo_props[oc_seds_idx] << std::flush;
+                             << part_compo_props[oc_seds_idx] << std::endl << std::endl;
 
 	   // --- Transfer particle asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.

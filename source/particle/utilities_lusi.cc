@@ -159,17 +159,27 @@ namespace aspect
       bool PTStateMarkersRectangle::ptInside(double pressure, double temperature) const
       {
 
-        //this->get_pcout() << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[0]->getPressure()=" << 
-         //                    this->PTSMSRefs[0]->getPressure() << std::endl;
-        //this->get_pcout() << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[0]->getTemperature()=" << 
-         //                    this->PTSMSRefs[0]->getPressure() << std::endl;
-        //this->get_pcout() << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getPressure()=" << 
-         //                    this->PTSMSRefs[0]->getPressure() << std::endl;
-        //this->get_pcout() << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getTemperature()=" << 
-          //                   this->PTSMSRefs[0]->getPressure() << std::endl;
+        std::cout << "PTStateMarkersRectangle::ptInside: pressure=" << pressure << std::endl;
 
-        return (pressure > this->PTSMSRefs[0]->getPressure() && pressure < this->PTSMSRefs[1]->getPressure() &&
-		temperature > this->PTSMSRefs[0]->getTemperature() && temperature < this->PTSMSRefs[1]->getTemperature() );
+        std::cout << "PTStateMarkersRectangle::ptInside: temperature=" << temperature << std::endl;
+
+        std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[0]->getPressure()=" << 
+                  this->PTSMSRefs[0]->getPressure() << std::endl;
+        std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[0]->getTemperature()=" << 
+                  this->PTSMSRefs[0]->getPressure() << std::endl;
+        std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getPressure()=" <<
+                  this->PTSMSRefs[0]->getPressure() << std::endl;
+        std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getTemperature()=" << 
+                  this->PTSMSRefs[0]->getPressure() << std::endl;
+
+        const bool ret= ( (pressure > this->PTSMSRefs[0]->getPressure()) && (pressure < this->PTSMSRefs[1]->getPressure()) &&
+                 (temperature > this->PTSMSRefs[0]->getTemperature()) && (temperature < this->PTSMSRefs[1]->getTemperature()) );
+
+        std::cout << "PTStateMarkersRectangle::ptInside: ret=" <<ret << std::endl << std::endl;
+        return ret;
+
+        //return ( (pressure > this->PTSMSRefs[0]->getPressure()) && (pressure < this->PTSMSRefs[1]->getPressure()) &&
+	//	 (temperature > this->PTSMSRefs[0]->getTemperature()) && (temperature < this->PTSMSRefs[1]->getTemperature()) );
 	
 	//const bool isInside= (pressure > this->PTSMSRefs[0]->getPressure() && pressure < this->PTSMSRefs[1]->getPressure() &&
 	//		      temperature > this->PTSMSRefs[0]->getTemperature() && temperature < this->PTSMSRefs[1]->getTemperature() );
