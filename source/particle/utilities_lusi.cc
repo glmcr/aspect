@@ -69,8 +69,15 @@ namespace aspect
       {
         // ThermodynamicStateMarker::ThermodynamicStateMarker();
 
+         std::cout << "PTStateMarker::PTStateMarker constr: pressure=" << pressure << std::endl;
+         std::cout << "PTStateMarker::PTStateMarker constr: temperature=" << temperature  << std::endl;
+
         this->pressure= pressure;
         this->temperature= temperature;
+
+         std::cout << "PTStateMarker::PTStateMarker constr: this->pressure=" << this->pressure << std::endl;
+         std::cout << "PTStateMarker::PTStateMarker constr: this->temperature=" << this->temperature  << std::endl;
+
       }
 
       PTStateMarker::PTStateMarker(double pressure, double temperature, bool moving):  ThermodynamicStateMarker::ThermodynamicStateMarker(moving)
@@ -80,8 +87,13 @@ namespace aspect
         //AssertThrow(this->insideValidPressuresRange(pressure)," Invalid pressure -> " + std::to_string(pressure) );
         //AssertThrow(this->insideValidTemperaturesRange(temperature)," Invalid temperature -> " + std::to_string(temperature) );
 
+         //std::cout << "PTStateMarker::PTStateMarker constr: pressure=" << pressure << std::endl;
+         //std::cout << "PTStateMarker::PTStateMarker constr: pressure=" <<  << std::endl;
+
          this->pressure= pressure;
          this->temperature= temperature;
+
+
       }
 
       // inlined in include file
@@ -123,12 +135,19 @@ namespace aspect
         return (this->insideValidPressuresRange() and this->insideValidTemperaturesRange());
       }
 
-      ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope() {}
-      //{
-      //  //this->markersVertices= {};
-      //}
+      ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope()
+      {
+        //this->markersVertices= {};
+        this->nbVertices= 0;
+      }
 
-      PTStateMarkersTriangle::PTStateMarkersTriangle()
+      ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(unsigned int nbVertices)
+      {
+       this->nbVertices= nbVertices;     
+      }
+ 
+      PTStateMarkersTriangle::PTStateMarkersTriangle(): 
+         ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope()
       {
 	
 	this->PTSMSRefs[0]=
@@ -136,20 +155,23 @@ namespace aspect
 	    this->PTSMSRefs[2]= NULL;
       }
 
-      PTStateMarkersTriangle::PTStateMarkersTriangle(const PTStateMarker& ptsm0, const PTStateMarker& ptsm1, const PTStateMarker& ptsm2)
+      PTStateMarkersTriangle::PTStateMarkersTriangle(const PTStateMarker& ptsm0, const PTStateMarker& ptsm1,const PTStateMarker& ptsm2):
+               ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(3)
       {
         this->PTSMSRefs[0]= &ptsm0;
 	this->PTSMSRefs[1]= &ptsm1;
 	this->PTSMSRefs[2]= &ptsm2;
       }
 
-      PTStateMarkersRectangle::PTStateMarkersRectangle()
+      PTStateMarkersRectangle::PTStateMarkersRectangle():
+        ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope()
       {
 	this->PTSMSRefs[0]=
 	  this->PTSMSRefs[1]= NULL;
       }
 
-      PTStateMarkersRectangle::PTStateMarkersRectangle(const PTStateMarker& ptsm00, const PTStateMarker& ptsm11)
+      PTStateMarkersRectangle::PTStateMarkersRectangle(const PTStateMarker& ptsm00,const PTStateMarker& ptsm11):
+          ThermodynamicStateMarkersPolytope::ThermodynamicStateMarkersPolytope(2)
       {
         this->PTSMSRefs[0]= &ptsm00; // (p0,T0)
 	this->PTSMSRefs[1]= &ptsm11; // (p1,T1)
@@ -176,6 +198,9 @@ namespace aspect
                  (temperature > this->PTSMSRefs[0]->getTemperature()) && (temperature < this->PTSMSRefs[1]->getTemperature()) );
 
         std::cout << "PTStateMarkersRectangle::ptInside: ret=" <<ret << std::endl << std::endl;
+
+        AssertThrow(false,ExcMessage("PTStateMarkersRectangle::ptInside: Debug exit"));
+
         return ret;
 
         //return ( (pressure > this->PTSMSRefs[0]->getPressure()) && (pressure < this->PTSMSRefs[1]->getPressure()) &&

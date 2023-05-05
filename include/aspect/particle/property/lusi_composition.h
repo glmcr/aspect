@@ -176,59 +176,61 @@ namespace aspect
 
 	   // --- The PTStateMarkersRectangle object that defines the p,T conditions where
 	   //     asth. transform to oc. crust.	
-	   const PTStateMarkersRectangle asth2SSZCrustPTRect=
-	         PTStateMarkersRectangle( PTStateMarker(SURF_ATMOS_PRESSURE,SURF_TEMPERATURE),
-					  PTStateMarker(MOHO_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS));
+	   static const PTStateMarkersRectangle asth2SSZCrustPTRect(PTStateMarker(SURF_ATMOS_PRESSURE,SURF_TEMPERATURE),
+                                                                    PTStateMarker(MOHO_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS));
+
+	         //PTStateMarkersRectangle( PTStateMarker(SURF_ATMOS_PRESSURE,SURF_TEMPERATURE),
+		 //			  PTStateMarker(MOHO_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS));
 										    
 	   // --- The PTStateMarkersRectangle object that defines the p,T conditions where
 	   //     asth. transform to oc. lith. mantle.
-	   const PTStateMarkersRectangle asth2SSZOlmPTRect=
+	   static const PTStateMarkersRectangle asth2SSZOlmPTRect=
 	         PTStateMarkersRectangle( PTStateMarker(MOHO_PRESSURE_IN_PASCALS,MOHO_TEMPERATURE_IN_KELVINS),
 					  PTStateMarker(OLM_MAX_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS) );
 	
 	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the greenschists facies (prograde only)
-	   const PTStateMarkersTriangle greenSchistsPTTri1=
+	   static const PTStateMarkersTriangle greenSchistsPTTri1=
 	         PTStateMarkersTriangle (PTStateMarker(0.15e9,573.0),PTStateMarker(0.2e9,753.0),PTStateMarker(0.95e9,773.0));
 
 	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   //     the greenschists facies (prograde only)
-	   const PTStateMarkersTriangle greenSchistsPTTri2=
+	   static const PTStateMarkersTriangle greenSchistsPTTri2=
 	         PTStateMarkersTriangle (PTStateMarker(0.15e9,573.0),PTStateMarker(0.8e9, 623.0),PTStateMarker(0.95e9,773.0));
 	
 	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the amphibolites facies.
-	   const PTStateMarkersTriangle amphibolitesPTTri1=
+	   static const PTStateMarkersTriangle amphibolitesPTTri1=
 	         PTStateMarkersTriangle (PTStateMarker(0.2e9, 753.0),PTStateMarker(0.95e9,773.0),PTStateMarker(1.15e9,1023.0));
 
 	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   //     the amphibolites facies.
-	   const PTStateMarkersTriangle amphibolitesPTTri2=
+	   static const PTStateMarkersTriangle amphibolitesPTTri2=
 	         PTStateMarkersTriangle (PTStateMarker(0.2e9, 753.0),PTStateMarker(0.25e9,973.0),PTStateMarker(1.15e9,1023.0));
 
 	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the granulites facies.
-	   const PTStateMarkersTriangle granulitesPTTri1=
+	   static const PTStateMarkersTriangle granulitesPTTri1=
 	         PTStateMarkersTriangle (PTStateMarker(0.25e9, 973.0),PTStateMarker(1.15e9,1023.0),PTStateMarker(1.4e9,1273.0));
 
 	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   //     the granulites facies.
-	   const PTStateMarkersTriangle granulitesPTTri2=
+	   static const PTStateMarkersTriangle granulitesPTTri2=
 	         PTStateMarkersTriangle (PTStateMarker(0.25e9, 973.0),PTStateMarker(0.25e9,1273.0),PTStateMarker(1.4e9,1273.0));
 	
 	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-	   const PTStateMarkersTriangle eclogitesPTTri1=
+	   static const PTStateMarkersTriangle eclogitesPTTri1=
 	         PTStateMarkersTriangle (PTStateMarker(0.95e9,773.0),PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0));
 
 	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-	   const PTStateMarkersTriangle eclogitesPTTri2=
+	   static const PTStateMarkersTriangle eclogitesPTTri2=
 	         PTStateMarkersTriangle (PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
 
 	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-	   const PTStateMarkersTriangle blueschistsPTTri1=
+	   static const PTStateMarkersTriangle blueschistsPTTri1=
 	         PTStateMarkersTriangle (PTStateMarker(0.8e9,423.0),PTStateMarker(2.0e9,673.0),PTStateMarker(0.95e9,773.0));
 
 	   //// --- Define the 2nd p,T triangle where oc. crust material transforms to

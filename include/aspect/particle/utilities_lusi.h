@@ -164,8 +164,13 @@ namespace aspect
           //virtual bool ptsmInside(const ThermodynamicStateMarker&) const= 0;
 	  virtual bool ptInside(double pressure, double temperature) const= 0;
 
+         protected:
+
+           unsigned int nbVertices;
+
 	//private:
         // std::vector<ThermodynamicStateMarker> markersVertices;
+         
 
       }; // --- class ThermodynamicStateMarkersPolytope
 
