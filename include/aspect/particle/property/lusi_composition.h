@@ -172,72 +172,60 @@ namespace aspect
 	  // --- Approx lithos. pressure of a 1.5km column of oceanic sediments.
 	  static constexpr const double SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
 
-         private:
+	//private:
 
-	   // --- The PTStateMarkersRectangle object that defines the p,T conditions where
-	   //     asth. transform to oc. crust.	
-	   static const PTStateMarkersRectangle asth2SSZCrustPTRect(PTStateMarker(SURF_ATMOS_PRESSURE,SURF_TEMPERATURE),
-                                                                    PTStateMarker(MOHO_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS));
+	   // --- Declare the PTStateMarkersRectangle object that defines the p,T conditions where
+	   //     asth. transform to oc. crust.
+           static const PTStateMarkersRectangle asth2SSZCrustPTRect;
 
-	         //PTStateMarkersRectangle( PTStateMarker(SURF_ATMOS_PRESSURE,SURF_TEMPERATURE),
-		 //			  PTStateMarker(MOHO_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS));
-										    
-	   // --- The PTStateMarkersRectangle object that defines the p,T conditions where
+	   // --- Declare the PTStateMarkersRectangle object that defines the p,T conditions where
 	   //     asth. transform to oc. lith. mantle.
-	   static const PTStateMarkersRectangle asth2SSZOlmPTRect=
-	         PTStateMarkersRectangle( PTStateMarker(MOHO_PRESSURE_IN_PASCALS,MOHO_TEMPERATURE_IN_KELVINS),
-					  PTStateMarker(OLM_MAX_PRESSURE_IN_PASCALS,LAB_TEMPERATURE_IN_KELVINS) );
+	   static const PTStateMarkersRectangle asth2SSZOlmPTRect;
 	
-	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the greenschists facies (prograde only)
-	   static const PTStateMarkersTriangle greenSchistsPTTri1=
-	         PTStateMarkersTriangle (PTStateMarker(0.15e9,573.0),PTStateMarker(0.2e9,753.0),PTStateMarker(0.95e9,773.0));
+	   static const PTStateMarkersTriangle greenSchistsPTTri1;
 
-	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
 	   //     the greenschists facies (prograde only)
-	   static const PTStateMarkersTriangle greenSchistsPTTri2=
-	         PTStateMarkersTriangle (PTStateMarker(0.15e9,573.0),PTStateMarker(0.8e9, 623.0),PTStateMarker(0.95e9,773.0));
+	   static const PTStateMarkersTriangle greenSchistsPTTri2;
 	
-	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the amphibolites facies.
-	   static const PTStateMarkersTriangle amphibolitesPTTri1=
-	         PTStateMarkersTriangle (PTStateMarker(0.2e9, 753.0),PTStateMarker(0.95e9,773.0),PTStateMarker(1.15e9,1023.0));
+    	   static const PTStateMarkersTriangle amphibolitesPTTri1;
 
-	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
 	   //     the amphibolites facies.
-	   static const PTStateMarkersTriangle amphibolitesPTTri2=
-	         PTStateMarkersTriangle (PTStateMarker(0.2e9, 753.0),PTStateMarker(0.25e9,973.0),PTStateMarker(1.15e9,1023.0));
+	   static const PTStateMarkersTriangle amphibolitesPTTri2;
 
-	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the granulites facies.
-	   static const PTStateMarkersTriangle granulitesPTTri1=
-	         PTStateMarkersTriangle (PTStateMarker(0.25e9, 973.0),PTStateMarker(1.15e9,1023.0),PTStateMarker(1.4e9,1273.0));
+	   static const PTStateMarkersTriangle granulitesPTTri1;
 
-	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
 	   //     the granulites facies.
-	   static const PTStateMarkersTriangle granulitesPTTri2=
-	         PTStateMarkersTriangle (PTStateMarker(0.25e9, 973.0),PTStateMarker(0.25e9,1273.0),PTStateMarker(1.4e9,1273.0));
-	
-	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	static const PTStateMarkersTriangle granulitesPTTri2;
+   	
+	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-	   static const PTStateMarkersTriangle eclogitesPTTri1=
-	         PTStateMarkersTriangle (PTStateMarker(0.95e9,773.0),PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0));
+	static const PTStateMarkersTriangle eclogitesPTTri1;
 
-	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-	   static const PTStateMarkersTriangle eclogitesPTTri2=
-	         PTStateMarkersTriangle (PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
+	static const PTStateMarkersTriangle eclogitesPTTri2;
+	//PTStateMarkersTriangle (PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
 
-	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-	   static const PTStateMarkersTriangle blueschistsPTTri1=
-	         PTStateMarkersTriangle (PTStateMarker(0.8e9,423.0),PTStateMarker(2.0e9,673.0),PTStateMarker(0.95e9,773.0));
+	static const PTStateMarkersTriangle blueschistsPTTri1;
+	//PTStateMarkersTriangle (PTStateMarker(0.8e9,423.0),PTStateMarker(2.0e9,673.0),PTStateMarker(0.95e9,773.0));
 
 	   //// --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   ////     the eclogites facies.
 	   //const PTStateMarkersTriangle blueschistsPTTri2=
 	   //      PTStateMarkersTriangle (PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
 
+      private:
 	   static inline void lusiMaterialChange(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
 	   {
 	     // --- Transfer particle matFrom material (could be 0.0) concentration to
@@ -253,6 +241,74 @@ namespace aspect
 	     part_compo_props[matFromIdx]= 0.0; 
 	   }   
       };
+
+      // --- Define the p,T rectangle where the SSZ oc. crust is formed with
+      //     upwelling asthenosphere
+      template <int dim>
+      const PTStateMarkersRectangle LUSIComposition<dim>::
+            asth2SSZCrustPTRect(PTStateMarker(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,LUSIComposition<dim>::SURF_TEMPERATURE),
+	   		        PTStateMarker(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS));
+
+      // --- Define the p,T rectangle where the SSZ oc. lith. mantle is formed with
+      //     upwelling asthenosphere      
+      template <int dim>
+      const PTStateMarkersRectangle LUSIComposition<dim>::
+            asth2SSZOlmPTRect(PTStateMarker(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,LUSIComposition<dim>::MOHO_TEMPERATURE_IN_KELVINS),
+	    		      PTStateMarker(LUSIComposition<dim>::OLM_MAX_PRESSURE_IN_PASCALS,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS));
+
+      // --- Define the 1st p,T triangle object where oc. crust material transforms to
+      //     the greenschists facies (prograde only)
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+            greenSchistsPTTri1(PTStateMarker(0.15e9,573.0),PTStateMarker(0.2e9,753.0),PTStateMarker(0.95e9,773.0));
+
+       // --- Define the 2nd p,T triangle object where oc. crust material transforms to
+       //     the greenschists facies (prograde only)
+       template <int dim>
+       const PTStateMarkersTriangle LUSIComposition<dim>::
+          greenSchistsPTTri2(PTStateMarker(0.15e9,573.0),PTStateMarker(0.8e9, 623.0),PTStateMarker(0.95e9,773.0));      
+
+       // --- Define the 1st p,T triangle where oc. crust material transforms to
+       //     the amphibolites facies.      
+       template <int dim>
+       const PTStateMarkersTriangle LUSIComposition<dim>::
+	   amphibolitesPTTri1(PTStateMarker(0.2e9, 753.0),PTStateMarker(0.95e9,773.0),PTStateMarker(1.15e9,1023.0));
+
+       // --- Define the 2nd p,T triangle where oc. crust material transforms to
+       //     the amphibolites facies.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+          amphibolitesPTTri2(PTStateMarker(0.2e9, 753.0),PTStateMarker(0.25e9,973.0),PTStateMarker(1.15e9,1023.0));
+
+      // --- Define the 1st p,T triangle where oc. crust material transforms to
+      //     the granulites facies.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+            granulitesPTTri1(PTStateMarker(0.25e9, 973.0),PTStateMarker(1.15e9,1023.0),PTStateMarker(1.4e9,1273.0));
+
+      // --- Define the 2nd p,T triangle where oc. crust material transforms to
+      //     the granulites facies.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+            granulitesPTTri2(PTStateMarker(0.25e9, 973.0),PTStateMarker(0.25e9,1273.0),PTStateMarker(1.4e9,1273.0));
+	
+	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   //     the eclogites facies.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+	    eclogitesPTTri1(PTStateMarker(0.95e9,773.0),PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0));
+
+	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
+	   //     the eclogites facies.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+	    eclogitesPTTri2(PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
+
+	   // --- Define the 1st p,T triangle where oc. crust material transforms to
+	   //     the eclogites facies.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+	    blueschistsPTTri1(PTStateMarker(0.8e9,423.0),PTStateMarker(2.0e9,673.0),PTStateMarker(0.95e9,773.0));      
     }
   }
 }
