@@ -225,6 +225,9 @@ namespace aspect
 	   //const PTStateMarkersTriangle blueschistsPTTri2=
 	   //      PTStateMarkersTriangle (PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
 
+       static const PTStateMarker asth2SSZCrustPTRect00;
+       static const PTStateMarker asth2SSZCrustPTRect11;
+
       private:
 	   static inline void lusiMaterialChange(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
 	   {
@@ -242,12 +245,22 @@ namespace aspect
 	   }   
       };
 
+      const PTStateMarker LUSIComposition<dim>::
+           asth2SSZCrustPTRect00(PTStateMarker(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,
+                                               LUSIComposition<dim>::SURF_TEMPERATURE);
+
+      const PTStateMarker LUSIComposition<dim>::
+           asth2SSZCrustPTRect11(PTStateMarker(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,
+                                               LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+
       // --- Define the p,T rectangle where the SSZ oc. crust is formed with
       //     upwelling asthenosphere
       template <int dim>
       const PTStateMarkersRectangle LUSIComposition<dim>::
-            asth2SSZCrustPTRect(PTStateMarker(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,LUSIComposition<dim>::SURF_TEMPERATURE),
-	   		        PTStateMarker(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS));
+            asth2SSZCrustPTRect(LUSIComposition<dim>::asth2SSZCrustPTRect00,asth2SSZCrustPTRect11)
+
+            //asth2SSZCrustPTRect(PTStateMarker(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,LUSIComposition<dim>::SURF_TEMPERATURE),
+	   //		        PTStateMarker(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS));
 
       // --- Define the p,T rectangle where the SSZ oc. lith. mantle is formed with
       //     upwelling asthenosphere      
