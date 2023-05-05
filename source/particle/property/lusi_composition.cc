@@ -122,7 +122,7 @@ namespace aspect
            //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: part_compo_props[oc_seds_idx]="
            //                  << part_compo_props[oc_seds_idx] << std::endl << std::endl;
 
-            AssertThrow(false,ExcMessage("LUSIComposition<dim>::update_particle_property: oc. seds check surf.:  Debug stop");
+            AssertThrow(false,ExcMessage("LUSIComposition<dim>::update_particle_property: oc. seds check surf.:  Debug stop"));
 
 	   // --- Transfer particle asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.
