@@ -20,12 +20,7 @@
 
 #include <assert.h>
 #include <aspect/particle/utilities_lusi.h>
-//#include <aspect/utilities.h>
-//#include <deal.II/fe/fe_values.h>
 #include <deal.II/base/signaling_nan.h>
-//#include <aspect/newton.h>
-//#include <aspect/adiabatic_conditions/interface.h>
-//#include <aspect/gravity_model/interface.h>
 
 namespace aspect
 {
@@ -188,11 +183,11 @@ namespace aspect
         std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[0]->getPressure()=" << 
                   this->PTSMSRefs[0]->getPressure() << std::endl;
         std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[0]->getTemperature()=" << 
-                  this->PTSMSRefs[0]->getPressure() << std::endl;
+                  this->PTSMSRefs[0]->getTemperature() << std::endl;
         std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getPressure()=" <<
-                  this->PTSMSRefs[0]->getPressure() << std::endl;
+                  this->PTSMSRefs[1]->getPressure() << std::endl;
         std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getTemperature()=" << 
-                  this->PTSMSRefs[0]->getPressure() << std::endl;
+                  this->PTSMSRefs[1]->getTemperature() << std::endl;
 
         const bool ret= ( (pressure > this->PTSMSRefs[0]->getPressure()) && (pressure < this->PTSMSRefs[1]->getPressure()) &&
                  (temperature > this->PTSMSRefs[0]->getTemperature()) && (temperature < this->PTSMSRefs[1]->getTemperature()) );
