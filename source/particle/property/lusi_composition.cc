@@ -85,6 +85,9 @@ namespace aspect
         const unsigned int blueschists_idx=
           this->introspection().compositional_index_for_name(BLUESCHISTS_NID);
 	
+        const unsigned int coesite_idx=
+          this->introspection().compositional_index_for_name(COESITE_NID);
+
 	const double pressure_here= \
 	  solution[this->introspection().component_indices.pressure];
 
@@ -198,12 +201,19 @@ namespace aspect
 	if (eclogitesPTTri1.ptInside(pressure_here,temperature_here) ||
 	    eclogitesPTTri2.ptInside(pressure_here,temperature_here) )
 	  {
-            lusiMaterialChange(part_compo_props, oc_crust_idx, eclogites_idx , 0.0, 1.0);
-	    lusiMaterialChange(part_compo_props, blueschists_idx, eclogites_idx , 0.0, 1.0);
-	    lusiMaterialChange(part_compo_props, greenschists_idx, eclogites_idx , 0.0, 1.0);
-	    lusiMaterialChange(part_compo_props, amphibolites_idx, eclogites_idx , 0.0, 1.0);
-	    lusiMaterialChange(part_compo_props, granulites_idx, eclogites_idx , 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, oc_crust_idx,     eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, blueschists_idx,  eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, greenschists_idx, eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, amphibolites_idx, eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, granulites_idx,   eclogites_idx, 0.0, 1.0);
 	  }
+
+          // --- Prograde only qtz -> coesite transition.
+          if (qtz2CoesPTRect.ptInside(pressure_here,temperature_here))
+          {
+              lusiMaterialChange(part_compo_props, oc_crust_idx, coesite_idx, 0.0, 1.0);
+          }
+
       } //--- update_particle_property
 
       template <int dim>
