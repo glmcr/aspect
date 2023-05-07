@@ -176,10 +176,11 @@ namespace aspect
 	  static constexpr const double SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
 
           //--- oc. seds. transforms (mainly) to coesite
-          static constexpr const double QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS= 873.0;
+          //    (mainly dependant on pressure and not really on T)
+          static constexpr const double QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS= 273.0;
 
           // --- 
-          static constexpr const double QTZ_TO_COESITE_PRESSURE_THRESHOLD_IN_PASCALS= GPA_2_PASCALS*1.5;
+          static constexpr const double QTZ_TO_COESITE_PRESSURE_THRESHOLD_IN_PASCALS= GPA_2_PASCALS*2.0;
 
 	//private:
 
@@ -333,7 +334,7 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-         qtz2CoesPTRect11(LUSIComposition<dim>::GPA_2_PASCALS*5.0,1850.0);
+         qtz2CoesPTRect11(LUSIComposition<dim>::GPA_2_PASCALS*8.0,2000.0);
 
       template <int dim>
       const PTStateMarkersRectangle LUSIComposition<dim>::
