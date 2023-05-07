@@ -231,15 +231,16 @@ namespace aspect
 	  //v1MinusV2= ( vertex1[0]-vertex2[0], vertex1[1]-vertex2[1])
 	  //v3MinusV1= ( vertex3[0]-vertex1[0], vertex3[1]-vertex1[1])
 	  //v2MinusV3= ( vertex2[0]-vertex3[0], vertex2[1]-vertex3[1])
-     
-	  const PTStateMarker ptsm0MinusPtsm1 (this->PTSMSRefs[0]->getTemperature() - this->PTSMSRefs[1]->getTemperature(),
-					       this->PTSMSRefs[0]->getPressure()    - this->PTSMSRefs[1]->getPressure()    );
 
-	  const PTStateMarker ptsm2MinusPtsm0 (this->PTSMSRefs[2]->getTemperature() - this->PTSMSRefs[0]->getTemperature(),
-					       this->PTSMSRefs[2]->getPressure()    - this->PTSMSRefs[0]->getPressure()    );
+	  // --- Beware! Need to create the PTStateMarker object with the order (p,T) and not (T,p) as in the python code.
+	  const PTStateMarker ptsm0MinusPtsm1 (this->PTSMSRefs[0]->getPressure() - this->PTSMSRefs[1]->getPressure(),
+					       this->PTSMSRefs[0]->getTemperature() - this->PTSMSRefs[1]->getTemperature());
 
-	  const PTStateMarker ptsm1MinusPtsm2 (this->PTSMSRefs[1]->getTemperature() - this->PTSMSRefs[2]->getTemperature(),
-	 				       this->PTSMSRefs[1]->getPressure()    - this->PTSMSRefs[2]->getPressure()    );
+	  const PTStateMarker ptsm2MinusPtsm0 (this->PTSMSRefs[2]->getPressure() - this->PTSMSRefs[0]->getPressure(),
+					       this->PTSMSRefs[2]->getTemperature()  - this->PTSMSRefs[0]->getTemperature());
+
+	  const PTStateMarker ptsm1MinusPtsm2 (this->PTSMSRefs[1]->getPressure() - this->PTSMSRefs[2]->getPressure(),
+	 				       this->PTSMSRefs[1]->getTemperature() - this->PTSMSRefs[2]->getTemperature());
 
 	  // python code:
 	  //weight12= ( crossProd2D(vertex1,vertex2) + crossProd2D(point2D,v1MinusV2) )/denom
