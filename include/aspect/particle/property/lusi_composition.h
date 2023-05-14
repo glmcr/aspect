@@ -449,10 +449,10 @@ namespace aspect
        const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.15e9,773.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri11(3.0e9,573.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri11(3.0e9,673.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri12(3.0e9,773.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri12(3.0e9,1573.0);
       
 	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
@@ -469,7 +469,7 @@ namespace aspect
        const PTStateMarker LUSIComposition<dim>::eclogitesPTTri21(3.0e9,1573.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri22(3.0e9,773.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri22(1.4e9,1573.0);
       
 	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
