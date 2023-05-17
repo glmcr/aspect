@@ -208,11 +208,11 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, granulites_idx,   eclogites_idx, 0.0, 1.0);
 	  }
 
-          // --- Prograde only qtz -> coesite transition.
-          if (qtz2CoesPTRect.ptInside(pressure_here,temperature_here))
-          {
-              lusiMaterialChange(part_compo_props, oc_crust_idx, coesite_idx, 0.0, 1.0);
-          }
+        // --- Prograde only oc. seds. (i.e. mainly qtz) -> coesite transition.
+        if (qtz2CoesPTRect.ptInside(pressure_here,temperature_here))
+        {
+           lusiMaterialChange(part_compo_props, oc_seds_idx, coesite_idx, 0.0, 1.0);
+        }
 
       } //--- update_particle_property
 
