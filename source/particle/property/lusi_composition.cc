@@ -105,27 +105,27 @@ namespace aspect
         // std::cout << "LUSIComposition<dim>::update_particle_property: temperature_here=" << temperature_here << std::endl;
         //}
 
-	// --- p,T conditions under which asth. transforms to SSZ crust (from the surface down to the moho)
-        if ( asth2SSZCrustPTRect.ptInside(pressure_here,temperature_here))
+	// --- Pour some oc. seds. but only where pressure is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
+	if (pressure_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
+	  {
+	    part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
+
+	    //--- Keeping oc. seds compo prop between 0.25 and 0.5 here.
+            part_compo_props[oc_seds_idx]=
+		std::max(0.25,std::min(0.5,part_compo_props[oc_seds_idx]));
+
+            //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf. OK: part_compo_props[oc_seds_idx]="
+            //              << part_compo_props[oc_seds_idx] << std::endl << std::endl;
+            //AssertThrow(false,ExcMessage("LUSIComposition<dim>::update_particle_property: oc. seds check surf.:  Debug stop"));
+	}	
+
+	// --- (p,T) conditions under which upwelling asth. partial melts transforms to SSZ crust.
+        if ( asth2SSZCrustPTTri1.ptInside(pressure_here,temperature_here) ||
+	     asth2SSZCrustPTTri2.ptInside(pressure_here,temperature_here))
 	  {
 
             //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: pressure_here="
             //                  << pressure_here << ", temperature_here=" << temperature_here << std::endl;
-
-	   // --- Pour some oc. seds. but only where pressure is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
-	   if (pressure_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
-	     {
-	       part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
-
-	       //--- Keeping oc. seds compo prop between 0.25 and 0.5 here.
-               part_compo_props[oc_seds_idx]=
-		   std::max(0.25,std::min(0.5,part_compo_props[oc_seds_idx]));
-
-               //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf. OK: part_compo_props[oc_seds_idx]="
-               //              << part_compo_props[oc_seds_idx] << std::endl << std::endl;
-
-               //AssertThrow(false,ExcMessage("LUSIComposition<dim>::update_particle_property: oc. seds check surf.:  Debug stop"));
-	     }
 
 	   // --- Transfer particle asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.
@@ -143,8 +143,8 @@ namespace aspect
 	  
 	  } // --- asth -> ssz oc. crust.
 
-	// --- p,T conditions under which asth. transforms to SSZ oc. lith. mantle (moho to LAB)
-	if (asth2SSZOlmPTRect.ptInside(pressure_here,temperature_here))
+	// --- (p,T) conditions under which asth. partial melts transforms to SSZ oc. lith. mantle (moho to LAB)
+	if (asth2SSZOlmPTTri.ptInside(pressure_here,temperature_here))
 	  {
             lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
 	  
