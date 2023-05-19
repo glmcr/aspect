@@ -186,11 +186,16 @@ namespace aspect
 
 	   // --- Declare the PTStateMarkersRectangle object that defines the p,T conditions where
 	   //     asth. transform to oc. crust.
-           static const PTStateMarkersRectangle asth2SSZCrustPTRect;
+           //static const PTStateMarkersRectangle asth2SSZCrustPTRect;
 
 	   // --- Declare the PTStateMarkersRectangle object that defines the p,T conditions where
 	   //     asth. transform to oc. lith. mantle.
-	   static const PTStateMarkersRectangle asth2SSZOlmPTRect;
+	   //static const PTStateMarkersRectangle asth2SSZOlmPTRect;
+
+	   static const PTStateMarkersTriangle asth2SSZCrustPTTri1;
+	   static const PTStateMarkersTriangle asth2SSZCrustPTTri2;
+
+	   static const PTStateMarkersTriangle asth2SSZOlmPTTri;	   
 
            static const PTStateMarkersRectangle qtz2CoesPTRect;
 
@@ -235,12 +240,24 @@ namespace aspect
 	   //const PTStateMarkersTriangle blueschistsPTTri2=
 	   //      PTStateMarkersTriangle (PTStateMarker(2.0e9,723.0),PTStateMarker(1.6e9,1273.0),PTStateMarker(2.0e9,1273.0));
 
-       static const PTStateMarker asth2SSZCrustPTRect00;
-       static const PTStateMarker asth2SSZCrustPTRect11;
+	//static const PTStateMarker asth2SSZCrustPTRect00;
+	//static const PTStateMarker asth2SSZCrustPTRect11;
 
-       static const PTStateMarker asth2SSZOlmPTRect00;
-       static const PTStateMarker asth2SSZOlmPTRect11;
+	//static const PTStateMarker asth2SSZOlmPTRect00;
+	//static const PTStateMarker asth2SSZOlmPTRect11;
 
+       static const PTStateMarker asth2SSZCrustPTTri11;
+       static const PTStateMarker asth2SSZCrustPTTri12;
+       static const PTStateMarker asth2SSZCrustPTTri13;
+
+       static const PTStateMarker asth2SSZCrustPTTri21;
+       static const PTStateMarker asth2SSZCrustPTTri22;
+       static const PTStateMarker asth2SSZCrustPTTri23;
+
+       static const PTStateMarker asth2SSZOlmPTTri1;
+       static const PTStateMarker asth2SSZOlmPTTri2;
+       static const PTStateMarker asth2SSZOlmPTTri3;
+	
        static const PTStateMarker qtz2CoesPTRect00;
        static const PTStateMarker qtz2CoesPTRect11;
 
@@ -297,35 +314,64 @@ namespace aspect
 	   }   
       };
 
+      // --- Tri1 (p,T) points for SSZ crust creation with partial melting of Asth.
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-           asth2SSZCrustPTRect00(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,
-                                 LUSIComposition<dim>::SURF_TEMPERATURE);
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-           asth2SSZCrustPTRect11(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,
-                                 LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
-
-      // --- Define the p,T rectangle where the SSZ oc. crust is formed with
-      //     upwelling asthenosphere
-      template <int dim>
-      const PTStateMarkersRectangle LUSIComposition<dim>::
-            asth2SSZCrustPTRect(LUSIComposition<dim>::asth2SSZCrustPTRect00,LUSIComposition<dim>::asth2SSZCrustPTRect11);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-          asth2SSZOlmPTRect00(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,LUSIComposition<dim>::MOHO_TEMPERATURE_IN_KELVINS);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-          asth2SSZOlmPTRect11(LUSIComposition<dim>::OLM_MAX_PRESSURE_IN_PASCALS,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+      const PTStateMarker LUSIComposition<dim>::asth2SSZCrustPTTri11(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,1373.0);
       
-      // --- Define the p,T rectangle where the SSZ oc. lith. mantle is formed with
-      //     upwelling asthenosphere      
       template <int dim>
-      const PTStateMarkersRectangle LUSIComposition<dim>::
-            asth2SSZOlmPTRect(LUSIComposition<dim>::asth2SSZOlmPTRect00,LUSIComposition<dim>::asth2SSZOlmPTRect11);
+      const PTStateMarker LUSIComposition<dim>::asth2SSZCrustPTTri12(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,
+								     LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+                
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::asth2SSZCrustPTTri13(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,
+								     LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+      
+      // --- Define the (p,T) 1st triangle where the SSZ oc. crust is formed with
+      //     partial melting of the upwelling asthenosphere.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+         asth2SSZCrustPTTri1(LUSIComposition<dim>::asth2SSZCrustPTTri11,
+	    		     LUSIComposition<dim>::asth2SSZCrustPTTri11,
+			     LUSIComposition<dim>::asth2SSZCrustPTTri13);
 
+     // --- Tri2 (p,T) points for SSZ crust creation with partial melting of Asth.
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::asth2SSZCrustPTTri21(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,1373.0);
+      
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::asth2SSZCrustPTTri22(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,1423.0);
+                
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::asth2SSZCrustPTTri23(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,
+								     LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+      
+      // --- Define the (p,T) 2nd triangle where the SSZ oc. crust is formed with
+      //     partial melting of the upwelling asthenosphere.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+         asth2SSZCrustPTTri2(LUSIComposition<dim>::asth2SSZCrustPTTri21,
+	    		     LUSIComposition<dim>::asth2SSZCrustPTTri22,
+			     LUSIComposition<dim>::asth2SSZCrustPTTri23);
+      
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri1(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,1423.0);
+      
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri2(LUSIComposition<dim>::MOHO_PRESSURE_IN_PASCALS,
+								  LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+                
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri3(1.6e9,
+								  LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+      
+      // --- Define the (p,T) triangle where the SSZ oc. lith mantle is formed with
+      //     partial melting of the upwelling asthenosphere.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+         asth2SSZOlmPTTri(LUSIComposition<dim>::asth2SSZOlmPTTri1,
+	    		  LUSIComposition<dim>::asth2SSZOlmPTTri2,
+			  LUSIComposition<dim>::asth2SSZOlmPTTri3);
+      
       // ---- Qtz (oc. seds) to coesite section, (p,T) rectangle
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
@@ -338,7 +384,7 @@ namespace aspect
 
       template <int dim>
       const PTStateMarkersRectangle LUSIComposition<dim>::
-            qtz2CoesPTRect(LUSIComposition<dim>::qtz2CoesPTRect00,LUSIComposition<dim>::qtz2CoesPTRect11);
+         qtz2CoesPTRect(LUSIComposition<dim>::qtz2CoesPTRect00,LUSIComposition<dim>::qtz2CoesPTRect11);
 
       // --- Greenschists section
       template <int dim>
@@ -348,7 +394,7 @@ namespace aspect
       const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri11(0.2e9,773.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.15e9,773.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.2e9,773.0);
       //const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(0.95e9,773.0);
       
       // --- Define the 1st p,T triangle object where oc. crust material transforms to
@@ -366,7 +412,7 @@ namespace aspect
       const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri21(0.6e9, 600.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(1.15e9,773.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(1.2e9,773.0);
       //const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(0.95e9,773.0);
       
        // --- Define the 2nd p,T triangle object where oc. crust material transforms to
@@ -397,7 +443,7 @@ namespace aspect
        const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri20(0.2e9,773.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(1.15e9,773.0);
+       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(1.2e9,773.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri22(1.25e9,973.0);
@@ -446,7 +492,7 @@ namespace aspect
 			     LUSIComposition<dim>::granulitesPTTri22);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.15e9,773.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.2e9,773.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::eclogitesPTTri11(3.0e9,673.0);
@@ -463,7 +509,7 @@ namespace aspect
 		      LUSIComposition<dim>::eclogitesPTTri12);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri20(1.15e9,773.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri20(1.2e9,773.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::eclogitesPTTri21(3.0e9,1573.0);
@@ -480,7 +526,7 @@ namespace aspect
 		      LUSIComposition<dim>::eclogitesPTTri22);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::blueschistsPTTri10(1.15e9,773.0);
+       const PTStateMarker LUSIComposition<dim>::blueschistsPTTri10(1.2e9,773.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::blueschistsPTTri11(0.8e9,473.0);
