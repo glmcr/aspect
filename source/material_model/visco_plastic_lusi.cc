@@ -44,11 +44,11 @@ namespace aspect
       //     since the material models properties arrays are always using
       //     a background field at index 0 so the compositions indices
       //     are shifted by one in the material models properties arrays
-      const unsigned int asth_mtl_idx= this->introspection().
-                         compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID) + 1;
+      //const unsigned int asth_mtl_idx= this->introspection().
+      //                   compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID) + 1;
 
-      const unsigned int oc_lith_mtl_idx= this->introspection().
-                         compositional_index_for_name(LITHOSPHERIC_MANTLE_NID) + 1;
+      //const unsigned int oc_lith_mtl_idx= this->introspection().
+      //                   compositional_index_for_name(LITHOSPHERIC_MANTLE_NID) + 1;
 
       //const unsigned int oc_crust_idx= this->introspection().
       //                   compositional_index_for_name(OCEANIC_CRUST_NID) + 1;
@@ -101,31 +101,36 @@ namespace aspect
                    const double thExpFact= 1.0 +
                        (in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
 
-                   thermal_expansivities_local[asth_mtl_idx]=
-                        thExpFact*thermal_expansivities_cref[asth_mtl_idx];
+                   // thermal_expansivities_local[asth_mtl_idx]=
+                   //      thExpFact*thermal_expansivities_cref[asth_mtl_idx];
 
 		   //this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[asth_mtl_idx]= "
                    //                  << thermal_expansivities_cref[asth_mtl_idx] << std::endl;
 		   //this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[asth_mtl_idx]= "
                    //                  << thermal_expansivities_local[asth_mtl_idx] << std::endl;
 
-                   densities_local[asth_mtl_idx]= densities_cref[asth_mtl_idx] *
-                      (1.0 - thermal_expansivities_local[asth_mtl_idx] * (in.temperature[i] - reference_temperature));
+                   // densities_local[asth_mtl_idx]= densities_cref[asth_mtl_idx] *
+                   //    (1.0 - thermal_expansivities_local[asth_mtl_idx] * (in.temperature[i] - reference_temperature));
 
-                   thermal_expansivities_local[oc_lith_mtl_idx]=
-                       thExpFact*thermal_expansivities_cref[oc_lith_mtl_idx];
+                   // thermal_expansivities_local[oc_lith_mtl_idx]=
+                   //     thExpFact*thermal_expansivities_cref[oc_lith_mtl_idx];
 
 		   //this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[oc_lith_mtl_idx]= "
                    //                  << thermal_expansivities_cref[oc_lith_mtl_idx] << std::endl;
 		   //this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[oc_lith_mtl_idx]= "
                    //                  << thermal_expansivities_local[oc_lith_mtl_idx] << std::endl << std::endl;
 
-                   densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
-                    (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
+                   // densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
+                   //  (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
-		   // moved up before this if block:
-                   //const std::vector<double> volume_fractions =
-                   //  MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions);
+		   // --- Update thermal expansivitires and densities accordinglym (for all compos)
+                   for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
+		   {
+		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp];
+
+                      densities_local[cmp]= densities_cref[cmp] *
+                          (1.0 - thermal_expansivities_local[cmp] * (in.temperature[i] - reference_temperature));		      
+		   }
 
                    out.densities[i]=
 		      MaterialUtilities::average_value (volume_fractions, densities_local, MaterialUtilities::arithmetic);
@@ -151,13 +156,15 @@ namespace aspect
                    //                  << thermal_expansivities_local[oc_lith_mtl_idx] << std::endl << std::endl;
                    //}
 		 } // --- if block for thermal exp. dependance on T
-           
+
+	       // --- Now update the thermal cond. via the thermal_diffusivities.
 	       if ( in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD) {
 
 		 double thermal_diffusivity= 0.0;
 
-		 for (unsigned int j=0; j < volume_fractions.size(); ++j) {
-                    thermal_diffusivity += volume_fractions[j] * this->thermal_diffusivities[j];
+		 for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
+		 {
+                    thermal_diffusivity += volume_fractions[cmp] * this->thermal_diffusivities[cmp];
                  }
 
 		 // --- NOTE: We assume here that the reference T is 273K
