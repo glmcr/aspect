@@ -361,7 +361,7 @@ namespace aspect
 								  LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
                 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri3(1.35e9,
+      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri3(0.95e9,
 								  LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
       
       // --- Define the (p,T) triangle where the SSZ oc. lith mantle is formed with
