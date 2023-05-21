@@ -147,7 +147,10 @@ namespace aspect
 	  static constexpr const double SURF_ATMOS_PRESSURE= 101500.0;
 	
           // --- Lithosphere <-> asthenosphere T boundary
-          static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
+          // LAB T at 1300C
+          //static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1573.0;
+          // LAB T at 1250C
+          static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1523.0;
 
 	  // --- T at the moho
 	  static constexpr const double MOHO_TEMPERATURE_IN_KELVINS= 850.0;
