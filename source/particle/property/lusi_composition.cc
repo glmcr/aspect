@@ -52,6 +52,11 @@ namespace aspect
         const unsigned int asth_mtl_idx=
           this->introspection().compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
+	// --- partially melted ssz asth.
+        const unsigned int pm_ssz_asth_mtl_idx=
+          this->introspection().compositional_index_for_name(PARTIALLY_MELTED_SSZ_ASTH_NID);	
+
+	// Not used for now but could be used if the ~410km oli -> wads change is applied
         //const unsigned int lith_mtl_idx=
         //  this->introspection().compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
 
@@ -119,6 +124,13 @@ namespace aspect
             //AssertThrow(false,ExcMessage("LUSIComposition<dim>::update_particle_property: oc. seds check surf.:  Debug stop"));
 	}	
 
+	// --- (p,T) conditions under which upwelling partially melted asth. transforms to partially melted
+	//     SSZ asthenosphere 
+        if ( pmSszAsthPTTri.ptInside(pressure_here,temperature_here))
+	  {
+	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	  }
+	
 	// --- (p,T) conditions under which upwelling asth. partial melts transforms to SSZ crust.
         if ( asth2SSZCrustPTTri1.ptInside(pressure_here,temperature_here) ||
 	     asth2SSZCrustPTTri2.ptInside(pressure_here,temperature_here))
@@ -127,9 +139,10 @@ namespace aspect
             //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: pressure_here="
             //                  << pressure_here << ", temperature_here=" << temperature_here << std::endl;
 
-	   // --- Transfer particle asth. material (could be 0.0) concentration to
+	   // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.
-	   lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
+	   //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
+	   lusiMaterialChange(part_compo_props,pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 
 	   //// --- Transfer particle asth. material (could be 0.0) concentration to
 	   ////     to the SSZ type of oc. crust.
@@ -143,10 +156,15 @@ namespace aspect
 	  
 	  } // --- asth -> ssz oc. crust.
 
-	// --- (p,T) conditions under which asth. partial melts transforms to SSZ oc. lith. mantle (moho to LAB)
-	if (asth2SSZOlmPTTri.ptInside(pressure_here,temperature_here))
+	// --- (p,T) conditions under which upwelling partially melted asth. transforms to SSZ oc. lith. mantle (moho to LAB)
+	if (asth2SSZOlmPTTri1.ptInside(pressure_here,temperature_here) ||
+	    asth2SSZOlmPTTri2.ptInside(pressure_here,temperature_here))
 	  {
-            lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+
+	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
+	    //     to the SSZ type of oc. lith. mantle.	    
+	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+            //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
 	  
            // part_compo_props[ssz_lith_mtl_idx] += part_compo_props[asth_mtl_idx];
            // part_compo_props[ssz_lith_mtl_idx]=
