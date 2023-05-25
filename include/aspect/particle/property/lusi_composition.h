@@ -126,8 +126,8 @@ namespace aspect
           // ---
           static constexpr const char* OCEANIC_SEDS_NID= "oceanicSeds";
 
-          // --- prograde MTM facies for oc. seds (qtz -> coesite)
-          static constexpr const char* COESITE_NID= "coesite";
+          //// --- prograde MTM facies for oc. seds (qtz -> coesite)
+          //static constexpr const char* COESITE_NID= "coesite";
 
 	  // --- prograde MTM facies for oc. crust
 	  static constexpr const char* GREENSCHISTS_NID= "greenschists";
@@ -182,12 +182,12 @@ namespace aspect
 	  // --- Approx lithos. pressure of a 1.5km column of oceanic sediments.
 	  static constexpr const double SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
 
-          //--- oc. seds. transforms (mainly) to coesite
-          //    (mainly dependant on pressure and not really on T)
-          static constexpr const double QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS= SURF_TEMPERATURE;
+          ////--- oc. seds. transforms (mainly) to coesite
+          ////    (mainly dependant on pressure and not really on T)
+          //static constexpr const double QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS= SURF_TEMPERATURE;
 
-          // ---
-          static constexpr const double QTZ_TO_COESITE_PRESSURE_THRESHOLD_IN_PASCALS= GPA_2_PASCALS*2.0;
+          //// ---
+          //static constexpr const double QTZ_TO_COESITE_PRESSURE_THRESHOLD_IN_PASCALS= GPA_2_PASCALS*2.0;
 
 	//private:
 
@@ -208,8 +208,8 @@ namespace aspect
 	   // --- (p,T) tri. zone where ssz asth. in partial melting state
 	   static const PTStateMarkersTriangle pmSszAsthPTTri;
 
-	   // ---
-           static const PTStateMarkersRectangle qtz2CoesPTRect;
+	   //// ---
+           //static const PTStateMarkersRectangle qtz2CoesPTRect;
 
 	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the greenschists facies (prograde only)
@@ -278,8 +278,8 @@ namespace aspect
        static const PTStateMarker asth2SSZOlmPTTri22;
        static const PTStateMarker asth2SSZOlmPTTri23;
 
-       static const PTStateMarker qtz2CoesPTRect00;
-       static const PTStateMarker qtz2CoesPTRect11;
+       //static const PTStateMarker qtz2CoesPTRect00;
+       //static const PTStateMarker qtz2CoesPTRect11;
 
        static const PTStateMarker greenSchistsPTTri10;
        static const PTStateMarker greenSchistsPTTri11;
@@ -429,19 +429,19 @@ namespace aspect
 	    		   LUSIComposition<dim>::asth2SSZOlmPTTri22,
 			   LUSIComposition<dim>::asth2SSZOlmPTTri23);
       
-      // ---- Qtz (oc. seds) to coesite section, (p,T) rectangle
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-         qtz2CoesPTRect00(LUSIComposition<dim>::QTZ_TO_COESITE_PRESSURE_THRESHOLD_IN_PASCALS,
-                          LUSIComposition<dim>::QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS);
+      //// ---- Qtz (oc. seds) to coesite section, (p,T) rectangle
+      //template <int dim>
+      //const PTStateMarker LUSIComposition<dim>::
+      //   qtz2CoesPTRect00(LUSIComposition<dim>::QTZ_TO_COESITE_PRESSURE_THRESHOLD_IN_PASCALS,
+      //                    LUSIComposition<dim>::QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS);
 
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-         qtz2CoesPTRect11(LUSIComposition<dim>::GPA_2_PASCALS*8.0,2000.0);
+    //template <int dim>
+    //const PTStateMarker LUSIComposition<dim>::
+    //   qtz2CoesPTRect11(LUSIComposition<dim>::GPA_2_PASCALS*8.0,2000.0);
 
-      template <int dim>
-      const PTStateMarkersRectangle LUSIComposition<dim>::
-         qtz2CoesPTRect(LUSIComposition<dim>::qtz2CoesPTRect00,LUSIComposition<dim>::qtz2CoesPTRect11);
+    //template <int dim>
+    //const PTStateMarkersRectangle LUSIComposition<dim>::
+    //    qtz2CoesPTRect(LUSIComposition<dim>::qtz2CoesPTRect00,LUSIComposition<dim>::qtz2CoesPTRect11);
 
       // --- Greenschists section
       template <int dim>
