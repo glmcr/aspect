@@ -25,6 +25,7 @@
 #include <aspect/newton.h>
 #include <aspect/adiabatic_conditions/interface.h>
 #include <aspect/gravity_model/interface.h>
+//#include <aspect/lusi_composition.h>
 
 namespace aspect
 {
@@ -53,6 +54,10 @@ namespace aspect
       //const unsigned int oc_crust_idx= this->introspection().
       //                   compositional_index_for_name(OCEANIC_CRUST_NID) + 1;
 
+      const unsigned int ssz_oc_crust_idx= this->introspection().
+	compositional_index_for_name(LUSIComposition<dim>::SSZ_OCEANIC_CRUST_NID) + 1;
+      //compositional_index_for_name(Particle::Property::LUSIComposition<dim>::SSZ_OCEANIC_CRUST_NID) + 1;
+      
       // --- Only apply the ad-hoc material changes if the simulator initialization
       //     is done.
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
@@ -162,9 +167,37 @@ namespace aspect
 
 		 double thermal_diffusivity= 0.0;
 
+		 // --- Local copy of the this->thermal_diffusivities vector
+		 //     to be able to (artificially) increase the thermal_diffusivities
+		 //     of the material(s) that could be subjected to hydrothermal
+		 //     convection or circulation (mainly the newly created oc. crust at
+		 //     an oceanic ridge). This is an ad-hoc brute-force parametrization.
+                 std::vector<double> thermal_diffusivities_local(this->thermal_diffusivities);
+
+                 // --- Increase the ssz oc. crust thermal diff using the strain rate as a
+		 //     proxy for the hydrothermal convection intensity near the ridge. A
+		 //     large strain rate implies a vigourous hydrothermal convection.
+		 //     (it is at the limit between viscous and plastic strains domains)
+                 //     It helps to localize the heat dissipation at the ridge which itself
+		 //     promotes the strain localization (or vice-versa?) with cracking-faulting.
+  
+                 // --- Get the strain rate that was used for the viscosity calculation at i
+                 const double min_strain_rate= this->get_min_strain_rate();
+		 
+                 const double edot_ii= 
+		     std::max(std::sqrt(std::max(-second_invariant(deviator(in.strain_rate[i])), 0.)),min_strain_rate);
+
+		 // --- Apply the increasing factor using the strain rate and the min strain rate values
+
+		 // --- Need to use an hardcoded 3e7 factor for the min_strain_rate
+		 //     in the denom part of the exponential. Also limit the strain rate
+		 //     max to MAX_STRAIN_RATE_LOCAL to avoid producing a factor > 30.  
+                 thermal_diffusivities_local[ssz_oc_crust_idx] *= exp( ( std::min(edot_ii,MAX_STRAIN_RATE_LOCAL) - min_strain_rate)/(min_strain_rate*3e7) );
+		 
 		 for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
 		 {
-                    thermal_diffusivity += volume_fractions[cmp] * this->thermal_diffusivities[cmp];
+		   thermal_diffusivity += volume_fractions[cmp] * thermal_diffusivities_local[cmp];
+		   //thermal_diffusivity += volume_fractions[cmp] * this->thermal_diffusivities[cmp];
                  }
 
 		 // --- NOTE: We assume here that the reference T is 273K

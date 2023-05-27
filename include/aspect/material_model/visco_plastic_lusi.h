@@ -24,6 +24,7 @@
 #include <aspect/simulator_access.h>
 #include <aspect/material_model/interface.h>
 #include <aspect/material_model/visco_plastic.h>
+#include <aspect/particle/property/lusi_composition.h>
 #include<deal.II/fe/component_mask.h>
 
 namespace aspect
@@ -31,6 +32,8 @@ namespace aspect
   namespace MaterialModel
   {
     using namespace dealii;
+
+    using namespace Particle::Property;
 
     template <int dim>
     class ViscoPlasticLUSI : public MaterialModel::ViscoPlastic<dim>
@@ -87,14 +90,18 @@ namespace aspect
 
         // // ---
         // //inline
-        static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
+        //static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
 
         // // ---
         // //inline
-        static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
+        //static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
 
         // // ---
-        static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+        //static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+
+        // --- Max strain rate to be used for the thermal diffusivity increasing
+        //     factor.
+        static constexpr const double MAX_STRAIN_RATE_LOCAL= 7e-13;
 
         static constexpr const double THERMAL_EXP_LOW_T_IN_K_THRESHOLD= 500.0;
         static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
