@@ -341,7 +341,7 @@ namespace aspect
       const PTStateMarker LUSIComposition<dim>::pmSszAsthPTTri12(LUSIComposition<dim>::SURF_ATMOS_PRESSURE,
 								 LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::pmSszAsthPTTri13(1.5e9,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+      const PTStateMarker LUSIComposition<dim>::pmSszAsthPTTri13(1e9,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
       //const PTStateMarker LUSIComposition<dim>::pmSszAsthPTTri13(0.95e9,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
 
       template <int dim>
