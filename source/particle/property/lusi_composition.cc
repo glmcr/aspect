@@ -89,7 +89,13 @@ namespace aspect
 
         const unsigned int blueschists_idx=
           this->introspection().compositional_index_for_name(BLUESCHISTS_NID);
-	
+
+        const unsigned int total_strain_idx=
+          this->introspection().compositional_index_for_name("total_strain");
+
+        const unsigned int noninitial_plastic_strain_idx=
+          this->introspection().compositional_index_for_name("noninitial_plastic_strain");	
+       
         //const unsigned int coesite_idx=
 	//this->introspection().compositional_index_for_name(COESITE_NID);
 
@@ -124,8 +130,8 @@ namespace aspect
             //AssertThrow(false,ExcMessage("LUSIComposition<dim>::update_particle_property: oc. seds check surf.:  Debug stop"));
 	}	
 
-	// --- (p,T) conditions under which upwelling partially melted asth. transforms to partially melted
-	//     SSZ asthenosphere 
+	// --- (p,T) conditions under which upwelling asth. transforms to partially melted
+	//     SSZ upwelling asthenosphere 
         if ( pmSszAsthPTTri.ptInside(pressure_here,temperature_here))
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
@@ -136,23 +142,22 @@ namespace aspect
 	     asth2SSZCrustPTTri2.ptInside(pressure_here,temperature_here))
 	  {
 
-            //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: pressure_here="
-            //                  << pressure_here << ", temperature_here=" << temperature_here << std::endl;
+	    // --- New solid material created: reset the accumulated strain(s) to
+	    //     zero (if the pm asth. proportion is 1.0) or decrease it according
+	    //     to the pm asth proportion (between 0.0 and 1.0) for this marker
+	    const double reset_factor=
+	       (1.0 - std::min(part_compo_props[pm_ssz_asth_mtl_idx],1.0));
 
-	   // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
-	   //     to the SSZ type of oc. crust.
-	   //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
-	   lusiMaterialChange(part_compo_props,pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
+	    part_compo_props[total_strain_idx] *= reset_factor;
+	    //(1.0 - std::min(part_compo_props[pm_ssz_asth_mtl_idx],1.0));
 
-	   //// --- Transfer particle asth. material (could be 0.0) concentration to
-	   ////     to the SSZ type of oc. crust.
-	   //part_compo_props[ssz_oc_crust_idx] += part_compo_props[asth_mtl_idx];
-	   ////--- Keeping compo prop between 0.0 and 1.0
-           //part_compo_props[ssz_oc_crust_idx]=
-           //   std::max(0.0,std::min(1.0,part_compo_props[ssz_oc_crust_idx]));
-	   //// --- Need to set asth. to zero here once its concentration
-	   ////     has been transfered to ssz oc. crust.
-	   //part_compo_props[asth_mtl_idx]= 0.0;
+	    part_compo_props[noninitial_plastic_strain_idx] *= reset_factor;
+	    //(1.0 - std::min(part_compo_props[pm_ssz_asth_mtl_idx],1.0));	     
+	      	    
+	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
+	    //     to the SSZ type of oc. crust.
+	    //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props,pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 	  
 	  } // --- asth -> ssz oc. crust.
 
@@ -161,18 +166,23 @@ namespace aspect
 	    asth2SSZOlmPTTri2.ptInside(pressure_here,temperature_here))
 	  {
 
+	    // --- New solid material created: reset the accumulated strain(s) to
+	    //     zero (if the pm asth. proportion is 1.0) or decrease it according
+	    //     to the pm asth proportion (between 0.0 and 1.0) for this marker
+	    const double reset_factor=
+	       (1.0 - std::min(part_compo_props[pm_ssz_asth_mtl_idx],1.0));
+
+	    part_compo_props[total_strain_idx] *= reset_factor;
+	    //(1.0 - std::min(part_compo_props[pm_ssz_asth_mtl_idx],1.0));
+
+	    part_compo_props[noninitial_plastic_strain_idx] *= reset_factor;
+	    //(1.0 - std::min(part_compo_props[pm_ssz_asth_mtl_idx],1.0));	     	    
+	    
 	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	    //     to the SSZ type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
             //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
-	  
-           // part_compo_props[ssz_lith_mtl_idx] += part_compo_props[asth_mtl_idx];
-           // part_compo_props[ssz_lith_mtl_idx]=
-           //     std::max(0.0,std::min(1.0,part_compo_props[ssz_lith_mtl_idx]));	   
-	   // // --- Need to set asth. to zero here once its concentration
-	   // //     has been transfered to ssz oc. lith mantle
-	   // part_compo_props[asth_mtl_idx]= 0.0;
-	   
+    	   
 	  } // --- // --- asth -> ssz  oc. lith mantle
 
 	// --- p,T conditions under which oc. crust transforms to greenschists facies
