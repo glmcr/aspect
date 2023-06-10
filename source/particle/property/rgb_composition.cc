@@ -42,7 +42,8 @@ namespace aspect
 	//     at the end of the fields def. list)
         for (unsigned int i = 0; i < this->n_compositional_fields()-2; i++)
 	  {
-            double field_compo_value_check= this->get_initial_composition_manager().initial_composition(position,i);
+            const double field_compo_value_check=
+	      this->get_initial_composition_manager().initial_composition(position,i);
 	    
 	    if (field_compo_value_check >= fields_max_compo)
 	      {
@@ -52,11 +53,14 @@ namespace aspect
 	      }
 	  }
 	
-          AssertThrow(dominant_compo_index == -1,
+          AssertThrow(dominant_compo_index != -1,
                       ExcMessage("Cannot have dominant_compo_index == -1 at this point"));
 
 	  // --- Set the RGB vector of the particle according to the dominant composition:
-          particle->get_properties()[data_position]= this->compositions_rgb_codes[dominant_compo_index];
+	  for (unsigned int rgbIdx= 0; rgbIdx< 3; ++rgbIdx)
+	    {
+	      data.push_back(this->compositions_rgb_codes[dominant_compo_index][rgbIdx]);
+	    }
       }
 
       template <int dim>
@@ -67,13 +71,36 @@ namespace aspect
                                                     typename ParticleHandler<dim>::particle_iterator &particle) const
       {
 
-	unsigned int dominant_composition_index= -1;
+        double fields_max_compo= 0.0;
+	int dominant_compo_index= -1;
+
+	// --- Subtract 2 from this->n_compositional_fields() to consider only the
+	//     relevant material fields (i.e. do not consider the accumulated strain fields
+	//     at the end of the fields def. list)
+        for (unsigned int i = 0; i < this->n_compositional_fields()-2; i++)
+	  {
+
+	    const unsigned int solution_component= this->introspection().component_indices.compositional_fields[i];
+            const double field_compo_value_check= solution[solution_component];
+	    
+	    if (field_compo_value_check >= fields_max_compo)
+	      {
+		// --- Update fields_max_compo for the next loop step.
+		fields_max_compo= field_compo_value_check;
+	        dominant_compo_index= this->introspection().component_indices.compositional_fields[i];	
+	      }
+	  }
 	
-        for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
-          {
-            //const unsigned int solution_component = this->introspection().component_indices.compositional_fields[i];
-            //particle->get_properties()[data_position+i] = solution[solution_component];
-          }
+          AssertThrow(dominant_compo_index != -1,
+                      ExcMessage("Cannot have dominant_compo_index == -1 at this point"));
+
+	  // --- Set the RGB vector of the particle according to the dominant composition:
+	  for (unsigned int rgbIdx= 0; rgbIdx< 3; ++rgbIdx)
+	    {
+	      particle->get_properties()[data_position+rgbIdx]=
+		this->compositions_rgb_codes[dominant_compo_index][rgbIdx];
+	      //data.push_back(this->compositions_rgb_codes[dominant_compo_index][rgbIdx]);
+	    }	
       }
 
       template <int dim>
@@ -87,7 +114,7 @@ namespace aspect
       UpdateFlags
       RGBComposition<dim>::get_needed_update_flags () const
       {
-        return update_values;
+       return update_values;
       }
 
       template <int dim>

@@ -22,6 +22,7 @@
 #define _aspect_particle_property_rgb_composition_h
 
 #include <aspect/particle/property/interface.h>
+#include <aspect/simulator_access.h>
 
 namespace aspect
 {
@@ -35,7 +36,7 @@ namespace aspect
        * @ingroup ParticleProperties
        */
       template <int dim>
-      class RGBComposition : public Interface<dim>
+      class RGBComposition final : public Interface<dim>, public ::aspect::SimulatorAccess<dim>
       {
         public:
           /**
@@ -70,6 +71,9 @@ namespace aspect
           UpdateTimeFlags
           need_update () const override;
 
+          UpdateFlags
+          get_needed_update_flags () const override;	
+	
           /**
            * Set up the information about the names and number of components
            * this property requires.
@@ -80,27 +84,28 @@ namespace aspect
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override;
 
-	  static const std::vector<std::array<float,3>> compositions_rgb_codes; 
+	  static const std::vector<std::array<double,3>> compositions_rgb_codes;
       };
 
       // --- NEED to be updated according to the field defs in the
       //     params file (not generic at all for now!)
       template <int dim> const
-      std::vector<std::array<float,3>> RGBComposition::compositions_rgb_codes=
-	{
-	  {         0.0, 102.0/255.0,         0.0 }, // oceanic crust
-	  {         0.0, 204.0/255.0,         0.0 }, // oceanicLithMantle
-	  { 102.0/255.0, 255.0/255.0, 102.0/255.0 }, // asthenosphere
-	  { 255.0/255.0, 255.0/255.0,         0.0 }, // oceanicSeds
-	  { 102.0/255.0,         0.0, 102.0/255.0 }, // oceanicCrustSSZ
-	  { 204.0/255.0,         0.0, 204.0/255.0 }, // oceanicLithMantleSSZ
-	  { 102.0/255.0, 102.0/255.0,         0.0 }, // greenschists
-	  {  51.0/255.0,  51.0/255.0, 255.0/255.0 }, // blueschists
-	  { 255.0/255.0, 128.0/255.0,         0.0 }, // amphibolites
-	  { 255.0/255.0,         0.0,         0.0 }, // granulites
-	  {         0.0,         0.0,         0.0 }, // eclogites
-	  { 192.0/255.0, 192.0/255.0, 192.0/255.0 } // pmeltedSszAsth
-        };
+      std::vector<std::array<double,3>> RGBComposition<dim>::compositions_rgb_codes
+      {
+	{{         0.0, 102.0/255.0,         0.0 }}, // oceanic crust
+        {{         0.0, 204.0/255.0,         0.0 }}, // oceanicLithMantle
+	{{ 102.0/255.0, 255.0/255.0, 102.0/255.0 }}, // asthenosphere
+        {{ 255.0/255.0, 255.0/255.0,         0.0 }}, // oceanicSeds
+	{{ 102.0/255.0,         0.0, 102.0/255.0 }}, // oceanicCrustSSZ
+        {{ 204.0/255.0,         0.0, 204.0/255.0 }}, // oceanicLithMantleSSZ
+	{{ 102.0/255.0, 102.0/255.0,         0.0 }}, // greenschists
+	{{  51.0/255.0,  51.0/255.0, 255.0/255.0 }}, // blueschists
+	{{ 255.0/255.0, 128.0/255.0,         0.0 }}, // amphibolites
+	{{ 255.0/255.0,         0.0,         0.0 }}, // granulites
+	{{         0.0,         0.0,         0.0 }}, // eclogites
+	{{ 192.0/255.0, 192.0/255.0, 192.0/255.0 }} // pmeltedSszAsth
+      };
+      
     }
   }
 }
