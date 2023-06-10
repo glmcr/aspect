@@ -18,7 +18,6 @@
  <http://www.gnu.org/licenses/>.
  */
 
-
 #include <aspect/particle/property/rgb_composition.h>
 #include <aspect/initial_composition/interface.h>
 
@@ -44,15 +43,15 @@ namespace aspect
 	  {
             const double field_compo_value_check=
 	      this->get_initial_composition_manager().initial_composition(position,i);
-	    
+
 	    if (field_compo_value_check >= fields_max_compo)
 	      {
 		// --- Update fields_max_compo for the next loop step.
 		fields_max_compo= field_compo_value_check;
-	        dominant_compo_index= this->introspection().component_indices.compositional_fields[i];	
+	        dominant_compo_index= this->introspection().component_indices.compositional_fields[i];
 	      }
 	  }
-	
+
           AssertThrow(dominant_compo_index != -1,
                       ExcMessage("Cannot have dominant_compo_index == -1 at this point"));
 
@@ -82,15 +81,15 @@ namespace aspect
 
 	    const unsigned int solution_component= this->introspection().component_indices.compositional_fields[i];
             const double field_compo_value_check= solution[solution_component];
-	    
+
 	    if (field_compo_value_check >= fields_max_compo)
 	      {
 		// --- Update fields_max_compo for the next loop step.
 		fields_max_compo= field_compo_value_check;
-	        dominant_compo_index= this->introspection().component_indices.compositional_fields[i];	
+	        dominant_compo_index= this->introspection().component_indices.compositional_fields[i];
 	      }
 	  }
-	
+
           AssertThrow(dominant_compo_index != -1,
                       ExcMessage("Cannot have dominant_compo_index == -1 at this point"));
 
@@ -100,7 +99,7 @@ namespace aspect
 	      particle->get_properties()[data_position+rgbIdx]=
 		this->compositions_rgb_codes[dominant_compo_index][rgbIdx];
 	      //data.push_back(this->compositions_rgb_codes[dominant_compo_index][rgbIdx]);
-	    }	
+	    }
       }
 
       template <int dim>
@@ -131,9 +130,9 @@ namespace aspect
 	// --- Subtract 2 from this->compositions_rgb_codes.size() to get only the
 	//     relevant material fields (i.e. do not consider the accumulated strain fields
 	//     at the end of the fields def. list)
-        AssertThrow(this->n_compositional_fields() == this->compositions_rgb_codes.size()-2,
-                    ExcMessage("dimensions mismatch: this->n_compositional_fields() != this->compositions_rgb_codes.size()"));        
-	
+        AssertThrow((this->n_compositional_fields()-2) == this->compositions_rgb_codes.size(),
+                    ExcMessage("dimensions mismatch: this->n_compositional_fields() != this->compositions_rgb_codes.size()"));
+
 	const std::vector<std::pair<std::string,unsigned int>> property_information (1,std::make_pair("rgb composition",3));
         return property_information;
       }
