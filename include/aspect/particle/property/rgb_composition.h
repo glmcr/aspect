@@ -94,7 +94,7 @@ namespace aspect
       {
 	{{         0.0, 102.0/255.0,         0.0 }}, // oceanic crust
         {{         0.0, 204.0/255.0,         0.0 }}, // oceanicLithMantle
-	{{ 102.0/255.0, 255.0/255.0, 102.0/255.0 }}, // asthenosphere
+	{{  51.0/255.0, 255.0/255.0,  51.0/255.0 }}, // asthenosphere
         {{ 255.0/255.0, 255.0/255.0,         0.0 }}, // oceanicSeds
 	{{ 102.0/255.0,         0.0, 102.0/255.0 }}, // oceanicCrustSSZ
         {{ 204.0/255.0,         0.0, 204.0/255.0 }}, // oceanicLithMantleSSZ
@@ -105,7 +105,7 @@ namespace aspect
 	{{         0.0,         0.0,         0.0 }}, // eclogites
 	{{ 192.0/255.0, 192.0/255.0, 192.0/255.0 }} // pmeltedSszAsth
       };
-      
+
     }
   }
 }
