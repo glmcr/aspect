@@ -48,7 +48,7 @@ namespace aspect
 	      {
 		// --- Update fields_max_compo for the next loop step.
 		fields_max_compo= field_compo_value_check;
-	        dominant_compo_index= this->introspection().component_indices.compositional_fields[i];
+	        dominant_compo_index= i; //this->introspection().component_indices.compositional_fields[i];
 	      }
 	  }
 
@@ -86,7 +86,7 @@ namespace aspect
 	      {
 		// --- Update fields_max_compo for the next loop step.
 		fields_max_compo= field_compo_value_check;
-	        dominant_compo_index= this->introspection().component_indices.compositional_fields[i];
+	        dominant_compo_index= i; //this->introspection().component_indices.compositional_fields[i];
 	      }
 	  }
 
