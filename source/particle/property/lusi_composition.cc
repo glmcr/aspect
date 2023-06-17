@@ -136,15 +136,16 @@ namespace aspect
 	//if (pressure_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
 	if (in_a_top_cell) 
 	  {
-	    part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
+	    //part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
 
-	    //--- Keeping oc. seds compo prop between 0.5 and 1.0 here.
+            const double oc_crust_compo=
+	      std::max(0.0,std::min(1.0,part_compo_props[oc_crust_idx]));
+      
+	    //--- Ensure that the oc. seds. proportion is at least 1.0-oc_crust_compo
             part_compo_props[oc_seds_idx]=
-		std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
+	        std::max(1.0-oc_crust_compo,std::min(1.0,part_compo_props[oc_seds_idx]));
+	    //std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
 
-            //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf. OK: part_compo_props[oc_seds_idx]="
-            //              << part_compo_props[oc_seds_idx] << std::endl << std::endl;
-            //AssertThrow(false,ExcMessage("LUSIComposition<dim>::update_particle_property: oc. seds check surf.:  Debug stop"));
 	}	
 
 	// --- (p,T) conditions under which upwelling partially melted asth. transforms to partially melted
