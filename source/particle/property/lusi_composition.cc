@@ -138,12 +138,28 @@ namespace aspect
 	  {
 	    //part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
 
-            const double oc_crust_compo=
+	    // --- MORB oc. crust compo
+            const double morb_oc_crust_compo=
 	      std::max(0.0,std::min(1.0,part_compo_props[oc_crust_idx]));
-      
-	    //--- Ensure that the oc. seds. proportion is at least 1.0-oc_crust_compo
+
+	    // --- SSZ oc. crust compo
+            const double ssz_oc_crust_compo=
+	      std::max(0.0,std::min(1.0,part_compo_props[ssz_oc_crust_idx]));	    
+
+	    // --- Can have a mix of MORB oc. crust compo
+	    //     and SSZ oc. crust compo when the latter
+	    //     begin to be created from the partially
+	    //     melted SSZ asth. near the water vs solid rock
+	    //     interface (i.e. in the top fe cells).
+            const double oc_crust_compo=
+	      std::max(0.0,std::min(1.0, morb_oc_crust_compo + ssz_oc_crust_compo));
+
+
+	    //--- Ensure that the oc. seds. proportion is at least
+	    //    1.0 - oc_crust_compo 
             part_compo_props[oc_seds_idx]=
 	        std::max(1.0-oc_crust_compo,std::min(1.0,part_compo_props[oc_seds_idx]));
+	    
 	    //std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
 
 	}	
