@@ -138,9 +138,9 @@ namespace aspect
 	  {
 	    part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
 
-	    //--- Keeping oc. seds compo prop between 0.25 and 0.5 here.
+	    //--- Keeping oc. seds compo prop between 0.5 and 1.0 here.
             part_compo_props[oc_seds_idx]=
-		std::max(0.25,std::min(0.5,part_compo_props[oc_seds_idx]));
+		std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
 
             //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf. OK: part_compo_props[oc_seds_idx]="
             //              << part_compo_props[oc_seds_idx] << std::endl << std::endl;
