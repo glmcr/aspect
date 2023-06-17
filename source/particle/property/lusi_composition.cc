@@ -110,8 +110,31 @@ namespace aspect
         // std::cout << "LUSIComposition<dim>::update_particle_property: temperature_here=" << temperature_here << std::endl;
         //}
 
+        const types::boundary_id top_num_id=
+	  this->get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
+
+        bool in_a_top_cell= false;
+       
+#if DEAL_II_VERSION_GTE(9,4,0)
+        typename DoFHandler<dim>::active_cell_iterator current_cell=
+	    typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(),&(this->get_dof_handler()));
+#else
+        typename DoFHandler<dim>::active_cell_iterator current_cell=
+	   typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(this->get_triangulation()),&(this->get_dof_handler()));
+#endif
+
+	for (const unsigned int face_no : current_cell->face_indices()) {
+	  
+           if ( current_cell->face(face_no)->at_boundary() &&
+	        current_cell->face(face_no)->boundary_id() == top_num_id) {
+	          in_a_top_cell = true;
+		  break;
+	   }
+	}
+        
 	// --- Pour some oc. seds. but only where pressure is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
-	if (pressure_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
+	//if (pressure_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
+	if (in_a_top_cell) 
 	  {
 	    part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
 
