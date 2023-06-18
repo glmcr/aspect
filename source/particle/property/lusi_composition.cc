@@ -154,12 +154,15 @@ namespace aspect
             const double oc_crust_compo=
 	      std::max(0.0,std::min(1.0, morb_oc_crust_compo + ssz_oc_crust_compo));
 
+	    // --- Ensure that the oc. seds. proportion is always
+	    //     larger or equal than oc_crust_compo proportion
+	    //     in the top fe cells
+            part_compo_props[oc_seds_idx] += oc_crust_compo;
 
-	    //--- Ensure that the oc. seds. proportion is at least
-	    //    1.0 - oc_crust_compo 
-            part_compo_props[oc_seds_idx]=
-	        std::max(1.0-oc_crust_compo,std::min(1.0,part_compo_props[oc_seds_idx]));
+	    // --- But limit the oc_seds_idx compo to 1.25 
+	    part_compo_props[oc_seds_idx]= std::min(1.25, part_compo_props[oc_seds_idx]);
 	    
+	    //std::max(1.0-oc_crust_compo,std::min(1.0,part_compo_props[oc_seds_idx]));
 	    //std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
 
 	}	
