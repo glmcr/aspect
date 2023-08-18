@@ -143,7 +143,7 @@ namespace aspect
 	  static constexpr const char* PARTIALLY_MELTED_SSZ_ASTH_NID= "pmeltedSszAsth";
 
           static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
-	
+
 	  // --- Surf T 273.25
 	  static constexpr const double SURF_TEMPERATURE= 273.25;
 
@@ -212,7 +212,7 @@ namespace aspect
 
 	//static const PTStateMarkersTriangle amphiPMPTTri1;
 	//static const PTStateMarkersTriangle amphiPMPTTri2;
-	
+
 	   //// ---
            //static const PTStateMarkersRectangle qtz2CoesPTRect;
 
@@ -325,17 +325,21 @@ namespace aspect
       private:
 	   static inline void lusiMaterialChange(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
 	   {
+
+             // --- NOTE: matToMax MUST be between 0.0 and 1.0
+             //     NOTE: matToMin MUST be between 0.0 and 1.0
+
 	     // --- Transfer particle matFrom material (could be 0.0) concentration to
 	     //     to the matTo material
-	     part_compo_props[matToIdx] += part_compo_props[matFromIdx];
+	     part_compo_props[matToIdx] += matToMax * part_compo_props[matFromIdx];
 
 	     //--- Keeping matTo compo prop between matToMin and matToMax
              part_compo_props[matToIdx]=
                 std::max(matToMin,std::min(matToMax,part_compo_props[matToIdx]));
 
-	     // --- Need to set matFrom to zero here once its concentration
-	     //     has been transfered to ssz oc. crust.
-	     part_compo_props[matFromIdx]= 0.0;
+	     // --- Need to set matFrom to (1.0 - matToMax) * part_compo_props[matFromIdx]
+             //     here once its concentration matToMax has been transfered to ssz oc. crust.
+	     part_compo_props[matFromIdx]= (1.0 - matToMax) * part_compo_props[matFromIdx];  //0.0;
 	   }
       };
 
@@ -498,9 +502,9 @@ namespace aspect
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri12(1.4e9,973.0);
-      
+
        // --- Define the 1st p,T triangle where oc. crust material transforms to
-       //     the amphibolites facies.      
+       //     the amphibolites facies.
        template <int dim>
        const PTStateMarkersTriangle LUSIComposition<dim>::
           amphibolitesPTTri1(LUSIComposition<dim>::amphibolitesPTTri10,
@@ -516,7 +520,7 @@ namespace aspect
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri22(1.4e9,973.0);
-      
+
        // --- Define the 2nd p,T triangle where oc. crust material transforms to
        //     the amphibolites facies.
       template <int dim>
@@ -534,8 +538,7 @@ namespace aspect
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::granulitesPTTri12(1.5e9,1573.0);
       // PRESS. TOO LARGE const PTStateMarker LUSIComposition<dim>::granulitesPTTri12(3.0e9,1573.0);
-      
-      
+
       // --- Define the 1st p,T triangle where oc. crust material transforms to
       //     the granulites facies.
       template <int dim>
@@ -553,7 +556,7 @@ namespace aspect
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::granulitesPTTri22(1.5e9,1573.0);
       //PRESS. TOO LARGE: const PTStateMarker LUSIComposition<dim>::granulitesPTTri22(3.0e9,1573.0);
-      
+
       // --- Define the 2nd p,T triangle where oc. crust material transforms to
       //     the granulites facies.
       template <int dim>
@@ -573,9 +576,9 @@ namespace aspect
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::eclogitesPTTri12(1.5e9,1573.0);
       // PRESS TOO LARGE: const PTStateMarker LUSIComposition<dim>::eclogitesPTTri12(3.0e9,1573.0);
-      
-	   // --- Define the 1st p,T triangle where oc. crust material transforms to
-	   //     the eclogites facies.
+
+      // --- Define the 1st p,T triangle where oc. crust material transforms t
+      //     the eclogites facies.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       eclogitesPTTri1(LUSIComposition<dim>::eclogitesPTTri10,
@@ -592,7 +595,7 @@ namespace aspect
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::eclogitesPTTri22(3.0e9,673.0);
-      
+
 	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
       template <int dim>
@@ -612,7 +615,6 @@ namespace aspect
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::blueschistsPTTri12(3.0e9,473.0);
 
-      
 	   // --- Define the 1st p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
       template <int dim>

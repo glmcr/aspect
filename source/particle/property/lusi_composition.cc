@@ -267,12 +267,12 @@ namespace aspect
 
             lusiMaterialChange(part_compo_props, oc_crust_idx, granulites_idx, 0.0, 0.95);
 	    lusiMaterialChange(part_compo_props, oc_crust_idx, amphibolitesPM_idx, 0.0, 0.05);
-	    
+
 	    lusiMaterialChange(part_compo_props, greenschists_idx, granulites_idx, 0.0, 0.95);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, amphibolitesPM_idx, 0.0, 0.05);
-	    
+
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, granulites_idx, 0.0, 0.95);
-	    lusiMaterialChange(part_compo_props, amphibolites_idx, amphibolitesPM_idx, 0.0, 0.05); 
+	    lusiMaterialChange(part_compo_props, amphibolites_idx, amphibolitesPM_idx, 0.0, 0.05);
 	  }
 
 	// --- p,T conditions under which oc. crust, and greenschists transform to blueschists facies
