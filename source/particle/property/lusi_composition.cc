@@ -262,17 +262,17 @@ namespace aspect
 	    //    (%5 partial melt, other materials that amphibolite should be at %0.0
 	    //    presence at those (p,T) conditions but we nevertheless convert them to
 	    //    %95 granulites and %5 partial melt just in case)
-	    lusiMaterialChange(part_compo_props, oc_seds_idx, granulites_idx, 0.0, 0.95);
-	    lusiMaterialChange(part_compo_props, oc_seds_idx, amphibolitesPM_idx, 0.0, 0.05);
+	    lusiMaterialChange(part_compo_props, oc_seds_idx, granulites_idx, 0.0, 0.9);
+	    lusiMaterialChange(part_compo_props, oc_seds_idx, amphibolitesPM_idx, 0.0, 0.1);
 
-            lusiMaterialChange(part_compo_props, oc_crust_idx, granulites_idx, 0.0, 0.95);
-	    lusiMaterialChange(part_compo_props, oc_crust_idx, amphibolitesPM_idx, 0.0, 0.05);
+            lusiMaterialChange(part_compo_props, oc_crust_idx, granulites_idx, 0.0, 0.9);
+	    lusiMaterialChange(part_compo_props, oc_crust_idx, amphibolitesPM_idx, 0.0, 0.1);
 
-	    lusiMaterialChange(part_compo_props, greenschists_idx, granulites_idx, 0.0, 0.95);
-	    lusiMaterialChange(part_compo_props, greenschists_idx, amphibolitesPM_idx, 0.0, 0.05);
+	    lusiMaterialChange(part_compo_props, greenschists_idx, granulites_idx, 0.0, 0.9);
+	    lusiMaterialChange(part_compo_props, greenschists_idx, amphibolitesPM_idx, 0.0, 0.1);
 
-	    lusiMaterialChange(part_compo_props, amphibolites_idx, granulites_idx, 0.0, 0.95);
-	    lusiMaterialChange(part_compo_props, amphibolites_idx, amphibolitesPM_idx, 0.0, 0.05);
+	    lusiMaterialChange(part_compo_props, amphibolites_idx, granulites_idx, 0.0, 0.9);
+	    lusiMaterialChange(part_compo_props, amphibolites_idx, amphibolitesPM_idx, 0.0, 0.1);
 	  }
 
 	// --- p,T conditions under which oc. crust, and greenschists transform to blueschists facies
