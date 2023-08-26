@@ -142,7 +142,7 @@ namespace aspect
 
 	  static constexpr const char* PARTIALLY_MELTED_SSZ_ASTH_NID= "pmeltedSszAsth";
 
-          static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
+        //static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
 
 	  // --- Surf T 273.25
 	  static constexpr const double SURF_TEMPERATURE= 273.25;
@@ -338,7 +338,7 @@ namespace aspect
                 std::max(matToMin,std::min(matToMax,part_compo_props[matToIdx]));
 
 	     // --- Need to set matFrom to (1.0 - matToMax) * part_compo_props[matFromIdx]
-             //     here once its concentration matToMax has been transfered to ssz oc. crust.
+             //     here once its concentration matToMax has been transfered to the destination material.
 	     part_compo_props[matFromIdx]= (1.0 - matToMax) * part_compo_props[matFromIdx];  //0.0;
 	   }
       };
