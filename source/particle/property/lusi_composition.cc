@@ -96,8 +96,10 @@ namespace aspect
         //const unsigned int coesite_idx=
 	//this->introspection().compositional_index_for_name(COESITE_NID);
 
-	const double pressure_here= \
+	const double pressureInPascals_here= \
 	  solution[this->introspection().component_indices.pressure];
+
+        const double pressureInMPa_here= PTStateMarker::PASCALS_2_MEGA_PASCALS*pressureInPascals_here;
 
 	const double temperature_here= \
 	  solution[this->introspection().component_indices.temperature];
@@ -108,7 +110,7 @@ namespace aspect
         //double* const part_compo_props= &particle->get_properties().data()[data_position];
 	double* const part_compo_props= &particle->get_properties().data()[data_position];
 
-        //if (pressure_here <= MOHO_PRESSURE_IN_PASCALS) {
+        //if (pressureInPascals_here <= MOHO_PRESSURE_IN_PASCALS) {
         // std::cout << "LUSIComposition<dim>::update_particle_property: pressure_here=" << pressure_here << std::endl;
         // std::cout << "LUSIComposition<dim>::update_particle_property: temperature_here=" << temperature_here << std::endl;
         //}
@@ -135,8 +137,8 @@ namespace aspect
 	   }
 	}
         
-	// --- Pour some oc. seds. but only where pressure is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
-	//if (pressure_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
+	// --- Pour some oc. seds. but only where pressureInPascals is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
+	//if (pressureInPascals_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
 	if (in_a_top_cell) 
 	  {
 	    //part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
@@ -172,14 +174,14 @@ namespace aspect
 
 	// --- (p,T) conditions under which upwelling partially melted asth. transforms to partially melted
 	//     SSZ asthenosphere 
-        if ( pmSszAsthPTTri.ptInside(pressure_here,temperature_here))
+        if ( pmSszAsthPTTri.ptInside(pressureInMPa_here,temperature_here))
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
 	
 	// --- (p,T) conditions under which upwelling asth. partial melts transforms to SSZ crust.
-        if ( asth2SSZCrustPTTri1.ptInside(pressure_here,temperature_here) ||
-	     asth2SSZCrustPTTri2.ptInside(pressure_here,temperature_here))
+        if ( asth2SSZCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	     asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
 
             //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: pressure_here="
@@ -203,8 +205,8 @@ namespace aspect
 	  } // --- asth -> ssz oc. crust.
 
 	// --- (p,T) conditions under which upwelling partially melted asth. transforms to SSZ oc. lith. mantle (moho to LAB)
-	if (asth2SSZOlmPTTri1.ptInside(pressure_here,temperature_here) ||
-	    asth2SSZOlmPTTri2.ptInside(pressure_here,temperature_here))
+	if (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	    asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
 
 	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
@@ -222,8 +224,8 @@ namespace aspect
 	  } // --- // --- asth -> ssz  oc. lith mantle
 
 	// --- p,T conditions under which oc. crust transforms to greenschists facies
-	if (greenSchistsPTTri1.ptInside(pressure_here,temperature_here) ||
-	    greenSchistsPTTri2.ptInside(pressure_here,temperature_here) )
+	if (greenSchistsPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	    greenSchistsPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 
 	   lusiMaterialChange(part_compo_props, oc_seds_idx, greenschists_idx , 0.0, 1.0);
@@ -238,8 +240,8 @@ namespace aspect
 	  }
 
 	// --- p,T conditions under which oc. crust and greenschists transform to amphibolites facies
-	if (amphibolitesPTTri1.ptInside(pressure_here,temperature_here) ||
-	    amphibolitesPTTri2.ptInside(pressure_here,temperature_here) )
+	if (amphibolitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	    amphibolitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx, amphibolites_idx, 0.0, 1.0);
@@ -248,8 +250,8 @@ namespace aspect
 
 	// --- p,T conditions under which oc. crust, greenschists and amphibolites transform
 	//     to granulite facies
-	if (granulitesPTTri1.ptInside(pressure_here,temperature_here) ||
-	    granulitesPTTri2.ptInside(pressure_here,temperature_here) )
+	if (granulitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	    granulitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, granulites_idx , 0.0, 1.0);
@@ -273,7 +275,7 @@ namespace aspect
 	  }
 
 	// --- p,T conditions under which oc. crust, and greenschists transform to blueschists facies
-	if (blueschistsPTTri1.ptInside(pressure_here,temperature_here))
+	if (blueschistsPTTri1.ptInside(pressureInMPa_here,temperature_here))
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, blueschists_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx, blueschists_idx , 0.0, 1.0);
@@ -282,8 +284,8 @@ namespace aspect
 
 	// --- p,T conditions under which oc. crust, blueschists, greenschists, amphibolites and
 	//     granulites transform to eclogites facies
-	if (eclogitesPTTri1.ptInside(pressure_here,temperature_here) ||
-	    eclogitesPTTri2.ptInside(pressure_here,temperature_here) )
+	if (eclogitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	    eclogitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx,     eclogites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx,     eclogites_idx, 0.0, 1.0);
