@@ -86,24 +86,37 @@ namespace aspect
 	   static constexpr const double NGV_VERY_SMALL_EPSILON= -VERY_SMALL_EPSILON;
 	
            // --- 220 Kelvins
-           static constexpr const double MIN_TEMPERATURE= 220.0;
+           static constexpr const double MIN_TEMPERATURE_KELVINS= 220.0;
 
            // --- CMB temperature (approx.)
-           static constexpr const double MAX_TEMPERATURE= 4000.0;
+           static constexpr const double MAX_TEMPERATURE_KELVINS= 4000.0;
 
            // --- ATM pressure
-           static constexpr const double MIN_PRESSURE= 101.5e3;
+           static constexpr const double MIN_PRESSURE_PASCALS= 101.5e3;
 
            // --- CMB pressure (approx.)
-           static constexpr const double MAX_PRESSURE= 140.e9;
+           static constexpr const double MAX_PRESSURE_PASCALS= 140.e9;
+
+           static constexpr const double MEGA_PASCALS_2_PASCALS= 1e6;
+
+           static constexpr const double PASCALS_2_MEGA_PASCALS= 1.0/MEGA_PASCALS_2_PASCALS;
+
+           static constexpr const double GIGA_PASCALS_2_MEGA_PASCALS= 1e3;
+
+           static constexpr const double MEGA_PASCALS_2_GIGA_PASCALS= 1.0/GIGA_PASCALS_2_MEGA_PASCALS;
 
            PTStateMarker();
            PTStateMarker(double pressure, double temperature);
            PTStateMarker(double pressure, double temperature, bool moving);
 
-	   inline virtual double getPressure() const final { return pressure; }
-	   inline virtual double getTemperature() const final { return temperature; }
-	
+	   inline virtual double getPressureInMPa() const final { return pressureInMPa; }
+	   inline virtual double getTemperatureInK() const final { return temperatureInK; }
+
+           inline virtual double getPressureInPa() const final { return MEGA_PASCALS_2_PASCALS*pressureInMPa; }
+           inline virtual double getTemperatureInC() const final { return temperatureInK - 273.25; }
+
+           inline virtual double getPressureInGPa() const final { return MEGA_PASCALS_2_GIGA_PASCALS*pressureInMPa; }
+
            bool insideValidPTRanges() const;
 
 	   bool insideValidPressuresRange() const;
@@ -114,8 +127,8 @@ namespace aspect
 
         private:
 
-          double pressure;    // --- Pascals
-          double temperature; // --- Kelvins
+          double pressureInMPa; // --- Mega Pascals
+          double temperatureInK; // --- Kelvins
       };
 
       //// ---
@@ -148,6 +161,8 @@ namespace aspect
 
        public:
 
+         //static constexpr const double PASCALS_2_MEGA_PASCALS= 1.0/10e6;
+
          //unsigned int dimension() const;
          //bool inside(const ThermodynamicStateMarker tsm) const;
 
@@ -162,7 +177,7 @@ namespace aspect
 	
           //bool pTAreInside(double pressure, double temperature) const;
           //virtual bool ptsmInside(const ThermodynamicStateMarker&) const= 0;
-	  virtual bool ptInside(double pressure, double temperature) const= 0;
+	  virtual bool ptInside(double pressureInMPa, double temperatureInK) const= 0;
 
          protected:
 
@@ -183,7 +198,7 @@ namespace aspect
 	  PTStateMarkersTriangle();
 	  PTStateMarkersTriangle(const PTStateMarker& ptsm0, const PTStateMarker& ptsm1, const PTStateMarker& ptsm2);
 	
-	  virtual bool ptInside(double pressure, double temperature) const final override;
+	  virtual bool ptInside(double pressureInMPa, double temperatureInK) const final override;
 	
         private:
 	  const PTStateMarker* PTSMSRefs [3]; //= { null, null, null };	  
@@ -202,14 +217,14 @@ namespace aspect
 	  PTStateMarkersRectangle();
 	  PTStateMarkersRectangle(const PTStateMarker& ptsm0, const PTStateMarker& ptsm1);
 
-	  virtual bool ptInside(double pressure, double temperature) const final override;
+	  virtual bool ptInside(double pressureInMPa, double temperatureInK) const final override;
 	
         private:
 	  const PTStateMarker* PTSMSRefs [2];  	
       };
       
       static inline double PTStateMarkerCrossProd(const PTStateMarker& PTSM1, const PTStateMarker& PTSM2) {
-	return PTSM1.getTemperature() * PTSM2.getPressure() - PTSM2.getTemperature() * PTSM1.getPressure();
+	return PTSM1.getTemperatureInK() * PTSM2.getPressureInMPa() - PTSM2.getTemperatureInK() * PTSM1.getPressureInMPa();
       }
 	
     } // --- namespace ParticleUtilities

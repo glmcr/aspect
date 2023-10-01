@@ -57,24 +57,24 @@ namespace aspect
       {
         //ThermodynamicStateMarker::ThermodynamicStateMarker();
 
-         this->temperature= this->pressure= std::numeric_limits<double>::max();
+         this->temperatureInK= this->pressureInMPa= std::numeric_limits<double>::max();
       }
 
-      PTStateMarker::PTStateMarker(double pressure, double temperature): ThermodynamicStateMarker::ThermodynamicStateMarker()
+      PTStateMarker::PTStateMarker(double pressureInMPa, double temperatureInK): ThermodynamicStateMarker::ThermodynamicStateMarker()
       {
         // ThermodynamicStateMarker::ThermodynamicStateMarker();
 
         // std::cout << "PTStateMarker::PTStateMarker constr: pressure=" << pressure << std::endl;
         // std::cout << "PTStateMarker::PTStateMarker constr: temperature=" << temperature  << std::endl;
 
-        this->pressure= pressure;
-        this->temperature= temperature;
+        this->pressureInMPa= pressureInMPa;
+        this->temperatureInK= temperatureInK;
 
          //std::cout << "PTStateMarker::PTStateMarker constr: this->pressure=" << this->pressure << std::endl;
          //std::cout << "PTStateMarker::PTStateMarker constr: this->temperature=" << this->temperature  << std::endl;
       }
 
-      PTStateMarker::PTStateMarker(double pressure, double temperature, bool moving):  ThermodynamicStateMarker::ThermodynamicStateMarker(moving)
+      PTStateMarker::PTStateMarker(double pressureInMPa, double temperatureInK, bool moving):  ThermodynamicStateMarker::ThermodynamicStateMarker(moving)
       {
         //ThermodynamicStateMarker::ThermodynamicStateMarker(moving);
 
@@ -84,8 +84,8 @@ namespace aspect
          //std::cout << "PTStateMarker::PTStateMarker constr: pressure=" << pressure << std::endl;
          //std::cout << "PTStateMarker::PTStateMarker constr: pressure=" <<  << std::endl;
 
-         this->pressure= pressure;
-         this->temperature= temperature;
+         this->pressureInMPa= pressureInMPa;
+         this->temperatureInK= temperatureInK;
       }
 
       // inlined in include file
@@ -100,26 +100,26 @@ namespace aspect
       //   return this->temperature;
       //}
 
-      bool PTStateMarker::insideValidPressuresRange(double pressure)
+      bool PTStateMarker::insideValidPressuresRange(double pressureInPascals)
       {
-        return (pressure < PTStateMarker::MAX_PRESSURE and pressure > PTStateMarker::MIN_PRESSURE);
+        return (pressureInPascals < PTStateMarker::MAX_PRESSURE_PASCALS and pressureInPascals > PTStateMarker::MIN_PRESSURE_PASCALS);
       }
 
-      bool PTStateMarker::insideValidTemperaturesRange(double temperature)
+      bool PTStateMarker::insideValidTemperaturesRange(double temperatureInK)
       {
-        return (temperature < PTStateMarker::MAX_TEMPERATURE and temperature > PTStateMarker::MIN_TEMPERATURE);
+        return (temperatureInK < PTStateMarker::MAX_TEMPERATURE_KELVINS and temperatureInK > PTStateMarker::MIN_TEMPERATURE_KELVINS);
       }
 
       bool PTStateMarker::insideValidPressuresRange() const
       {
-         return (this->pressure < MAX_PRESSURE
-                 and this->pressure > MIN_PRESSURE);
+         return (this->getPressureInPa() < MAX_PRESSURE_PASCALS
+                 and this->getPressureInPa() > MIN_PRESSURE_PASCALS);
       }
 
       bool PTStateMarker::insideValidTemperaturesRange() const
       {
-         return (this->temperature < MAX_TEMPERATURE
-                 and this->temperature > MIN_TEMPERATURE);
+         return (this->temperatureInK < MAX_TEMPERATURE_KELVINS
+                 and this->temperatureInK > MIN_TEMPERATURE_KELVINS);
       }
 
       bool PTStateMarker::insideValidPTRanges() const
@@ -170,7 +170,7 @@ namespace aspect
       }
 
       // ---
-      bool PTStateMarkersRectangle::ptInside(double pressure, double temperature) const
+      bool PTStateMarkersRectangle::ptInside(double pressureInMPa, double temperatureInK) const
       {
 
         //std::cout << "PTStateMarkersRectangle::ptInside: pressure=" << pressure << std::endl;
@@ -184,8 +184,8 @@ namespace aspect
         //std::cout << "PTStateMarkersRectangle::ptInside: this->PTSMSRefs[1]->getTemperature()=" << 
           //        this->PTSMSRefs[1]->getTemperature() << std::endl;
 
-        const bool ret= ( (pressure > this->PTSMSRefs[0]->getPressure()) && (pressure < this->PTSMSRefs[1]->getPressure()) &&
-                 (temperature > this->PTSMSRefs[0]->getTemperature()) && (temperature < this->PTSMSRefs[1]->getTemperature()) );
+        const bool ret= ( (pressureInMPa > this->PTSMSRefs[0]->getPressureInMPa()) && (pressureInMPa < this->PTSMSRefs[1]->getPressureInMPa()) &&
+                 (temperatureInK > this->PTSMSRefs[0]->getTemperatureInK()) && (temperatureInK < this->PTSMSRefs[1]->getTemperatureInK()) );
 
         //std::cout << "PTStateMarkersRectangle::ptInside: ret=" <<ret << std::endl << std::endl;
         //AssertThrow(false,ExcMessage("PTStateMarkersRectangle::ptInside: Debug exit"));
@@ -201,7 +201,7 @@ namespace aspect
       }
       
       // ---
-      bool PTStateMarkersTriangle::ptInside(double pressure, double temperature) const
+      bool PTStateMarkersTriangle::ptInside(double pressureInMPa, double temperatureInK) const
       {
 	
         bool isInside= false;
@@ -209,7 +209,7 @@ namespace aspect
 	// --- Local PTStateMarker object to use to see
 	//     if (pressure,temperature) combo is inside
 	//     this PTStateMarkersTriangle object
-	const PTStateMarker ptsmCheck(pressure,temperature);
+	const PTStateMarker ptsmCheck(pressureInMPa,temperatureInK);
 
 	// python code
 	//denom= crossProd2D(vertex1,vertex2) + crossProd2D(vertex2,vertex3) + crossProd2D(vertex3,vertex1)
@@ -233,14 +233,14 @@ namespace aspect
 	  //v2MinusV3= ( vertex2[0]-vertex3[0], vertex2[1]-vertex3[1])
 
 	  // --- Beware! Need to create the PTStateMarker object with the order (p,T) and not (T,p) as in the python code.
-	  const PTStateMarker ptsm0MinusPtsm1 (this->PTSMSRefs[0]->getPressure() - this->PTSMSRefs[1]->getPressure(),
-					       this->PTSMSRefs[0]->getTemperature() - this->PTSMSRefs[1]->getTemperature());
+	  const PTStateMarker ptsm0MinusPtsm1 (this->PTSMSRefs[0]->getPressureInMPa() - this->PTSMSRefs[1]->getPressureInMPa(),
+					       this->PTSMSRefs[0]->getTemperatureInK() - this->PTSMSRefs[1]->getTemperatureInK());
 
-	  const PTStateMarker ptsm2MinusPtsm0 (this->PTSMSRefs[2]->getPressure() - this->PTSMSRefs[0]->getPressure(),
-					       this->PTSMSRefs[2]->getTemperature()  - this->PTSMSRefs[0]->getTemperature());
+	  const PTStateMarker ptsm2MinusPtsm0 (this->PTSMSRefs[2]->getPressureInMPa() - this->PTSMSRefs[0]->getPressureInMPa(),
+					       this->PTSMSRefs[2]->getTemperatureInK()  - this->PTSMSRefs[0]->getTemperatureInK());
 
-	  const PTStateMarker ptsm1MinusPtsm2 (this->PTSMSRefs[1]->getPressure() - this->PTSMSRefs[2]->getPressure(),
-	 				       this->PTSMSRefs[1]->getTemperature() - this->PTSMSRefs[2]->getTemperature());
+	  const PTStateMarker ptsm1MinusPtsm2 (this->PTSMSRefs[1]->getPressureInMPa() - this->PTSMSRefs[2]->getPressureInMPa(),
+	 				       this->PTSMSRefs[1]->getTemperatureInK() - this->PTSMSRefs[2]->getTemperatureInK());
 
 	  // python code:
 	  //weight12= ( crossProd2D(vertex1,vertex2) + crossProd2D(point2D,v1MinusV2) )/denom
@@ -269,4 +269,3 @@ namespace aspect
     } // --- namespace ParticleUtilities
   } // --- namespace Particle
 }
-
