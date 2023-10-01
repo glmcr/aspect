@@ -455,13 +455,13 @@ namespace aspect
 
       // --- Greenschists section
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri10(0.15e9,573.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri10(0.22e9,573.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri11(0.2e9,773.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri11(0.25e9,773.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.35e9,673.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.35e9,773.0);
       // P too small ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.2e9,673.0);
       // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.2e9,773.0);
       //const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(0.95e9,773.0);
@@ -475,13 +475,13 @@ namespace aspect
 			     LUSIComposition<dim>::greenSchistsPTTri12);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri20(0.15e9,573.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri20(0.22e9,573.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri21(0.8e9, 600.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri21(0.8e9, 573.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(1.35e9,673.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(1.35e9,773.0);
       // P too small ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(1.2e9,673.0);
       // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(1.2e9,773.0);
       //const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(0.95e9,773.0);
@@ -495,13 +495,13 @@ namespace aspect
 			     LUSIComposition<dim>::greenSchistsPTTri22);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri10(0.2e9, 773.0);
+       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri10(0.25e9, 773.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri11(0.25e9,973.0);
+       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri11(0.3e9, 973.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri12(1.4e9,973.0);
+       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri12(1.4e9, 973.0);
 
        // --- Define the 1st p,T triangle where oc. crust material transforms to
        //     the amphibolites facies.
@@ -511,10 +511,10 @@ namespace aspect
 	                     LUSIComposition<dim>::amphibolitesPTTri11,
 	   		     LUSIComposition<dim>::amphibolitesPTTri12);
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri20(0.2e9,773.0);
+       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri20(0.22e9,773.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(1.35e9,673.0);
+       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(1.35e9,773.0);
        // P too small ?? const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(1.2e9,673.0);
        // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(1.2e9,773.0);
 
@@ -566,12 +566,12 @@ namespace aspect
 			     LUSIComposition<dim>::granulitesPTTri22);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.35e9,673.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.35e9,773.0);
        // P too small ??const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.2e9,673.0);
        // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.2e9,773.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri11(3.0e9,673.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri11(3.0e9,773.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::eclogitesPTTri12(1.5e9,1573.0);
@@ -586,7 +586,7 @@ namespace aspect
 		      LUSIComposition<dim>::eclogitesPTTri12);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri20(1.35e9,673.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri20(1.35e9,773.0);
        // P too small ?? const PTStateMarker LUSIComposition<dim>::eclogitesPTTri20(1.2e9,673.0);
        // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::eclogitesPTTri20(1.2e9,773.0);
 
@@ -594,7 +594,7 @@ namespace aspect
        const PTStateMarker LUSIComposition<dim>::eclogitesPTTri21(3.0e9,473.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri22(3.0e9,673.0);
+       const PTStateMarker LUSIComposition<dim>::eclogitesPTTri22(3.0e9,773.0);
 
 	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
@@ -605,7 +605,7 @@ namespace aspect
 		      LUSIComposition<dim>::eclogitesPTTri22);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::blueschistsPTTri10(1.35e9,673.0);
+       const PTStateMarker LUSIComposition<dim>::blueschistsPTTri10(1.35e9,773.0);
        // P too small ?? const PTStateMarker LUSIComposition<dim>::blueschistsPTTri10(1.2e9,673.0);
        // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::blueschistsPTTri10(1.2e9,773.0);
 
