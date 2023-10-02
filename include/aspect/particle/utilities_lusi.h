@@ -122,8 +122,8 @@ namespace aspect
 	   bool insideValidPressuresRange() const;
 	   bool insideValidTemperaturesRange() const;
 
-	   static bool insideValidPressuresRange(double pressure);
-	   static bool insideValidTemperaturesRange(double temperature);
+	   static bool insideValidPressuresRange(double pressureInPascals);
+	   static bool insideValidTemperaturesRange(double temperatureInK);
 
         private:
 
