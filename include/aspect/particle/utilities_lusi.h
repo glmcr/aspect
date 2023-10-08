@@ -68,10 +68,10 @@ namespace aspect
           bool isMoving() const;
 
           bool isFixed() const;
-	
+
 	//virtual double getPressure() const = 0;
 	//virtual double getTemperature() const = 0;
-	
+
         private:
 
           bool moving;
@@ -84,7 +84,7 @@ namespace aspect
 	   static constexpr const double VERY_SMALL_EPSILON= 1e-75;
 
 	   static constexpr const double NGV_VERY_SMALL_EPSILON= -VERY_SMALL_EPSILON;
-	
+
            // --- 220 Kelvins
            static constexpr const double MIN_TEMPERATURE_KELVINS= 220.0;
 
@@ -106,8 +106,8 @@ namespace aspect
            static constexpr const double MEGA_PASCALS_2_GIGA_PASCALS= 1.0/GIGA_PASCALS_2_MEGA_PASCALS;
 
            PTStateMarker();
-           PTStateMarker(double pressure, double temperature);
-           PTStateMarker(double pressure, double temperature, bool moving);
+           PTStateMarker(double pressureInMPa, double temperatureInK);
+           PTStateMarker(double pressureInMPa, double temperatureInK, bool moving);
 
 	   inline virtual double getPressureInMPa() const final { return pressureInMPa; }
 	   inline virtual double getTemperatureInK() const final { return temperatureInK; }
