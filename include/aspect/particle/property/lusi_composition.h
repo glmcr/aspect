@@ -468,13 +468,13 @@ namespace aspect
 
       // --- Greenschists section
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri10(0.22e9,573.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.22e9,573.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri11(0.25e9,773.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9,773.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.35e9,773.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9,773.0);
       // P too small ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.2e9,673.0);
       // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.2e9,773.0);
       //const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(0.95e9,773.0);
