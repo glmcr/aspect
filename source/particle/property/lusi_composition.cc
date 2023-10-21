@@ -141,31 +141,34 @@ namespace aspect
 	//if (pressureInPascals_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
 	if (in_a_top_cell) 
 	  {
+            // --- Ensure to always have a min of 0.75 and a max of 1.0 oc. seds composition in the top (surface) cells
+            part_compo_props[oc_seds_idx]= std::min(1.0, std::max(0.75, part_compo_props[oc_seds_idx]));
+            
 	    //part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
 
 	    // --- MORB oc. crust compo
-            const double morb_oc_crust_compo=
-	      std::max(0.0,std::min(1.0,part_compo_props[oc_crust_idx]));
+            //const double morb_oc_crust_compo=
+	    //  std::max(0.0,std::min(1.0,part_compo_props[oc_crust_idx]));
 
 	    // --- SSZ oc. crust compo
-            const double ssz_oc_crust_compo=
-	      std::max(0.0,std::min(1.0,part_compo_props[ssz_oc_crust_idx]));	    
+            //const double ssz_oc_crust_compo=
+	    //  std::max(0.0,std::min(1.0,part_compo_props[ssz_oc_crust_idx]));	    
 
 	    // --- Can have a mix of MORB oc. crust compo
 	    //     and SSZ oc. crust compo when the latter
 	    //     begin to be created from the partially
 	    //     melted SSZ asth. near the water vs solid rock
 	    //     interface (i.e. in the top fe cells).
-            const double oc_crust_compo=
-	      std::max(0.0,std::min(1.0, morb_oc_crust_compo + ssz_oc_crust_compo));
+            //const double oc_crust_compo=
+	    //  std::max(0.0,std::min(1.0, morb_oc_crust_compo + ssz_oc_crust_compo));
 
 	    // --- Ensure that the oc. seds. proportion is always
 	    //     larger or equal than oc_crust_compo proportion
 	    //     in the top fe cells
-            part_compo_props[oc_seds_idx] += oc_crust_compo;
+            //part_compo_props[oc_seds_idx] += oc_crust_compo;
 
-	    // --- But limit the oc_seds_idx compo to 1.25 
-	    part_compo_props[oc_seds_idx]= std::min(1.25, part_compo_props[oc_seds_idx]);
+	    // --- But limit the oc_seds_idx compo to 1.0 
+	    //part_compo_props[oc_seds_idx]= std::min(1.0, part_compo_props[oc_seds_idx]);
 	    
 	    //std::max(1.0-oc_crust_compo,std::min(1.0,part_compo_props[oc_seds_idx]));
 	    //std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
