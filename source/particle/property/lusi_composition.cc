@@ -93,8 +93,8 @@ namespace aspect
         const unsigned int blueschists_idx=
           this->introspection().compositional_index_for_name(BLUESCHISTS_NID);
 	
-        //const unsigned int coesite_idx=
-	//this->introspection().compositional_index_for_name(COESITE_NID);
+        const unsigned int sticky_water_idx=
+          this->introspection().compositional_index_for_name(STICKY_WATER_NID);
 
 	const double pressureInPascals_here= \
 	  solution[this->introspection().component_indices.pressure];
@@ -115,34 +115,34 @@ namespace aspect
         // std::cout << "LUSIComposition<dim>::update_particle_property: temperature_here=" << temperature_here << std::endl;
         //}
 
-        const types::boundary_id top_num_id=
-	  this->get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
-
-        bool in_a_top_cell= false;
-       
-#if DEAL_II_VERSION_GTE(9,4,0)
-        typename DoFHandler<dim>::active_cell_iterator current_cell=
-	    typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(),&(this->get_dof_handler()));
-#else
-        typename DoFHandler<dim>::active_cell_iterator current_cell=
-	   typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(this->get_triangulation()),&(this->get_dof_handler()));
-#endif
-
-	for (const unsigned int face_no : current_cell->face_indices()) {
-	  
-           if ( current_cell->face(face_no)->at_boundary() &&
-	        current_cell->face(face_no)->boundary_id() == top_num_id) {
-	          in_a_top_cell = true;
-		  break;
-	   }
-	}
+        // --- To check if a marker is located in a top fe cell
+        //const types::boundary_id top_num_id=
+	//  this->get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
+        //bool in_a_top_cell= false;
+        //#if DEAL_II_VERSION_GTE(9,4,0)
+        //typename DoFHandler<dim>::active_cell_iterator current_cell=
+	//    typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(),&(this->get_dof_handler()));
+        //#else
+        //typename DoFHandler<dim>::active_cell_iterator current_cell=
+	//   typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(this->get_triangulation()),&(this->get_dof_handler()));
+        //#endif
+	//for (const unsigned int face_no : current_cell->face_indices()) { 
+        //   if ( current_cell->face(face_no)->at_boundary() &&
+	//        current_cell->face(face_no)->boundary_id() == top_num_id) {
+	//          in_a_top_cell = true;
+	//	  break;
+	//   }
+	//}
         
-	// --- Pour some oc. seds. but only where pressureInPascals is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
-	//if (pressureInPascals_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
-	if (in_a_top_cell) 
+	// ---  Transform the sticky water content to oc. seds. but only where pressureInPascals is >= SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
+	if (pressureInPascals_here >= SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
+	//if (in_a_top_cell) 
 	  {
+            // ---
+            lusiMaterialChange(part_compo_props, sticky_water_idx, oc_seds_idx, 0.0, 1.0);
+            
             // --- Ensure to always have a min of 0.75 and a max of 1.0 oc. seds composition in the top (surface) cells
-            part_compo_props[oc_seds_idx]= std::min(1.0, std::max(0.75, part_compo_props[oc_seds_idx]));
+            //part_compo_props[oc_seds_idx]= std::min(1.0, std::max(0.75, part_compo_props[oc_seds_idx]));
             
 	    //part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
 
@@ -175,14 +175,14 @@ namespace aspect
 
 	}	
 
-	// --- (p,T) conditions under which upwelling partially melted asth. transforms to partially melted
+	// --- (p,T) conditions under which upwelling asth. transforms to partially melted
 	//     SSZ asthenosphere 
         if ( pmSszAsthPTTri.ptInside(pressureInMPa_here,temperature_here))
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
 	
-	// --- (p,T) conditions under which upwelling asth. partial melts transforms to SSZ crust.
+	// --- (p,T) conditions under which upwelling asth. SSZ partial melts transforms to SSZ crust.
         if ( asth2SSZCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	     asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
@@ -193,7 +193,7 @@ namespace aspect
 	   // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.
 	   //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
-	   lusiMaterialChange(part_compo_props,pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
+	   lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 
 	   //// --- Transfer particle asth. material (could be 0.0) concentration to
 	   ////     to the SSZ type of oc. crust.

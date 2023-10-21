@@ -142,6 +142,8 @@ namespace aspect
 
 	  static constexpr const char* PARTIALLY_MELTED_SSZ_ASTH_NID= "pmeltedSszAsth";
 
+          static constexpr const char* STICKY_WATER_NID= "stickyWater";
+        
         //static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
 
 	  // --- Surf T 273.25
@@ -182,6 +184,7 @@ namespace aspect
           static constexpr const double OLM_MAX_PRESSURE_IN_PASCALS= KBARS_2_PASCALS * 9.5;
 
 	  // --- Approx lithos. pressure of a 1.5km column of oceanic sediments.
+          //     It is coencidentally also the pressure at the bottom of a 4km column of salted water.
 	  static constexpr const double SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS= KBARS_2_PASCALS * 0.4;
 
           ////--- oc. seds. transforms (mainly) to coesite
