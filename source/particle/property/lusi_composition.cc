@@ -172,7 +172,6 @@ namespace aspect
 	    
 	    //std::max(1.0-oc_crust_compo,std::min(1.0,part_compo_props[oc_seds_idx]));
 	    //std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
-
 	}	
 
 	// --- (p,T) conditions under which upwelling partially melted asth. transforms to partially melted
@@ -193,7 +192,7 @@ namespace aspect
 	   // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.
 	   //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
-	   lusiMaterialChange(part_compo_props,pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
+	   lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 
 	   //// --- Transfer particle asth. material (could be 0.0) concentration to
 	   ////     to the SSZ type of oc. crust.
@@ -233,6 +232,7 @@ namespace aspect
 
 	   lusiMaterialChange(part_compo_props, oc_seds_idx, greenschists_idx , 0.0, 1.0);
            lusiMaterialChange(part_compo_props, oc_crust_idx, greenschists_idx , 0.0, 1.0);
+           lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, greenschists_idx , 0.0, 1.0);
 	  
            // part_compo_props[greenschists_idx] += part_compo_props[oc_crust_idx];
            // part_compo_props[greenschists_idx]=
@@ -248,6 +248,7 @@ namespace aspect
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx, amphibolites_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, amphibolites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, amphibolites_idx, 0.0, 1.0);
 	  }
 
@@ -259,6 +260,7 @@ namespace aspect
 
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, granulites_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx, granulites_idx , 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, granulites_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, granulites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, granulites_idx, 0.0, 1.0);
 
@@ -282,6 +284,7 @@ namespace aspect
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, blueschists_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx, blueschists_idx , 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, blueschists_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, blueschists_idx , 0.0, 1.0);
 	  }
 
@@ -290,8 +293,9 @@ namespace aspect
 	if (eclogitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	    eclogitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
-	    lusiMaterialChange(part_compo_props, oc_seds_idx,     eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, oc_seds_idx,      eclogites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx,     eclogites_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, blueschists_idx,  eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, eclogites_idx, 0.0, 1.0);
