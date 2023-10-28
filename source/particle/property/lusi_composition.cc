@@ -18,7 +18,6 @@
  <http://www.gnu.org/licenses/>.
  */
 
-
 #include <aspect/particle/utilities_lusi.h>
 //#include <aspect/initial_composition/interface.h>
 #include <aspect/particle/property/lusi_composition.h>
@@ -230,22 +229,24 @@ namespace aspect
 	    greenSchistsPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 
+           lusiMaterialChange(part_compo_props, sticky_water_idx, greenschists_idx , 0.0, 1.0);
 	   lusiMaterialChange(part_compo_props, oc_seds_idx, greenschists_idx , 0.0, 1.0);
            lusiMaterialChange(part_compo_props, oc_crust_idx, greenschists_idx , 0.0, 1.0);
            lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, greenschists_idx , 0.0, 1.0);
-	  
+
            // part_compo_props[greenschists_idx] += part_compo_props[oc_crust_idx];
            // part_compo_props[greenschists_idx]=
-           //     std::max(0.0,std::min(1.0,part_compo_props[greenschists_idx]));	   
+           //     std::max(0.0,std::min(1.0,part_compo_props[greenschists_idx]));
 	   // // --- Need to set asth. to zero here once its concentration
 	   // //     has been transfered to ssz oc. lith mantle
-	   // part_compo_props[oc_crust_idx]= 0.0; 
+	   // part_compo_props[oc_crust_idx]= 0.0;
 	  }
 
 	// --- p,T conditions under which oc. crust and greenschists transform to amphibolites facies
 	if (amphibolitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	    amphibolitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
+            lusiMaterialChange(part_compo_props, sticky_water_idx, amphibolites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx, amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, amphibolites_idx, 0.0, 1.0);
@@ -257,7 +258,7 @@ namespace aspect
 	if (granulitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	    granulitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
-
+            lusiMaterialChange(part_compo_props, sticky_water_idx, granulites_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, granulites_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx, granulites_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, granulites_idx , 0.0, 1.0);
@@ -282,6 +283,7 @@ namespace aspect
 	// --- p,T conditions under which oc. crust, and greenschists transform to blueschists facies
 	if (blueschistsPTTri1.ptInside(pressureInMPa_here,temperature_here))
 	  {
+            lusiMaterialChange(part_compo_props, sticky_water_idx, blueschists_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, blueschists_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx, blueschists_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, blueschists_idx , 0.0, 1.0);
@@ -293,6 +295,7 @@ namespace aspect
 	if (eclogitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	    eclogitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
+            lusiMaterialChange(part_compo_props, sticky_water_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, oc_seds_idx,      eclogites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, oc_crust_idx,     eclogites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, eclogites_idx, 0.0, 1.0);
