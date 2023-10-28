@@ -478,10 +478,10 @@ namespace aspect
 
       // --- Greenschists section
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri10(0.22e9,573.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri10(0.25e9,573.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri11(0.25e9,773.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri11(0.28e9,773.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.35e9,773.0);
@@ -498,7 +498,7 @@ namespace aspect
 			     LUSIComposition<dim>::greenSchistsPTTri12);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.22e9,573.0);
+      const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9,573.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.8e9, 573.0);
@@ -518,7 +518,7 @@ namespace aspect
 			     LUSIComposition<dim>::greenSchistsPTTri22);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9, 773.0);
+       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.28e9, 773.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 973.0);
@@ -534,7 +534,7 @@ namespace aspect
 	                     LUSIComposition<dim>::amphibolitesPTTri11,
 	   		     LUSIComposition<dim>::amphibolitesPTTri12);
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.22e9,773.0);
+       const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.28e9,773.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9,773.0);
@@ -553,7 +553,7 @@ namespace aspect
 			 LUSIComposition<dim>::amphibolitesPTTri22);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::granulitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9,973.0);
+       const PTStateMarker LUSIComposition<dim>::granulitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.28e9,973.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::granulitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9,973.0);
@@ -571,10 +571,10 @@ namespace aspect
 			     LUSIComposition<dim>::granulitesPTTri12);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::granulitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9,973.0);
+       const PTStateMarker LUSIComposition<dim>::granulitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.28e9,973.0);
 
        template <int dim>
-       const PTStateMarker LUSIComposition<dim>::granulitesPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9,1573.0);
+       const PTStateMarker LUSIComposition<dim>::granulitesPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.28e9,1573.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::granulitesPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9,1573.0);
