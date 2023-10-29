@@ -18,7 +18,7 @@
  <http://www.gnu.org/licenses/>.
  */
 
-
+#include <aspect/geometry_model/box.h>
 #include <aspect/particle/utilities_lusi.h>
 //#include <aspect/initial_composition/interface.h>
 #include <aspect/particle/property/lusi_composition.h>
@@ -172,7 +172,23 @@ namespace aspect
 	    
 	    //std::max(1.0-oc_crust_compo,std::min(1.0,part_compo_props[oc_seds_idx]));
 	    //std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
-	}	
+	}
+
+	//--- Now check if the marker distance from the sides is far enough
+	//    to allow metam. changes because it seems that we have some unwanted
+	//    significant pressure oscillations near the sides at distance that are
+	//    less than NO_MTC_ON_DISTANCE_FROM_SIDES from them
+	const double xPositionMeters= particle->get_reference_location()[0];
+
+        const GeometryModel::Box<dim> &box_geometry_model =
+                Plugins::get_plugin_as_type<const GeometryModel::Box<dim>> (this->get_geometry_model());
+	
+	if (xPositionMeters <= NO_MTC_ON_DISTANCE_FROM_SIDES ||
+	    xPositionMeters >= (box_geometry_model.get_extents()[0] - NO_MTC_ON_DISTANCE_FROM_SIDES)) {
+
+	  // --- Do not do any metam. changes here, just returns.
+	  return;
+	}
 
 	// --- (p,T) conditions under which upwelling partially melted asth. transforms to partially melted
 	//     SSZ asthenosphere 
@@ -334,7 +350,7 @@ namespace aspect
                                "composition>, but the number of compositional fields is 0. "
                                "Please add compositional fields to your model, or remove "
                                "this particle property."));
-
+ 
         std::vector<std::pair<std::string,unsigned int>> property_information;
 
         for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
