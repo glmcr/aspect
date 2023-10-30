@@ -178,7 +178,7 @@ namespace aspect
 	//    to allow metam. changes because it seems that we have some unwanted
 	//    significant pressure oscillations near the sides at distance that are
 	//    less than NO_MTC_ON_DISTANCE_FROM_SIDES from them
-	const double xPositionMeters= particle->get_reference_location()[0];
+	const double xPositionMeters= particle->get_location()[0];
 
         const GeometryModel::Box<dim> &box_geometry_model =
                 Plugins::get_plugin_as_type<const GeometryModel::Box<dim>> (this->get_geometry_model());
