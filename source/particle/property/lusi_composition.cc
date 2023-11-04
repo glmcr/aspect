@@ -54,21 +54,21 @@ namespace aspect
 
 	// --- partially melted ssz asth.
         const unsigned int pm_ssz_asth_mtl_idx=
-          this->introspection().compositional_index_for_name(PARTIALLY_MELTED_SSZ_ASTH_NID);	
+          this->introspection().compositional_index_for_name(PARTIALLY_MELTED_SSZ_ASTH_NID);
 
-	// Not used for now but could be used if the ~410km oli -> wads change is applied
-        //const unsigned int lith_mtl_idx=
-        //  this->introspection().compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
+	// ---
+        const unsigned int lith_mtl_idx=
+          this->introspection().compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
 
         const unsigned int ssz_lith_mtl_idx=
           this->introspection().compositional_index_for_name(SSZ_LITHOSPHERIC_MANTLE_NID);
-	
+
         const unsigned int oc_crust_idx=
           this->introspection().compositional_index_for_name(OCEANIC_CRUST_NID);
 
         const unsigned int ssz_oc_crust_idx=
-          this->introspection().compositional_index_for_name(SSZ_OCEANIC_CRUST_NID);	
-	
+          this->introspection().compositional_index_for_name(SSZ_OCEANIC_CRUST_NID);
+
         //const unsigned int olm_asth_hybrid_idx=
         //  this->introspection().compositional_index_for_name(OLM_ASTH_HYBRID_NID);
 
@@ -141,37 +141,42 @@ namespace aspect
 	//if (pressureInPascals_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
 	if (in_a_top_cell) 
 	  {
-            // --- Ensure to always have a min of 0.75 and a max of 1.0 oc. seds composition in the top (surface) cells
-            part_compo_props[oc_seds_idx]= std::min(1.0, std::max(0.75, part_compo_props[oc_seds_idx]));
-            
-	    //part_compo_props[oc_seds_idx] += 0.25; //+= 1.5; //0.75;
+            // --- Ensure to always have oc. seds composition at 1.2 in the top (surface) cells
+            part_compo_props[oc_seds_idx]= 1.2; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
 
-	    // --- MORB oc. crust compo
-            //const double morb_oc_crust_compo=
-	    //  std::max(0.0,std::min(1.0,part_compo_props[oc_crust_idx]));
+            // --- Limit all other compos between 0.0 and 1.0 
+            part_compo_props[oc_crust_idx]= 
+             std::max(0.0,std::min(1.0,part_compo_props[oc_crust_idx]));
 
-	    // --- SSZ oc. crust compo
-            //const double ssz_oc_crust_compo=
-	    //  std::max(0.0,std::min(1.0,part_compo_props[ssz_oc_crust_idx]));	    
+            part_compo_props[ssz_oc_crust_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[ssz_oc_crust_idx]));
 
-	    // --- Can have a mix of MORB oc. crust compo
-	    //     and SSZ oc. crust compo when the latter
-	    //     begin to be created from the partially
-	    //     melted SSZ asth. near the water vs solid rock
-	    //     interface (i.e. in the top fe cells).
-            //const double oc_crust_compo=
-	    //  std::max(0.0,std::min(1.0, morb_oc_crust_compo + ssz_oc_crust_compo));
+            part_compo_props[pm_ssz_asth_mtl_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[pm_ssz_asth_mtl_idx]));
 
-	    // --- Ensure that the oc. seds. proportion is always
-	    //     larger or equal than oc_crust_compo proportion
-	    //     in the top fe cells
-            //part_compo_props[oc_seds_idx] += oc_crust_compo;
+            part_compo_props[ssz_lith_mtl_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[ssz_lith_mtl_idx]));
 
-	    // --- But limit the oc_seds_idx compo to 1.0 
-	    //part_compo_props[oc_seds_idx]= std::min(1.0, part_compo_props[oc_seds_idx]);
-	    
-	    //std::max(1.0-oc_crust_compo,std::min(1.0,part_compo_props[oc_seds_idx]));
-	    //std::max(0.25,std::min(1.0,part_compo_props[oc_seds_idx]));
+            part_compo_props[greenschists_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[greenschists_idx]));
+
+            part_compo_props[amphibolites_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[amphibolites_idx]));
+
+            part_compo_props[granulites_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[granulites_idx]));
+
+            part_compo_props[eclogites_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[eclogites_idx]));
+
+            part_compo_props[blueschists_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[blueschists_idx]));
+
+            part_compo_props[asth_mtl_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[asth_mtl_idx]));
+
+            part_compo_props[lith_mtl_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[lith_mtl_idx]));
 	}
 
 	//--- Now check if the marker distance from the sides is far enough
