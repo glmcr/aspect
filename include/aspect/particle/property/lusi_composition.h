@@ -159,7 +159,7 @@ namespace aspect
           //static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1553.0;
 
 	  // --- T at the moho
-	static constexpr const double MOHO_TEMPERATURE_KELVINS= 850.0;
+	 static constexpr const double MOHO_TEMPERATURE_KELVINS= 850.0;
 
           // ---
           static constexpr const double GPA_2_PASCALS= 1e9;
@@ -419,9 +419,9 @@ namespace aspect
       // --- SSZ OLM tri1 vertices
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-        asth2SSZOlmPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                           LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
-			   LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); //1423.0);
+      asth2SSZOlmPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*
+                         LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
+	        	 LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); //1423.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
@@ -431,10 +431,10 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      asth2SSZOlmPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.95e9, 1573.0); //1473.0);
+      asth2SSZOlmPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS); //1573.0); //1473.0);
 								   //LUSIComposition<dim>::SURF_TEMPERATURE);
 
-      // --- Define the 2 (p,T) triangles where the SSZ oc. lith mantle is formed with
+      // --- Define the 1st (p,T) triangles where the SSZ oc. lith mantle is formed with
       //     the partial melted ssz upwelling asthenosphere.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
@@ -445,18 +445,24 @@ namespace aspect
       // --- SSZ OLM tri2 vertices
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-        asth2SSZOlmPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                           LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
-			   LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); //1423.0);
+      asth2SSZOlmPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*
+                         LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
+			 LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); //1423.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.95e9,
-								   LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
+      const PTStateMarker
+      LUSIComposition<dim>::
+      asth2SSZOlmPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9,
+			 LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
                                                                    //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.95e9, 1573.0); //1473.0);
+      const PTStateMarker LUSIComposition<dim>::
+      asth2SSZOlmPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9,
+                         LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS); //1573.0); //1473.0);
+      
+      //const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.95e9, 1573.0); //1473.0);
 
-      // --- SSZ OLM (p,T) tri2
+      // --- SSZ OLM (p,T) tri nb.2
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
          asth2SSZOlmPTTri2(LUSIComposition<dim>::asth2SSZOlmPTTri21,
