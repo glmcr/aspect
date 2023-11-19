@@ -351,12 +351,13 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-        pmSszAsthPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,
-                         LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
+        pmSszAsthPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1773.0);
+        //                   LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-        pmSszAsthPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.e9,LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
+        pmSszAsthPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.e9,1773.0);
+      //  pmSszAsthPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.e9,LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
       //const PTStateMarker LUSIComposition<dim>::pmSszAsthPTTri13(0.95e9,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
 
       template <int dim>
