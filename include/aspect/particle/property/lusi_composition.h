@@ -210,8 +210,10 @@ namespace aspect
 	   static const PTStateMarkersTriangle asth2SSZOlmPTTri2;
 
 	   // --- (p,T) tri. zone where ssz asth. in partial melting state
-	   static const PTStateMarkersTriangle pmSszAsthPTTri;
-
+	   static const PTStateMarkersTriangle pmSszAsthPTTri1;
+	   static const PTStateMarkersTriangle pmSszAsthPTTri2;
+	   static const PTStateMarkersTriangle pmSszAsthPTTri3;
+	
 	//static const PTStateMarkersTriangle amphiPMPTTri1;
 	//static const PTStateMarkersTriangle amphiPMPTTri2;
 
@@ -280,6 +282,15 @@ namespace aspect
         static const PTStateMarker occMtcPT9;
         static const PTStateMarker occMtcPT10;
         static const PTStateMarker occMtcPT11;
+
+        static const PTStateMarker sszMtcPT1;
+        static const PTStateMarker sszMtcPT2;
+        static const PTStateMarker sszMtcPT3;                                        
+        static const PTStateMarker sszMtcPT4;
+        static const PTStateMarker sszMtcPT5;
+        static const PTStateMarker sszMtcPT6;
+        static const PTStateMarker sszMtcPT7;
+        static const PTStateMarker sszMtcPT8;	
         
       private:
 	   static inline void lusiMaterialChange(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
@@ -303,7 +314,8 @@ namespace aspect
         
       }; // --- class LUSIComposition
 
-      // --- static PTStateMarker objects definitions for class LUSIComposition
+      // --- static PTStateMarker objects definitions for class LUSIComposition for the prograde metam. changes
+      //     of the oc. crust.
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::occMtcPT1(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9, 573.0);
        
@@ -332,10 +344,10 @@ namespace aspect
       const PTStateMarker LUSIComposition<dim>::occMtcPT9(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9,
                                                           LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::occMtcPT9(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9,
+      const PTStateMarker LUSIComposition<dim>::occMtcPT10(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9,
                                                           LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::occMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*3.0e9, 773.0);          
+      const PTStateMarker LUSIComposition<dim>::occMtcPT11(PTStateMarker::PASCALS_2_MEGA_PASCALS*3.0e9, 773.0);          
 
       // ---
 
@@ -406,344 +418,78 @@ namespace aspect
       const PTStateMarkersTriangle LUSIComposition<dim>::
       eclogitesPTTri2(LUSIComposition<dim>::occMtcPT5, LUSIComposition<dim>::occMtcPT10, LUSIComposition<dim>::occMtcPT11);
       
+      // --- static PTStateMarker objects definitions for class LUSIComposition for:
+      //     1. Apparition of partial melts of the upwelling hydrated (SSZ) asthenosphere (pmSSZAsth)
+      //     2. The formation of new SSZ oc. lithospheric mantle (sszOLM) with the pmSSZAsth
+      //     3. The formation of new SSZ oc. lithospheric mantle (sszOCC) with the pmSSZAsth
+      //     
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT1(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1373.0);
+       
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1773.0);      
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.0e9, 1773.0);
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0);     
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT5(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT6(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);     
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
+
+      // --- 1st p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4);
+
+      // --- 2nd p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT7);
+
+      // --- 3rd p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT7, LUSIComposition<dim>::sszMtcPT3);      
+
+      // --- 1st p,T triangle for SSZ OLM formation from pm ssz asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      asth2SSZOlmPTTri1(LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT7, LUSIComposition<dim>::sszMtcPT8);
+
+      // --- 2nd p,T triangle for SSZ OLM formation from upwelling pm ssz asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      asth2SSZOlmPTTri1(LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT8);
       
-      // --- OLD!
+      // --- 1st p,T triangle for SSZ OCC formation from upwelling pm ssz asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      asth2SSZCrustPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT4);
+
+      // --- 2nd p,T triangle for SSZ OCC formation from upwelling pm ssz asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      asth2SSZCrustPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT6);      
       
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-        pmSszAsthPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,1373.0);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-        pmSszAsthPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,
-                         LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-        pmSszAsthPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.e9,LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
-      //const PTStateMarker LUSIComposition<dim>::pmSszAsthPTTri13(0.95e9,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
-
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-        pmSszAsthPTTri(LUSIComposition<dim>::pmSszAsthPTTri11,
-      	    	       LUSIComposition<dim>::pmSszAsthPTTri12,
-		       LUSIComposition<dim>::pmSszAsthPTTri13);
-
-      // --- Tri1 (p,T) points for SSZ crust creation from partial melting of Asth.
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      asth2SSZCrustPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,
-			   LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-        asth2SSZCrustPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,1373.0);
-								     //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      asth2SSZCrustPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0 ); //1403.0);
-								     // LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
-
-      // --- Define the (p,T) 1st triangle where the SSZ oc. crust is formed with
-      //     partial melting of the upwelling asthenosphere.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-         asth2SSZCrustPTTri1(LUSIComposition<dim>::asth2SSZCrustPTTri11,
-	    		     LUSIComposition<dim>::asth2SSZCrustPTTri12,
-			     LUSIComposition<dim>::asth2SSZCrustPTTri13);
-
-     // --- Tri2 (p,T) points for SSZ crust creation with partial melting of Asth.
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-        asth2SSZCrustPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                             LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,
-                             LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-        asth2SSZCrustPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                             LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
-                             LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
-								     //1423.0);
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      asth2SSZCrustPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                           LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0); //1403.0);
-								     //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
-
-      // --- Define the (p,T) 2nd triangle where the SSZ oc. crust is formed with
-      //     partial melting of the upwelling asthenosphere.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-         asth2SSZCrustPTTri2(LUSIComposition<dim>::asth2SSZCrustPTTri21,
-	    		     LUSIComposition<dim>::asth2SSZCrustPTTri22,
-			     LUSIComposition<dim>::asth2SSZCrustPTTri23);
-
-      // --- SSZ OLM tri1 vertices
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      asth2SSZOlmPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                         LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
-	        	 LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); //1423.0);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      asth2SSZOlmPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                         LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0); //1403.0);
-                                                                   //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      asth2SSZOlmPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS); //1573.0); //1473.0);
-								   //LUSIComposition<dim>::SURF_TEMPERATURE);
-
-      // --- Define the 1st (p,T) triangles where the SSZ oc. lith mantle is formed with
-      //     the partial melted ssz upwelling asthenosphere.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-         asth2SSZOlmPTTri1(LUSIComposition<dim>::asth2SSZOlmPTTri11,
-	    		   LUSIComposition<dim>::asth2SSZOlmPTTri12,
-			   LUSIComposition<dim>::asth2SSZOlmPTTri13);
-
-      // --- SSZ OLM tri2 vertices
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      asth2SSZOlmPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                         LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
-			 LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); //1423.0);
-
-      template <int dim>
-      const PTStateMarker
-      LUSIComposition<dim>::
-      asth2SSZOlmPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9,
-			 LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
-                                                                   //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      asth2SSZOlmPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9,
-                         LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS); //1573.0); //1473.0);
-      
-      //const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.95e9, 1573.0); //1473.0);
-
-      // --- SSZ OLM (p,T) tri nb.2
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-         asth2SSZOlmPTTri2(LUSIComposition<dim>::asth2SSZOlmPTTri21,
-	    		   LUSIComposition<dim>::asth2SSZOlmPTTri22,
-			   LUSIComposition<dim>::asth2SSZOlmPTTri23);
-
-      //// ---- Qtz (oc. seds) to coesite section, (p,T) rectangle
-      //template <int dim>
-      //const PTStateMarker LUSIComposition<dim>::
-      //   qtz2CoesPTRect00(LUSIComposition<dim>::QTZ_TO_COESITE_PRESSURE_THRESHOLD_IN_PASCALS,
-      //                    LUSIComposition<dim>::QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS);
-
-    //template <int dim>
-    //const PTStateMarker LUSIComposition<dim>::
-    //   qtz2CoesPTRect11(LUSIComposition<dim>::GPA_2_PASCALS*8.0,2000.0);
-
-    //template <int dim>
-    //const PTStateMarkersRectangle LUSIComposition<dim>::
-    //    qtz2CoesPTRect(LUSIComposition<dim>::qtz2CoesPTRect00,LUSIComposition<dim>::qtz2CoesPTRect11);
-
-      // --- Greenschists section
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      greenSchistsPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9,573.0);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      greenSchistsPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.28e9,773.0);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      greenSchistsPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9,773.0);
-
-      // P too small ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.2e9,673.0);
-      // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(1.2e9,773.0);
-      //const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri12(0.95e9,773.0);
-
-      // --- Define the 1st p,T triangle object where oc. crust material transforms to
-      //     the greenschists facies (prograde only)
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-          greenSchistsPTTri1(LUSIComposition<dim>::greenSchistsPTTri10,
-			     LUSIComposition<dim>::greenSchistsPTTri11,
-			     LUSIComposition<dim>::greenSchistsPTTri12);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      greenSchistsPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.25e9,573.0);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      greenSchistsPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.8e9, 573.0);
-
-      template <int dim>
-      const PTStateMarker LUSIComposition<dim>::
-      greenSchistsPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9,773.0);
-      // P too small ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(1.2e9,673.0);
-      // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(1.2e9,773.0);
-      //const PTStateMarker LUSIComposition<dim>::greenSchistsPTTri22(0.95e9,773.0);
-
-       // --- Define the 2nd p,T triangle object where oc. crust material transforms to
-       //     the greenschists facies (prograde only)
-       template <int dim>
-       const PTStateMarkersTriangle LUSIComposition<dim>::
-          greenSchistsPTTri2(LUSIComposition<dim>::greenSchistsPTTri20,
-	    		     LUSIComposition<dim>::greenSchistsPTTri21,
-			     LUSIComposition<dim>::greenSchistsPTTri22);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.28e9, 773.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 973.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9, 973.0);
-
-       // --- Define the 1st p,T triangle where oc. crust material transforms to
-       //     the amphibolites facies.
-       template <int dim>
-       const PTStateMarkersTriangle LUSIComposition<dim>::
-          amphibolitesPTTri1(LUSIComposition<dim>::amphibolitesPTTri10,
-	                     LUSIComposition<dim>::amphibolitesPTTri11,
-	   		     LUSIComposition<dim>::amphibolitesPTTri12);
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.28e9,773.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9,773.0);
-       // P too small ?? const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(1.2e9,673.0);
-       // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::amphibolitesPTTri21(1.2e9,773.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9,973.0);
-
-       // --- Define the 2nd p,T triangle where oc. crust material transforms to
-       //     the amphibolites facies.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-      amphibolitesPTTri2(LUSIComposition<dim>::amphibolitesPTTri20,
-			 LUSIComposition<dim>::amphibolitesPTTri21,
-			 LUSIComposition<dim>::amphibolitesPTTri22);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9,973.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9,973.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9,1573.0);
-      // PRESS. TOO LARGE const PTStateMarker LUSIComposition<dim>::granulitesPTTri12(3.0e9,1573.0);
-
-      // --- Define the 1st p,T triangle where oc. crust material transforms to
-      //     the granulites facies.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-            granulitesPTTri1(LUSIComposition<dim>::granulitesPTTri10,
-			     LUSIComposition<dim>::granulitesPTTri11,
-			     LUSIComposition<dim>::granulitesPTTri12);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9,973.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9,1573.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9,1573.0);
-      //PRESS. TOO LARGE: const PTStateMarker LUSIComposition<dim>::granulitesPTTri22(3.0e9,1573.0);
-
-      // --- Define the 2nd p,T triangle where oc. crust material transforms to
-      //     the granulites facies.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-            granulitesPTTri2(LUSIComposition<dim>::granulitesPTTri20,
-			     LUSIComposition<dim>::granulitesPTTri21,
-			     LUSIComposition<dim>::granulitesPTTri22);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       eclogitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9,773.0);
-       // P too small ??const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.2e9,673.0);
-       // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::eclogitesPTTri10(1.2e9,773.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       eclogitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*3.0e9,773.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       eclogitesPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9,1573.0);
-      // PRESS TOO LARGE: const PTStateMarker LUSIComposition<dim>::eclogitesPTTri12(3.0e9,1573.0);
-
-      // --- Define the 1st p,T triangle where oc. crust material transforms t
-      //     the eclogites facies.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-      eclogitesPTTri1(LUSIComposition<dim>::eclogitesPTTri10,
-		      LUSIComposition<dim>::eclogitesPTTri11,
-		      LUSIComposition<dim>::eclogitesPTTri12);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       eclogitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9,773.0);
-       // P too small ?? const PTStateMarker LUSIComposition<dim>::eclogitesPTTri20(1.2e9,673.0);
-       // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::eclogitesPTTri20(1.2e9,773.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       eclogitesPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*3.0e9,473.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       eclogitesPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*3.0e9,773.0);
-
-	   // --- Define the 2nd p,T triangle where oc. crust material transforms to
-	   //     the eclogites facies.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-      eclogitesPTTri2(LUSIComposition<dim>::eclogitesPTTri20,
-		      LUSIComposition<dim>::eclogitesPTTri21,
-		      LUSIComposition<dim>::eclogitesPTTri22);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       blueschistsPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9,773.0);
-       // P too small ?? const PTStateMarker LUSIComposition<dim>::blueschistsPTTri10(1.2e9,673.0);
-       // ORIG TOO HOT ?? const PTStateMarker LUSIComposition<dim>::blueschistsPTTri10(1.2e9,773.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       blueschistsPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9,373.0);
-
-       template <int dim>
-       const PTStateMarker LUSIComposition<dim>::
-       blueschistsPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*3.0e9,473.0);
-
-	   // --- Define the 1st p,T triangle where oc. crust material transforms to
-	   //     the eclogites facies.
-      template <int dim>
-      const PTStateMarkersTriangle LUSIComposition<dim>::
-      blueschistsPTTri1(LUSIComposition<dim>::blueschistsPTTri10,
-			LUSIComposition<dim>::blueschistsPTTri11,
-			LUSIComposition<dim>::blueschistsPTTri12);
     }
   }
 }
