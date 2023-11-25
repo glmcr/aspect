@@ -82,17 +82,17 @@ namespace aspect
           this->introspection().compositional_index_for_name(AMPHIBOLITES_NID);
 
         //const unsigned int amphibolitesPM_idx=
-        //  this->introspection().compositional_index_for_name(AMPHIBOLITES_PM_NID);	
+        //  this->introspection().compositional_index_for_name(AMPHIBOLITES_PM_NID);
 
         const unsigned int granulites_idx=
           this->introspection().compositional_index_for_name(GRANULITES_NID);
 
         const unsigned int eclogites_idx=
-          this->introspection().compositional_index_for_name(ECLOGITES_NID);		
+          this->introspection().compositional_index_for_name(ECLOGITES_NID);
 
         const unsigned int blueschists_idx=
           this->introspection().compositional_index_for_name(BLUESCHISTS_NID);
-	
+
         //const unsigned int coesite_idx=
 	//this->introspection().compositional_index_for_name(COESITE_NID);
 
@@ -119,7 +119,7 @@ namespace aspect
 	  this->get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
 
         bool in_a_top_cell= false;
-       
+
 #if DEAL_II_VERSION_GTE(9,4,0)
         typename DoFHandler<dim>::active_cell_iterator current_cell=
 	    typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(),&(this->get_dof_handler()));
@@ -185,18 +185,42 @@ namespace aspect
 	//    less than NO_MTC_ON_DISTANCE_FROM_SIDES from them
 	const double xPositionMeters= particle->get_location()[0];
 
-        const GeometryModel::Box<dim> &box_geometry_model =
+        double gridXExtent= NO_MTC_ON_DISTANCE_FROM_SIDES;
+
+        if (Plugins::plugin_type_matches<const GeometryModel::Box<dim>>(this->get_geometry_model())) {
+
+           const GeometryModel::Box<dim> &box_geometry_model =
                 Plugins::get_plugin_as_type<const GeometryModel::Box<dim>> (this->get_geometry_model());
-	
+
+           gridXExtent= box_geometry_model.get_extents()[0];
+
+        } else if (Plugins::plugin_type_matches<const GeometryModel::TwoMergedBoxes<dim>> (this->get_geometry_model())) {
+
+           const GeometryModel::TwoMergedBoxes<dim> &two_merged_boxes_geometry_model =
+                Plugins::get_plugin_as_type<const GeometryModel::TwoMergedBoxes<dim>> (this->get_geometry_model());
+
+           gridXExtent= two_merged_boxes_geometry_model.get_extents()[0];
+
+        } else {
+            AssertThrow (false,
+                         ExcMessage ("geometry model not valid for the lusi composition!"));
+        }
+
+        if (gridXExtent <= NO_MTC_ON_DISTANCE_FROM_SIDES) {
+           AssertThrow (false,ExcMessage ("Cannot have gridXExtent <= NO_MTC_ON_DISTANCE_FROM_SIDES at this point!"));
+        }
+
+        // --- Do the check for the safe distance from the sides:
 	if (xPositionMeters <= NO_MTC_ON_DISTANCE_FROM_SIDES ||
-	    xPositionMeters >= (box_geometry_model.get_extents()[0] - NO_MTC_ON_DISTANCE_FROM_SIDES)) {
+            xPositionMeters >= (gridXExtent - NO_MTC_ON_DISTANCE_FROM_SIDES)) {
+	    //xPositionMeters >= (box_geometry_model.get_extents()[0] - NO_MTC_ON_DISTANCE_FROM_SIDES)) {
 
 	  // --- Do not do any metam. changes here, just returns.
 	  return;
 	}
 
 	// --- (p,T) conditions under which upwelling partially melted asth. transforms to partially melted
-	//     SSZ asthenosphere 
+	//     SSZ astheosphere 
         if ( pmSszAsthPTTri.ptInside(pressureInMPa_here,temperature_here))
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
