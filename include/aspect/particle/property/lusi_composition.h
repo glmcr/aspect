@@ -242,7 +242,7 @@ namespace aspect
 
 	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
 	   //     the granulites facies.
-	static const PTStateMarkersTriangle granulitesPTTri2;
+   	   static const PTStateMarkersTriangle granulitesPTTri2;
 
 	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
@@ -251,14 +251,18 @@ namespace aspect
 	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
 	static const PTStateMarkersTriangle eclogitesPTTri2;
-
+        
+	   // --- Declare the 3rd p,T triangle where oc. crust material transforms to
+	   //     the eclogites facies.
         static const PTStateMarkersTriangle eclogitesPTTri3;
 
 	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the blueschists facies.
 	static const PTStateMarkersTriangle blueschistsPTTri1;
+
+	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
+	   //     the blueschists facies.         
         static const PTStateMarkersTriangle blueschistsPTTri2;
-        
 
 	   //// --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   ////     the eclogites facies.
@@ -416,7 +420,7 @@ namespace aspect
       //     the eclogites facies.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      eclogitesPTTri2(LUSIComposition<dim>::occMtcPT5, LUSIComposition<dim>::occMtcPT10, LUSIComposition<dim>::occMtcPT11);
+      eclogitesPTTri3(LUSIComposition<dim>::occMtcPT5, LUSIComposition<dim>::occMtcPT10, LUSIComposition<dim>::occMtcPT11);
       
       // --- static PTStateMarker objects definitions for class LUSIComposition for:
       //     1. Apparition of partial melts of the upwelling hydrated (SSZ) asthenosphere (pmSSZAsth)
@@ -463,12 +467,12 @@ namespace aspect
       // --- 2nd p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT7);
+      pmSszAsthPTTri2(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT7);
 
       // --- 3rd p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT7, LUSIComposition<dim>::sszMtcPT3);      
+      pmSszAsthPTTri3(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT7, LUSIComposition<dim>::sszMtcPT3);      
 
       // --- 1st p,T triangle for SSZ OLM formation from pm ssz asth.
       template <int dim>
@@ -478,7 +482,7 @@ namespace aspect
       // --- 2nd p,T triangle for SSZ OLM formation from upwelling pm ssz asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      asth2SSZOlmPTTri1(LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT8);
+      asth2SSZOlmPTTri2(LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT8);
       
       // --- 1st p,T triangle for SSZ OCC formation from upwelling pm ssz asth.
       template <int dim>
@@ -488,7 +492,7 @@ namespace aspect
       // --- 2nd p,T triangle for SSZ OCC formation from upwelling pm ssz asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      asth2SSZCrustPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT6);      
+      asth2SSZCrustPTTri2(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT6);      
       
     }
   }
