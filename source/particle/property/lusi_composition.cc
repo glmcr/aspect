@@ -94,6 +94,9 @@ namespace aspect
         const unsigned int blueschists_idx=
           this->introspection().compositional_index_for_name(BLUESCHISTS_NID);
 
+        const unsigned int asth_olm_hyb_mat_idx=
+          this->introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
+        
         //const unsigned int coesite_idx=
 	//this->introspection().compositional_index_for_name(COESITE_NID);
 

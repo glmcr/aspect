@@ -142,6 +142,8 @@ namespace aspect
 
 	  static constexpr const char* PARTIALLY_MELTED_SSZ_ASTH_NID= "pmeltedSszAsth";
 
+          static constexpr const char* ASTH_OLM_HYB_MAT_NID= "asthOLMHybMat";
+
         //static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
 
 	  // --- Surf T 273.25
@@ -185,7 +187,12 @@ namespace aspect
 	  static constexpr const double SEDS_POUR_PRESSURE_THRESHOLD_PASCALS= KBARS_2_PASCALS * 0.4;
 
 	  static constexpr const double NO_MTC_ON_DISTANCE_FROM_SIDES= 150e3;
-	
+
+          // --- Temperature under which the cooling asth. transform to an hybrid material
+          //     that has the same thermal properties as the OLM but the same WOL rheology
+          //     as the asth. (T==1250C)
+          static constexpr const double ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS= 1523.0;
+        
           ////--- oc. seds. transforms (mainly) to coesite
           ////    (mainly dependant on pressure and not really on T)
           //static constexpr const double QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS= SURF_TEMPERATURE;
