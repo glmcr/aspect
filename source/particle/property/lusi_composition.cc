@@ -70,9 +70,6 @@ namespace aspect
         const unsigned int ssz_oc_crust_idx=
           this->introspection().compositional_index_for_name(SSZ_OCEANIC_CRUST_NID);
 
-        //const unsigned int olm_asth_hybrid_idx=
-        //  this->introspection().compositional_index_for_name(OLM_ASTH_HYBRID_NID);
-
         const unsigned int oc_seds_idx=
           this->introspection().compositional_index_for_name(OCEANIC_SEDS_NID);
 
@@ -356,6 +353,11 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, granulites_idx,   eclogites_idx, 0.0, 1.0);
 	  }
+
+        // --- asth -> asth OLM hybrid.
+        if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS) {
+          lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
+        }
 
         //// --- Prograde only oc. seds. (i.e. mainly qtz) -> coesite transition.
         //if (qtz2CoesPTRect.ptInside(pressure_here,temperature_here))
