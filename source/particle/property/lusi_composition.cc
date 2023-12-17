@@ -354,12 +354,12 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, granulites_idx,   eclogites_idx, 0.0, 1.0);
 	  }
 
-        // --- cooling asth -> asth OLM hybrid.
+        // --- cooled asth -> asth OLM hybrid.
         if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
 	  {
             lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
           }
-	else // --- heating asth OLM hybrid (if any) -> asth
+	else // --- heated asth OLM hybrid (if any) -> asth
 	  {
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
 	  }
