@@ -93,7 +93,7 @@ namespace aspect
 
         const unsigned int asth_olm_hyb_mat_idx=
           this->introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
-        
+
         //const unsigned int coesite_idx=
 	//this->introspection().compositional_index_for_name(COESITE_NID);
 
@@ -179,6 +179,9 @@ namespace aspect
 
             part_compo_props[lith_mtl_idx]=
              std::max(0.0,std::min(1.0,part_compo_props[lith_mtl_idx]));
+
+            part_compo_props[asth_olm_hyb_mat_idx]=
+             std::max(0.0,std::min(1.0,part_compo_props[asth_olm_hyb_mat_idx]));
 	}
 
 	//--- Now check if the marker distance from the sides is far enough
@@ -229,8 +232,9 @@ namespace aspect
 
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
-	
+
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
         if ( asth2SSZCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	     asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
