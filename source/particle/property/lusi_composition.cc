@@ -245,14 +245,18 @@ namespace aspect
             //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: pressure_here="
             //                  << pressure_here << ", temperature_here=" << temperature_here << std::endl;
 
+            const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
+
 	   // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.
 	   //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 	   lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 
-           // --- reset the accumulated strains to zero for this new ssz mat.
-           part_compo_props[acc_tot_strain_idx]= 0.0;
-           part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+           if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_oc_crust_idx] > 0.5 ) {
+             // --- reset the accumulated strains to zero for this new ssz mat.
+             part_compo_props[acc_tot_strain_idx]= 0.0;
+             part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+           }
 
 	   //// --- Transfer particle asth. material (could be 0.0) concentration to
 	   ////     to the SSZ type of oc. crust.
@@ -271,14 +275,18 @@ namespace aspect
 	    asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
 
+            const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
+
 	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	    //     to the SSZ type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
             //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
 
-           // --- reset the accumulated strains to zero for this new ssz mat.
-           part_compo_props[acc_tot_strain_idx]= 0.0;
-           part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+            if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
+              // --- reset the accumulated strains to zero for this new ssz mat.
+              part_compo_props[acc_tot_strain_idx]= 0.0;
+              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+            }
             
            // part_compo_props[ssz_lith_mtl_idx] += part_compo_props[asth_mtl_idx];
            // part_compo_props[ssz_lith_mtl_idx]=
