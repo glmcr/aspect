@@ -93,6 +93,12 @@ namespace aspect
 
         const unsigned int asth_olm_hyb_mat_idx=
           this->introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
+
+        const unsigned int acc_tot_strain_idx=
+          this->introspection().compositional_index_for_name(ACC_TOTAL_STRAIN_NID);
+
+         const unsigned int acc_ninit_plastic_strain_idx=
+          this->introspection().compositional_index_for_name(ACC_NONINIT_PLASTIC_STRAIN_NID);       
         
         //const unsigned int coesite_idx=
 	//this->introspection().compositional_index_for_name(COESITE_NID);
@@ -244,6 +250,10 @@ namespace aspect
 	   //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 	   lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 
+           // --- reset the accumulated strains to zero for this new ssz mat.
+           part_compo_props[acc_tot_strain_idx]= 0.0;
+           part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+
 	   //// --- Transfer particle asth. material (could be 0.0) concentration to
 	   ////     to the SSZ type of oc. crust.
 	   //part_compo_props[ssz_oc_crust_idx] += part_compo_props[asth_mtl_idx];
@@ -265,7 +275,11 @@ namespace aspect
 	    //     to the SSZ type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
             //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
-	  
+
+           // --- reset the accumulated strains to zero for this new ssz mat.
+           part_compo_props[acc_tot_strain_idx]= 0.0;
+           part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+            
            // part_compo_props[ssz_lith_mtl_idx] += part_compo_props[asth_mtl_idx];
            // part_compo_props[ssz_lith_mtl_idx]=
            //     std::max(0.0,std::min(1.0,part_compo_props[ssz_lith_mtl_idx]));	   

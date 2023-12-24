@@ -134,6 +134,10 @@ namespace aspect
 
         //static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
 
+          static constexpr const char* ACC_TOTAL_STRAIN_NID= "total_strain";
+
+          static constexpr const char* ACC_NONINIT_PLASTIC_STRAIN_NID= "noninitial_plastic_strain";
+        
 	  // --- Surf T 273.25
 	 static constexpr const double SURF_TEMPERATURE_KELVINS= 273.25;
 
