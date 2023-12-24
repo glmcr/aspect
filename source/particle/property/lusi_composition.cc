@@ -245,7 +245,7 @@ namespace aspect
             //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: pressure_here="
             //                  << pressure_here << ", temperature_here=" << temperature_here << std::endl;
 
-            const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
+            const double previousSSZMatContent= part_compo_props[ssz_oc_crust_idx];
 
 	   // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	   //     to the SSZ type of oc. crust.
