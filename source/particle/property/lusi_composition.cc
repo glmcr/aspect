@@ -149,8 +149,8 @@ namespace aspect
 	//if (pressureInPascals_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
 	if (in_a_top_cell) 
 	  {
-            // --- Ensure to always have oc. seds composition at 1.2 in the top (surface) cells
-            part_compo_props[oc_seds_idx]= 1.2; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
+            // --- Ensure to always have oc. seds composition at 1.0 in the top (surface) cells
+            part_compo_props[oc_seds_idx]= 1.0; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
 
             // --- Limit all other compos between 0.0 and 1.0 
             part_compo_props[oc_crust_idx]= 
