@@ -185,6 +185,9 @@ namespace aspect
 
             part_compo_props[lith_mtl_idx]=
              std::max(0.0,std::min(0.45,part_compo_props[lith_mtl_idx]));
+
+	    part_compo_props[asth_olm_hyb_mat_idx]=
+	     std::max(0.0,std::min(0.45,part_compo_props[asth_olm_hyb_mat_idx]));
 	}
 
 	//--- Now check if the marker distance from the sides is far enough
