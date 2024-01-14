@@ -149,42 +149,42 @@ namespace aspect
 	//if (pressureInPascals_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
 	if (in_a_top_cell) 
 	  {
-            // --- Ensure to always have oc. seds composition at 1.0 in the top (surface) cells
-            part_compo_props[oc_seds_idx]= 1.0; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
+            // --- Ensure to always have oc. seds composition at 0.55 in the top (surface) cells
+            part_compo_props[oc_seds_idx]= 0.55; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
 
-            // --- Limit all other compos between 0.0 and 1.0 
+            // --- Limit all other compos between 0.0 and 0.45 
             part_compo_props[oc_crust_idx]= 
-             std::max(0.0,std::min(1.0,part_compo_props[oc_crust_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[oc_crust_idx]));
 
             part_compo_props[ssz_oc_crust_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[ssz_oc_crust_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[ssz_oc_crust_idx]));
 
             part_compo_props[pm_ssz_asth_mtl_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[pm_ssz_asth_mtl_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[pm_ssz_asth_mtl_idx]));
 
             part_compo_props[ssz_lith_mtl_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[ssz_lith_mtl_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[ssz_lith_mtl_idx]));
 
             part_compo_props[greenschists_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[greenschists_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[greenschists_idx]));
 
             part_compo_props[amphibolites_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[amphibolites_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[amphibolites_idx]));
 
             part_compo_props[granulites_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[granulites_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[granulites_idx]));
 
             part_compo_props[eclogites_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[eclogites_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[eclogites_idx]));
 
             part_compo_props[blueschists_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[blueschists_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[blueschists_idx]));
 
             part_compo_props[asth_mtl_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[asth_mtl_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[asth_mtl_idx]));
 
             part_compo_props[lith_mtl_idx]=
-             std::max(0.0,std::min(1.0,part_compo_props[lith_mtl_idx]));
+             std::max(0.0,std::min(0.45,part_compo_props[lith_mtl_idx]));
 	}
 
 	//--- Now check if the marker distance from the sides is far enough
