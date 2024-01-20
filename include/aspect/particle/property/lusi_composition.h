@@ -329,10 +329,10 @@ namespace aspect
       const PTStateMarker LUSIComposition<dim>::occMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9, 773.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::occMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 973.0);     
+      const PTStateMarker LUSIComposition<dim>::occMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 1023.0);     
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::occMtcPT5(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9, 973.0);
+      const PTStateMarker LUSIComposition<dim>::occMtcPT5(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.425e9, 1023.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::occMtcPT6(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.8e9, 573.0);
