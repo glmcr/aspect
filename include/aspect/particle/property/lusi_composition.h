@@ -102,12 +102,14 @@ namespace aspect
 
           // ---
           //inline
-          static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
+          static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantleMRB";
 
           static constexpr const char* SSZ_LITHOSPHERIC_MANTLE_NID= "oceanicLithMantleSSZ";
 
+          static constexpr const char* SC_LITHOSPHERIC_MANTLE_NID= "SCLM";
+
           // ---
-          static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+          static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrustMRB";
 
 	  static constexpr const char* SSZ_OCEANIC_CRUST_NID= "oceanicCrustSSZ";
 
@@ -129,8 +131,13 @@ namespace aspect
 	  static constexpr const char* BLUESCHISTS_NID= "blueschists";
 
 	  static constexpr const char* PARTIALLY_MELTED_SSZ_ASTH_NID= "pmeltedSszAsth";
+        
+          static constexpr const char* PARTIALLY_MELTED_MRB_ASTH_NID= "pmeltedMrbAsth";
 
           static constexpr const char* ASTH_OLM_HYB_MAT_NID= "asthOLMHybMat";
+
+          static constexpr const char* CONT_UPPER_CRUST= "contUppCrust";
+          static constexpr const char* CONT_LOWER_CRUST= "contLowrust";
 
         //static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
 
@@ -153,7 +160,7 @@ namespace aspect
           //static constexpr const double LAB_TEMPERATURE_IN_KELVINS= 1553.0;
 
 	  // --- T at the moho
-	 static constexpr const double MOHO_TEMPERATURE_KELVINS= 850.0;
+	  static constexpr const double MOHO_TEMPERATURE_KELVINS= 850.0;
 
           // ---
           static constexpr const double GPA_2_PASCALS= 1e9;
@@ -184,40 +191,39 @@ namespace aspect
           //     that has the same thermal properties as the OLM but the same WOL rheology
           //     as the asth. (T==1250C). No dependence on pressure for this hybrid material
           static constexpr const double ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS= 1523.0;
-        
-          ////--- oc. seds. transforms (mainly) to coesite
-          ////    (mainly dependant on pressure and not really on T)
-          //static constexpr const double QTZ_TO_COESITE_TEMPERATURE_THRESHOLD_IN_KELVINS= SURF_TEMPERATURE;
 
-          //// ---
-          //static constexpr const double QTZ_TO_COESITE_PRESSURE_THRESHOLD_IN_PASCALS= GPA_2_PASCALS*2.0;
+          // --- 0.5m/y in m/s
+          static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 1.5854895991882293e-08;
 
-	//private:
-
-	   // --- Declare the PTStateMarkersRectangle object that defines the p,T conditions where
-	   //     asth. transform to oc. crust.
-           //static const PTStateMarkersRectangle asth2SSZCrustPTRect;
-
-	   // --- Declare the PTStateMarkersRectangle object that defines the p,T conditions where
-	   //     asth. transform to oc. lith. mantle.
-	   //static const PTStateMarkersRectangle asth2SSZOlmPTRect;
-
+           // ---  (p,T) tri. zone where asth. in partial SSZ melting state forms
+           //      SSZ oc. crust 
 	   static const PTStateMarkersTriangle asth2SSZCrustPTTri1;
 	   static const PTStateMarkersTriangle asth2SSZCrustPTTri2;
-
+        
+           // ---  (p,T) tri. zone where asth. in partial SSZ melting state forms
+           //      SSZ oc. lith 
 	   static const PTStateMarkersTriangle asth2SSZOlmPTTri1;
 	   static const PTStateMarkersTriangle asth2SSZOlmPTTri2;
 
-	   // --- (p,T) tri. zone where ssz asth. in partial melting state
+	   // --- (p,T) tri. zone where asth. is in partial SSZ melting state
 	   static const PTStateMarkersTriangle pmSszAsthPTTri1;
 	   static const PTStateMarkersTriangle pmSszAsthPTTri2;
 	   static const PTStateMarkersTriangle pmSszAsthPTTri3;
-	
-	//static const PTStateMarkersTriangle amphiPMPTTri1;
-	//static const PTStateMarkersTriangle amphiPMPTTri2;
 
-	   //// ---
-           //static const PTStateMarkersRectangle qtz2CoesPTRect;
+           // ---  (p,T) tri. zone where asth. in partial MRB melting state forms
+           //      MRB oc. crust         
+ 	   static const PTStateMarkersTriangle asth2MRBCrustPTTri1;
+	   static const PTStateMarkersTriangle asth2MRBCrustPTTri2;
+        
+           // ---  (p,T) tri. zone where asth. in partial MRB melting state forms
+           //      MRB oc. lith
+	   static const PTStateMarkersTriangle asth2MRBOlmPTTri1;
+	   static const PTStateMarkersTriangle asth2MRBOlmPTTri2;
+
+	   // --- (p,T) tri. zone where asth. is in partial MRB melting state
+	   static const PTStateMarkersTriangle pmMrbAsthPTTri1;
+	   static const PTStateMarkersTriangle pmMrbAsthPTTri2;
+	   static const PTStateMarkersTriangle pmMrbAsthPTTri3;       
 
 	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the greenschists facies (prograde only)
@@ -245,23 +251,23 @@ namespace aspect
 
 	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-	static const PTStateMarkersTriangle eclogitesPTTri1;
+	   static const PTStateMarkersTriangle eclogitesPTTri1;
 
 	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-	static const PTStateMarkersTriangle eclogitesPTTri2;
+	   static const PTStateMarkersTriangle eclogitesPTTri2;
         
 	   // --- Declare the 3rd p,T triangle where oc. crust material transforms to
 	   //     the eclogites facies.
-        static const PTStateMarkersTriangle eclogitesPTTri3;
+           static const PTStateMarkersTriangle eclogitesPTTri3;
 
 	   // --- Declare the 1st p,T triangle where oc. crust material transforms to
 	   //     the blueschists facies.
-	static const PTStateMarkersTriangle blueschistsPTTri1;
+	   static const PTStateMarkersTriangle blueschistsPTTri1;
 
 	   // --- Declare the 2nd p,T triangle where oc. crust material transforms to
 	   //     the blueschists facies.         
-        static const PTStateMarkersTriangle blueschistsPTTri2;
+           static const PTStateMarkersTriangle blueschistsPTTri2;
 
 	   //// --- Define the 2nd p,T triangle where oc. crust material transforms to
 	   ////     the eclogites facies.
@@ -458,40 +464,69 @@ namespace aspect
       const PTStateMarker LUSIComposition<dim>::
       sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
 
-      // --- 1st p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
+      // --- 1st p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4);
 
-      // --- 2nd p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
+      // --- 1st p,T triangle for pm mrb asth. formation from slow upwelling of "dry" asth.
+      //     Same as pmSszAsthPTTri1
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::pmMrbAsthPTTri1= pmSszAsthPTTri1;      
+
+      // --- 2nd p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       pmSszAsthPTTri2(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT7);
 
-      // --- 3rd p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
+      // --- 2nd p,T triangle for pm mrb asth. formation from slow upwelling of dry asth.      
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::pmMrbAsthPTTri2= pmSszAsthPTTri2;      
+
+      // --- 3rd p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       pmSszAsthPTTri3(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT7, LUSIComposition<dim>::sszMtcPT3);      
 
-      // --- 1st p,T triangle for SSZ OLM formation from pm ssz asth.
+      // --- 3rd p,T triangle for pm mrb asth. formation from slow upwelling of dry asth. 
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::pmMrbAsthPTTri3= pmSszAsthPTTri3;
+      
+      // --- 1st p,T triangle for SSZ OLM formation from pm upwelling ssz asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       asth2SSZOlmPTTri1(LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT7, LUSIComposition<dim>::sszMtcPT8);
+
+      // --- 1st p,T triangle for MRB OLM formation from pm upwelling mrb asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::asth2MRBOlmPTTri1= asth2SSZOlmPTTri1;     
 
       // --- 2nd p,T triangle for SSZ OLM formation from upwelling pm ssz asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       asth2SSZOlmPTTri2(LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT8);
+
+      // --- 2nd p,T triangle for MRB OLM formation from pm upwelling mrb asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::asth2MRBOlmPTTri2= asth2SSZOlmPTTri2;      
       
       // --- 1st p,T triangle for SSZ OCC formation from upwelling pm ssz asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       asth2SSZCrustPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT4);
 
+      // --- 1st p,T triangle for MRB OCC formation from upwelling pm mrb asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::asth2MRBCrustPTTri1= asth2SSZCrustPTTri1;    
+
       // --- 2nd p,T triangle for SSZ OCC formation from upwelling pm ssz asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       asth2SSZCrustPTTri2(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT5, LUSIComposition<dim>::sszMtcPT6);      
+
+      // --- 2nd p,T triangle for MRB OCC formation from upwelling pm mrb asth.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::asth2MRBCrustPTTri2= asth2SSZCrustPTTri2;
       
     }
   }
