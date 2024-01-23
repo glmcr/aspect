@@ -102,14 +102,14 @@ namespace aspect
 
           // ---
           //inline
-          static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantleMRB";
+          static constexpr const char* MRB_LITHOSPHERIC_MANTLE_NID= "oceanicLithMantleMRB";
 
           static constexpr const char* SSZ_LITHOSPHERIC_MANTLE_NID= "oceanicLithMantleSSZ";
 
           static constexpr const char* SC_LITHOSPHERIC_MANTLE_NID= "SCLM";
 
           // ---
-          static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrustMRB";
+          static constexpr const char* MRB_OCEANIC_CRUST_NID= "oceanicCrustMRB";
 
 	  static constexpr const char* SSZ_OCEANIC_CRUST_NID= "oceanicCrustSSZ";
 
@@ -136,8 +136,9 @@ namespace aspect
 
           static constexpr const char* ASTH_OLM_HYB_MAT_NID= "asthOLMHybMat";
 
-          static constexpr const char* CONT_UPPER_CRUST= "contUppCrust";
-          static constexpr const char* CONT_LOWER_CRUST= "contLowrust";
+          static constexpr const char* CONT_UPPER_CRUST_NID= "contUppCrust";
+      
+          static constexpr const char* CONT_LOWER_CRUST_NID= "contLowrust";
 
         //static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
 

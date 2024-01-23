@@ -58,14 +58,14 @@ namespace aspect
           this->introspection().compositional_index_for_name(PARTIALLY_MELTED_SSZ_ASTH_NID);
 
 	// ---
-        const unsigned int lith_mtl_idx=
-          this->introspection().compositional_index_for_name(LITHOSPHERIC_MANTLE_NID);
+        const unsigned int mrb_lith_mtl_idx=
+          this->introspection().compositional_index_for_name(MRB_LITHOSPHERIC_MANTLE_NID);
 
         const unsigned int ssz_lith_mtl_idx=
           this->introspection().compositional_index_for_name(SSZ_LITHOSPHERIC_MANTLE_NID);
 
-        const unsigned int oc_crust_idx=
-          this->introspection().compositional_index_for_name(OCEANIC_CRUST_NID);
+        const unsigned int mrb_oc_crust_idx=
+          this->introspection().compositional_index_for_name(MRB_OCEANIC_CRUST_NID);
 
         const unsigned int ssz_oc_crust_idx=
           this->introspection().compositional_index_for_name(SSZ_OCEANIC_CRUST_NID);
@@ -73,6 +73,15 @@ namespace aspect
         const unsigned int oc_seds_idx=
           this->introspection().compositional_index_for_name(OCEANIC_SEDS_NID);
 
+        // const unsigned int cont_upp_crust_idx=
+        //   this->introspection().compositional_index_for_name(CONT_UPPER_CRUST_NID);
+
+	// const unsigned int cont_low_crust_idx=
+        //   this->introspection().compositional_index_for_name(CONT_LOWER_CRUST_NID);       
+	
+        // const unsigned int sc_lith_mtl_idx=
+	//   this->introspection().compositional_index_for_name(SC_LITHOSPHERIC_MANTLE_NID);
+	
         const unsigned int greenschists_idx=
           this->introspection().compositional_index_for_name(GREENSCHISTS_NID);
 
@@ -145,16 +154,16 @@ namespace aspect
 	   }
 	}
         
-	// --- Pour some oc. seds. but only where pressureInPascals is < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS
-	//if (pressureInPascals_here < SEDS_POUR_PRESSURE_THRESHOLD_IN_PASCALS)
-	if (in_a_top_cell) 
+	// --- Pour some oc. seds. but only if the marker is in a top cell
+	//     and we have MRB or SSZ oc. crust > 0.1 (oceanic setting)
+	if (in_a_top_cell && (part_compo_props[mrb_oc_crust_idx] > 0.1 || part_compo_props[ssz_oc_crust_idx] > 0.1 ) ) 
 	  {
-            // --- Ensure to always have oc. seds composition at 0.55 in the top (surface) cells
+	    // --- Ensure to always have oc. seds composition at 0.55 in the top (surface) cells
             part_compo_props[oc_seds_idx]= 0.55; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
 
             // --- Limit all other compos between 0.0 and 0.45 
-            part_compo_props[oc_crust_idx]= 
-             std::max(0.0,std::min(0.45,part_compo_props[oc_crust_idx]));
+            part_compo_props[mrb_oc_crust_idx]= 
+             std::max(0.0,std::min(0.45,part_compo_props[mrb_oc_crust_idx]));
 
             part_compo_props[ssz_oc_crust_idx]=
              std::max(0.0,std::min(0.45,part_compo_props[ssz_oc_crust_idx]));
@@ -183,8 +192,8 @@ namespace aspect
             part_compo_props[asth_mtl_idx]=
              std::max(0.0,std::min(0.45,part_compo_props[asth_mtl_idx]));
 
-            part_compo_props[lith_mtl_idx]=
-             std::max(0.0,std::min(0.45,part_compo_props[lith_mtl_idx]));
+            part_compo_props[mrb_lith_mtl_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[mrb_lith_mtl_idx]));
 
 	    part_compo_props[asth_olm_hyb_mat_idx]=
 	     std::max(0.0,std::min(0.45,part_compo_props[asth_olm_hyb_mat_idx]));
@@ -306,7 +315,7 @@ namespace aspect
 	  {
 
 	   lusiMaterialChange(part_compo_props, oc_seds_idx, greenschists_idx , 0.0, 1.0);
-           lusiMaterialChange(part_compo_props, oc_crust_idx, greenschists_idx , 0.0, 1.0);
+           lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, greenschists_idx , 0.0, 1.0);
            lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, greenschists_idx , 0.0, 1.0);
 	  
            // part_compo_props[greenschists_idx] += part_compo_props[oc_crust_idx];
@@ -322,7 +331,7 @@ namespace aspect
 	    amphibolitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, amphibolites_idx, 0.0, 1.0);
-            lusiMaterialChange(part_compo_props, oc_crust_idx, amphibolites_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, amphibolites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, amphibolites_idx, 0.0, 1.0);
 	  }
@@ -334,7 +343,7 @@ namespace aspect
 	  {
 
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, granulites_idx , 0.0, 1.0);
-            lusiMaterialChange(part_compo_props, oc_crust_idx, granulites_idx , 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, granulites_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, granulites_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, granulites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, granulites_idx, 0.0, 1.0);
@@ -359,7 +368,7 @@ namespace aspect
             blueschistsPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx, blueschists_idx , 0.0, 1.0);
-            lusiMaterialChange(part_compo_props, oc_crust_idx, blueschists_idx , 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, blueschists_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, blueschists_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, blueschists_idx , 0.0, 1.0);
 	  }
@@ -371,7 +380,7 @@ namespace aspect
             eclogitesPTTri3.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx,      eclogites_idx, 0.0, 1.0);
-            lusiMaterialChange(part_compo_props, oc_crust_idx,     eclogites_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, mrb_oc_crust_idx,     eclogites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, blueschists_idx,  eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, eclogites_idx, 0.0, 1.0);
