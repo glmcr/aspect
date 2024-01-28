@@ -462,12 +462,12 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, 2023.0);  
+      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1700.0); // --- 25Kb, 1427C  
       // --- 1st values 5kb, 1300C sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);     
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); // --- 50Kb
+      sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); // --- 25Kb
       // 1st value 5kb sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
 
       // --- 1st p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.
