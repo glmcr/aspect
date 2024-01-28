@@ -57,6 +57,10 @@ namespace aspect
         const unsigned int pm_ssz_asth_mtl_idx=
           this->introspection().compositional_index_for_name(PARTIALLY_MELTED_SSZ_ASTH_NID);
 
+	// --- partially melted mrb asth.
+        const unsigned int pm_mrb_asth_mtl_idx=
+          this->introspection().compositional_index_for_name(PARTIALLY_MELTED_MRB_ASTH_NID);
+
 	// ---
         const unsigned int mrb_lith_mtl_idx=
           this->introspection().compositional_index_for_name(MRB_LITHOSPHERIC_MANTLE_NID);
@@ -239,29 +243,41 @@ namespace aspect
 	  return;
 	}
 
-	// --- (p,T) conditions for which the upwelling hydrated asth. transforms to partially melted
-	//     SSZ asthenosphere 
-        if ( pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-             pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
-             pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) )
+	// --- Get the vertical velocity at the marker position
+	const double vertical_velo= solution[this->introspection().component_indices.velocities[dim-1]];
+
+	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
+	const bool pm_asth_ssz_type= (vertical_velo > ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD) ? true: false;
+
+	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
+	//     transforms to partially melted SSZ asthenosphere 
+        if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+              pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
+              pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_ssz_type )
 
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
+
+	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
+	//     transforms to partially melted MORB asthenosphere 
+        if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+              pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
+              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && ! pm_asth_ssz_type)
+
+	  {
+	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
+	  }	
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
         if ( asth2SSZCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	     asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
 
-            //std::cout << "LUSIComposition<dim>::update_particle_property: oc. seds check surf.: pressure_here="
-            //                  << pressure_here << ", temperature_here=" << temperature_here << std::endl;
+           const double previousSSZMatContent= part_compo_props[ssz_oc_crust_idx];
 
-            const double previousSSZMatContent= part_compo_props[ssz_oc_crust_idx];
-
-	   // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
-	   //     to the SSZ type of oc. crust.
-	   //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 	   lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
 
            if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_oc_crust_idx] > 0.5 ) {
@@ -269,20 +285,25 @@ namespace aspect
              part_compo_props[acc_tot_strain_idx]= 0.0;
              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
            }
+	  } // --- pm asth -> ssz oc. crust.
+	
+	// --- (p,T) conditions for which upwelling MORB asth. partial melts transforms to MORB crust.
+        if ( asth2MRBCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	     asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
+	  {
 
-	   //// --- Transfer particle asth. material (could be 0.0) concentration to
-	   ////     to the SSZ type of oc. crust.
-	   //part_compo_props[ssz_oc_crust_idx] += part_compo_props[asth_mtl_idx];
-	   ////--- Keeping compo prop between 0.0 and 1.0
-           //part_compo_props[ssz_oc_crust_idx]=
-           //   std::max(0.0,std::min(1.0,part_compo_props[ssz_oc_crust_idx]));
-	   //// --- Need to set asth. to zero here once its concentration
-	   ////     has been transfered to ssz oc. crust.
-	   //part_compo_props[asth_mtl_idx]= 0.0;
-	  
-	  } // --- asth -> ssz oc. crust.
+           const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
 
-	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle (moho to LAB)
+	   lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_oc_crust_idx, 0.0, 1.0);
+
+           if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_oc_crust_idx] > 0.5 ) {
+             // --- reset the accumulated strains to zero for this new mrb mat.
+             part_compo_props[acc_tot_strain_idx]= 0.0;
+             part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+           }
+	  } // --- pm mrb asth -> mrb oc. crust.
+
+	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
 	if (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	    asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
@@ -292,22 +313,31 @@ namespace aspect
 	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	    //     to the SSZ type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
-            //lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
 
             if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
+              // --- reset the accumulated strains to zero for this new mrb mat.
+              part_compo_props[acc_tot_strain_idx]= 0.0;
+              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+            }
+	  } // --- pm mrb asth -> mrb  oc. lith mantle
+	
+	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
+	if (asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	    asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
+	  {
+
+            const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
+
+	    // --- Transfer particle part. melted mrb asth. material (could be 0.0) concentration to
+	    //     to the MRB type of oc. lith. mantle.	    
+	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
+
+            if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
               // --- reset the accumulated strains to zero for this new ssz mat.
               part_compo_props[acc_tot_strain_idx]= 0.0;
               part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
             }
-            
-           // part_compo_props[ssz_lith_mtl_idx] += part_compo_props[asth_mtl_idx];
-           // part_compo_props[ssz_lith_mtl_idx]=
-           //     std::max(0.0,std::min(1.0,part_compo_props[ssz_lith_mtl_idx]));	   
-	   // // --- Need to set asth. to zero here once its concentration
-	   // //     has been transfered to ssz oc. lith mantle
-	   // part_compo_props[asth_mtl_idx]= 0.0;
-	   
-	  } // --- // --- asth -> ssz  oc. lith mantle
+	  } // --- pm mrb asth -> rmrb  oc. lith mantle
 
 	// --- p,T conditions under which oc. crust transforms to greenschists facies
 	if (greenSchistsPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
