@@ -350,6 +350,12 @@ namespace aspect
                                                                MaterialModel::MaterialUtilities::PhaseUtilities::logarithmic
                                                              );
             output_parameters.composition_viscosities[j] = std::min(std::max(viscosity_yield, minimum_viscosity_for_composition), maximum_viscosity_for_composition);
+
+            // --- GM modif: It seems that we can end-up with output_parameters.composition_viscosities[j]
+            //     being <= 0.0 here so what follows is something like an ad-hoc fix:
+            //output_parameters.composition_viscosities[j] = std::max(output_parameters.composition_viscosities[j],minimum_viscosity[j]);
+            output_parameters.composition_viscosities[j]=
+              std::min(maximum_viscosity[j],std::max(output_parameters.composition_viscosities[j],minimum_viscosity[j]));
           }
         return output_parameters;
       }
