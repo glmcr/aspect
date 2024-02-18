@@ -253,25 +253,74 @@ namespace aspect
 	const bool pm_asth_ssz_type= (vertical_velo > ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD) ? true: false;
 
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
-	//     transforms to partially melted SSZ asthenosphere 
+	//     transforms to SSZ OLM or SSZ asthenosphere melt
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_ssz_type )
+	  {
+	    // --- Randomly determine if hydrated lherzolithic asth. transforms to ssz OLM
+	    //     using the %20 ("fast" upwelling of the "hydrated" asth.) melt production threshold.
+	    //     Other
+            const double rand_check= Utilities::generate_normal_random_number (0, 1);
 
-	  { 
-	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
-	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	    // --- The marker becomes SSZ OLM if rand_check >= 0.2
+	    if (rand_check >= 0.2)
+	    {
+              const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
+
+	      // --- Transfer  hydrated lherzolithic asth. material (could be 0.0) concentration to
+	      //     to the SSZ type of oc. lith. mantle.	    
+	      lusiMaterialChange(part_compo_props, asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+	      lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+
+              if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 )
+	      {
+                // --- reset the accumulated strains to zero for this new mrb mat.
+                part_compo_props[acc_tot_strain_idx]= 0.0;
+                part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+              }
+	      
+	    } else // --- The hydrated lherzolithic asth. and-or its hybrid transforms to ssz melt.
+	      {
+	        lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	        lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	      }
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
-	//     transforms to partially melted MORB asthenosphere 
+	//     transforms to MORB OLM or MORB melt 
         if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && ! pm_asth_ssz_type)
 
 	  {
-	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
-	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
+
+	    // --- Randomly determine if this dy lherzolithic asth. transforms to mrb OLM
+	    //     using the %5 ("slowly" upwelling dry asth.) melt production threshold.
+            const double rand_check= Utilities::generate_normal_random_number (0, 1);
+
+	    // --- The dry lherzolithic asth. transforms if rand_check >= 0.05
+	    //     otherwise it is transformed to MRB OLM
+	    if (rand_check >= 0.05)
+	    {	    
+              const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
+
+	      // --- Transfer marker dry lherzolithic asth. material (could be 0.0) concentration
+	      //     to the MRB type of oc. lith. mantle.	    
+	      lusiMaterialChange(part_compo_props, asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
+	      lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, mrb_lith_mtl_idx, 0.0, 1.0);
+
+              if (previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
+                // --- reset the accumulated strains to zero for this new ssz mat.
+                part_compo_props[acc_tot_strain_idx]= 0.0;
+                part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+              }
+	    } else // --- Transfer marker dry lherzolithic asth. material (could be 0.0) concentration
+	           //     to the MORB melt
+	      {  
+	        lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
+	        lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
+	      }
 	  }	
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
@@ -290,7 +339,7 @@ namespace aspect
            }
 	  } // --- pm asth -> ssz oc. crust.
 	
-	// --- (p,T) conditions for which upwelling MORB asth. partial melts transforms to MORB crust.
+	// --- (p,T) conditions for which upwelling MORB asth. melt transforms to MORB crust.
         if ( asth2MRBCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	     asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
@@ -306,59 +355,59 @@ namespace aspect
            }
 	  } // --- pm mrb asth -> mrb oc. crust.
 
-	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
-	if (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	    asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
-	  {
+	// // --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
+	// if (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	//     asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
+	//   {
 
-	    // --- Randomly determine if this ssz pm marker transforms to ssz OLM
-	    //     using the %20 ("fast" upwelling of the "hydrated" asth.) melt production threshold.
-            const double rand_check= Utilities::generate_normal_random_number (0, 1);
+	//     // --- Randomly determine if this ssz pm marker transforms to ssz OLM
+	//     //     using the %20 ("fast" upwelling of the "hydrated" asth.) melt production threshold.
+        //     const double rand_check= Utilities::generate_normal_random_number (0, 1);
 
-	    // --- The marker keep its ssz pm state only if rand_check <= 0.2
-	    //     otherwise it is transformed to SSZ OLM 
-	    if (rand_check > 0.2)
-	    {
-              const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
+	//     // --- The marker keep its ssz pm state only if rand_check <= 0.2
+	//     //     otherwise it is transformed to SSZ OLM 
+	//     if (rand_check > 0.2)
+	//     {
+        //       const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
 
-	      // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
-	      //     to the SSZ type of oc. lith. mantle.	    
-	      lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+	//       // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
+	//       //     to the SSZ type of oc. lith. mantle.	    
+	//       lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
 
-              if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
-                // --- reset the accumulated strains to zero for this new mrb mat.
-                part_compo_props[acc_tot_strain_idx]= 0.0;
-                part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-              }
-	    }
-	  } // --- pm mrb asth -> mrb  oc. lith mantle
+        //       if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
+        //         // --- reset the accumulated strains to zero for this new mrb mat.
+        //         part_compo_props[acc_tot_strain_idx]= 0.0;
+        //         part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+        //       }
+	//     }
+	//   } // --- pm ssz asth -> ssz  oc. lith mantle
 	
-	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
-	if (asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	    asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
-	  {
+	// // --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
+	// if (asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	//     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
+	//   {
 
-	    // --- Randomly determine if this mrb pm marker transforms to mrb OLM
-	    //     using the %5 ("slowly" upwelling dry asth.) melt production threshold.
-            const double rand_check= Utilities::generate_normal_random_number (0, 1);
+	//     // --- Randomly determine if this mrb pm marker transforms to mrb OLM
+	//     //     using the %5 ("slowly" upwelling dry asth.) melt production threshold.
+        //     const double rand_check= Utilities::generate_normal_random_number (0, 1);
 
-	    // --- The marker keeps its mrb pm state only if rand_check <= 0.05
-	    //     otherwise it is transformed to MRB OLM
-	    if (rand_check > 0.05)
-	    {	    
-              const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
+	//     // --- The marker keeps its mrb pm state only if rand_check <= 0.05
+	//     //     otherwise it is transformed to MRB OLM
+	//     if (rand_check > 0.05)
+	//     {	    
+        //       const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
 
-	      // --- Transfer particle part. melted mrb asth. material (could be 0.0) concentration to
-	      //     to the MRB type of oc. lith. mantle.	    
-	      lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
+	//       // --- Transfer particle part. melted mrb asth. material (could be 0.0) concentration to
+	//       //     to the MRB type of oc. lith. mantle.	    
+	//       lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
 
-              if (previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
-                // --- reset the accumulated strains to zero for this new ssz mat.
-                part_compo_props[acc_tot_strain_idx]= 0.0;
-                part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-              }
-	    }
-	  } // --- pm mrb asth -> rmrb  oc. lith mantle
+        //       if (previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
+        //         // --- reset the accumulated strains to zero for this new ssz mat.
+        //         part_compo_props[acc_tot_strain_idx]= 0.0;
+        //         part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+        //       }
+	//     }
+	//   } // --- pm mrb asth -> rmrb  oc. lith mantle
 
 	// --- p,T conditions under which oc. crust transforms to greenschists facies
 	if (greenSchistsPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
