@@ -263,8 +263,8 @@ namespace aspect
 	    //     Other
             const double rand_check= Utilities::generate_normal_random_number (0, 1);
 
-	    // --- The marker becomes SSZ OLM if rand_check >= 0.2
-	    if (rand_check >= 0.2)
+	    // --- The marker becomes SSZ OLM if rand_check >= 0.02 (%2 melt)
+	    if (rand_check >= 0.02)
 	    {
               const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
 
@@ -299,9 +299,9 @@ namespace aspect
 	    //     using the %5 ("slowly" upwelling dry asth.) melt production threshold.
             const double rand_check= Utilities::generate_normal_random_number (0, 1);
 
-	    // --- The dry lherzolithic asth. transforms if rand_check >= 0.05
-	    //     otherwise it is transformed to MRB OLM
-	    if (rand_check >= 0.05)
+	    // --- The dry lherzolithic asth. transforms to MRB OLM if rand_check >= 0.01
+	    //     otherwise it is transformed to MRB melt
+	    if (rand_check >= 0.01)
 	    {	    
               const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
 
