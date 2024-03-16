@@ -348,7 +348,7 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
 
 	    // --- Oceanic extension context only: No acc. strains for oc. lith, mantle morb
-	    if (part_compo_props[mrb_oc_crust_idx] > 0.5 )
+	    if (part_compo_props[mrb_lith_mtl_idx] > 0.5 )
 	    {
              part_compo_props[acc_tot_strain_idx]= 0.0;
 	     part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
