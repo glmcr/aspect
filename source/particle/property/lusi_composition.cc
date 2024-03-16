@@ -165,6 +165,10 @@ namespace aspect
 	    // --- Ensure to always have oc. seds composition at 0.55 in the top (surface) cells
             part_compo_props[oc_seds_idx]= 0.55; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
 
+	    // --- Oceanic extension context only: No acc. strains for oc. seds
+            part_compo_props[acc_tot_strain_idx]= 0.0;
+	    part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	    
             // --- Limit all other compos between 0.0 and 0.45 
             part_compo_props[mrb_oc_crust_idx]= 
              std::max(0.0,std::min(0.45,part_compo_props[mrb_oc_crust_idx]));
@@ -295,15 +299,23 @@ namespace aspect
 	     asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
 
-           const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
+	    //const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];tem
 
 	   lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_oc_crust_idx, 0.0, 1.0);
 
-           if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_oc_crust_idx] > 0.5 ) {
-             // --- reset the accumulated strains to zero for this new mrb mat.
+	   // --- Oceanic extension context only: No acc. strains for oc. morb crust
+	   if (part_compo_props[mrb_oc_crust_idx] > 0.5 )
+	   {
              part_compo_props[acc_tot_strain_idx]= 0.0;
-             part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	     part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
            }
+	   
+           // if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_oc_crust_idx] > 0.5 ) {
+           //   // --- reset the accumulated strains to zero for this new mrb mat.
+           //   part_compo_props[acc_tot_strain_idx]= 0.0;
+           //   part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+           // }
+	   
 	  } // --- pm mrb asth -> mrb oc. crust.
 
 	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
@@ -329,17 +341,25 @@ namespace aspect
 	    asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
 
-            const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
+            //const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
 
 	    // --- Transfer particle part. melted mrb asth. material (could be 0.0) concentration to
 	    //     to the MRB type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
 
-            if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
-              // --- reset the accumulated strains to zero for this new ssz mat.
-              part_compo_props[acc_tot_strain_idx]= 0.0;
-              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	    // --- Oceanic extension context only: No acc. strains for oc. lith, mantle morb
+	    if (part_compo_props[mrb_oc_crust_idx] > 0.5 )
+	    {
+             part_compo_props[acc_tot_strain_idx]= 0.0;
+	     part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
             }
+	    
+            // //if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
+            //   // --- reset the accumulated strains to zero for this new ssz mat.
+            //   part_compo_props[acc_tot_strain_idx]= 0.0;
+            //   part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+            // }
+	    
 	  } // --- pm mrb asth -> rmrb  oc. lith mantle
 
 	// --- p,T conditions under which oc. crust transforms to greenschists facies
