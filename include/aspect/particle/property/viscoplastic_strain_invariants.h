@@ -88,8 +88,10 @@ namespace aspect
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override;
 
-        private:
+        protected:
           unsigned int n_components;
+
+        private:
 
           /**
            * An object that is used to compute the particle property. Since the

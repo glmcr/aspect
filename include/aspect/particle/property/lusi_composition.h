@@ -48,6 +48,9 @@ namespace aspect
       class LUSIComposition final : public Property::Composition<dim> //, public Property::ViscoPlasticStrainInvariant<dim>
       {
         public:
+
+           void initialize () override;
+
           /**
            * Initialization function. This function is called once at the
            * creation of every particle for every property to initialize its

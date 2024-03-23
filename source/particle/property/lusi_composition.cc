@@ -31,12 +31,25 @@ namespace aspect
   {
     namespace Property
     {
+
+      template <int dim>
+      void
+      LUSIComposition<dim>::initialize ()
+      {
+         this->ViscoPlasticStrainInvariant<dim>::initialize ();
+      }
+
       template <int dim>
       void
       LUSIComposition<dim>::initialize_one_particle_property(const Point<dim> &position,
                                                             std::vector<double> &data) const
       {
         Composition<dim>::initialize_one_particle_property(position,data);
+
+        //ViscoPlasticStrainInvariant<dim>::n_components= 2;
+
+        //this->initialize ();
+        //this->ViscoPlasticStrainInvariant<dim>::initialize ();
       }
 
       template <int dim>
@@ -49,7 +62,7 @@ namespace aspect
 
         //std::vector<Tensor<1,dim>> dummy; 
 
-        Composition<dim>::update_particle_property(data_position, solution, gradients, particle);
+        //Composition<dim>::update_particle_property(data_position, solution, gradients, particle);
 	
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
