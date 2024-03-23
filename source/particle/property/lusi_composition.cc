@@ -21,9 +21,9 @@
 #include <aspect/geometry_model/box.h>
 #include <aspect/geometry_model/two_merged_boxes.h>
 #include <aspect/particle/utilities_lusi.h>
-//#include <aspect/initial_composition/interface.h>
 #include <aspect/particle/property/lusi_composition.h>
 #include <aspect/initial_composition/interface.h>
+#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
 {
@@ -43,43 +43,43 @@ namespace aspect
       void
       LUSIComposition<dim>::update_particle_property(const unsigned int data_position,
                                                      const Vector<double> &solution,
-                                                     const std::vector<Tensor<1,dim>> &/*gradients*/,
+                                                     const std::vector<Tensor<1,dim>> &gradients,
                                                      typename ParticleHandler<dim>::particle_iterator &particle) const
       {
 
-        std::vector<Tensor<1,dim>> dummy; 
+        //std::vector<Tensor<1,dim>> dummy; 
 
-        Composition<dim>::update_particle_property(data_position, solution, dummy ,particle);
-
+        Composition<dim>::update_particle_property(data_position, solution, gradients, particle);
+	
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
         //     the dynamic and thermodynamic conditions)
         const unsigned int asth_mtl_idx=
-          this->introspection().compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
+	  this->Composition<dim>::introspection().compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
 	// --- partially melted ssz asth.
         const unsigned int pm_ssz_asth_mtl_idx=
-          this->introspection().compositional_index_for_name(PARTIALLY_MELTED_SSZ_ASTH_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(PARTIALLY_MELTED_SSZ_ASTH_NID);
 
 	// --- partially melted mrb asth.
         const unsigned int pm_mrb_asth_mtl_idx=
-          this->introspection().compositional_index_for_name(PARTIALLY_MELTED_MRB_ASTH_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(PARTIALLY_MELTED_MRB_ASTH_NID);
 
 	// ---
         const unsigned int mrb_lith_mtl_idx=
-          this->introspection().compositional_index_for_name(MRB_LITHOSPHERIC_MANTLE_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(MRB_LITHOSPHERIC_MANTLE_NID);
 
         const unsigned int ssz_lith_mtl_idx=
-          this->introspection().compositional_index_for_name(SSZ_LITHOSPHERIC_MANTLE_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(SSZ_LITHOSPHERIC_MANTLE_NID);
 
         const unsigned int mrb_oc_crust_idx=
-          this->introspection().compositional_index_for_name(MRB_OCEANIC_CRUST_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(MRB_OCEANIC_CRUST_NID);
 
         const unsigned int ssz_oc_crust_idx=
-          this->introspection().compositional_index_for_name(SSZ_OCEANIC_CRUST_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(SSZ_OCEANIC_CRUST_NID);
 
         const unsigned int oc_seds_idx=
-          this->introspection().compositional_index_for_name(OCEANIC_SEDS_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(OCEANIC_SEDS_NID);
 
         // const unsigned int cont_upp_crust_idx=
         //   this->introspection().compositional_index_for_name(CONT_UPPER_CRUST_NID);
@@ -91,43 +91,46 @@ namespace aspect
 	//   this->introspection().compositional_index_for_name(SC_LITHOSPHERIC_MANTLE_NID);
 	
         const unsigned int greenschists_idx=
-          this->introspection().compositional_index_for_name(GREENSCHISTS_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(GREENSCHISTS_NID);
 
         const unsigned int amphibolites_idx=
-          this->introspection().compositional_index_for_name(AMPHIBOLITES_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(AMPHIBOLITES_NID);
 
         //const unsigned int amphibolitesPM_idx=
         //  this->introspection().compositional_index_for_name(AMPHIBOLITES_PM_NID);
 
         const unsigned int granulites_idx=
-          this->introspection().compositional_index_for_name(GRANULITES_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(GRANULITES_NID);
 
         const unsigned int eclogites_idx=
-          this->introspection().compositional_index_for_name(ECLOGITES_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(ECLOGITES_NID);
 
         const unsigned int blueschists_idx=
-          this->introspection().compositional_index_for_name(BLUESCHISTS_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(BLUESCHISTS_NID);
 
         const unsigned int asth_olm_hyb_mat_idx=
-          this->introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
 
+	// --- NOTE: Assuming here that acc_tot_strain_idx is < acc_ninit_plastic_strain_idx
+	//           AND that acc_ninit_plastic_strain_idx = acc_tot_strain_idx + 1
+	//           (which means that the acc_ninit_plastic_strain value is located
+	//            im memory just after the acc_tot_strain value in the particle data memory space 
         const unsigned int acc_tot_strain_idx=
-          this->introspection().compositional_index_for_name(ACC_TOTAL_STRAIN_NID);
+          this->Composition<dim>::introspection().compositional_index_for_name(ACC_TOTAL_STRAIN_NID);
 
-         const unsigned int acc_ninit_plastic_strain_idx=
-          this->introspection().compositional_index_for_name(ACC_NONINIT_PLASTIC_STRAIN_NID);       
-        
-        //const unsigned int coesite_idx=
-	//this->introspection().compositional_index_for_name(COESITE_NID);
+        const unsigned int acc_ninit_plastic_strain_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(ACC_NONINIT_PLASTIC_STRAIN_NID);
+
+	ViscoPlasticStrainInvariant<dim>::update_particle_property(acc_tot_strain_idx, solution, gradients, particle);
 
 	const double pressureInPascals_here= \
-	  solution[this->introspection().component_indices.pressure];
+	  solution[this->Composition<dim>::introspection().component_indices.pressure];
 
         const double pressureInMPa_here= PTStateMarker::PASCALS_2_MEGA_PASCALS*pressureInPascals_here;
 
         // --- Kelvins
 	const double temperature_here= \
-	  solution[this->introspection().component_indices.temperature];
+	  solution[this->Composition<dim>::introspection().component_indices.temperature];
 
 	//--- pointer shortcut to the particle->get_properties()[data_position]
 	//
@@ -141,13 +144,13 @@ namespace aspect
         //}
 
         const types::boundary_id top_num_id=
-	  this->get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
+	  this->Composition<dim>::get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
 
         bool in_a_top_cell= false;
 
 #if DEAL_II_VERSION_GTE(9,4,0)
         typename DoFHandler<dim>::active_cell_iterator current_cell=
-	    typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(),&(this->get_dof_handler()));
+	    typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(),&(this->Composition<dim>::get_dof_handler()));
 #else
         typename DoFHandler<dim>::active_cell_iterator current_cell=
 	   typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(this->get_triangulation()),&(this->get_dof_handler()));
@@ -218,17 +221,17 @@ namespace aspect
 
         double gridXExtent= NO_MTC_ON_DISTANCE_FROM_SIDES;
 
-        if (Plugins::plugin_type_matches<const GeometryModel::Box<dim>>(this->get_geometry_model())) {
+        if (Plugins::plugin_type_matches<const GeometryModel::Box<dim>>(this->Composition<dim>::get_geometry_model())) {
 
            const GeometryModel::Box<dim> &box_geometry_model =
-                Plugins::get_plugin_as_type<const GeometryModel::Box<dim>> (this->get_geometry_model());
+                Plugins::get_plugin_as_type<const GeometryModel::Box<dim>> (this->Composition<dim>::get_geometry_model());
 
            gridXExtent= box_geometry_model.get_extents()[0];
 
-        } else if (Plugins::plugin_type_matches<const GeometryModel::TwoMergedBoxes<dim>> (this->get_geometry_model())) {
+        } else if (Plugins::plugin_type_matches<const GeometryModel::TwoMergedBoxes<dim>> (this->Composition<dim>::get_geometry_model())) {
 
            const GeometryModel::TwoMergedBoxes<dim> &two_merged_boxes_geometry_model =
-                Plugins::get_plugin_as_type<const GeometryModel::TwoMergedBoxes<dim>> (this->get_geometry_model());
+                Plugins::get_plugin_as_type<const GeometryModel::TwoMergedBoxes<dim>> (this->Composition<dim>::get_geometry_model());
 
            gridXExtent= two_merged_boxes_geometry_model.get_extents()[0];
 
@@ -251,7 +254,7 @@ namespace aspect
 	}
 
 	// --- Get the vertical velocity at the marker position
-	const double vertical_velo= solution[this->introspection().component_indices.velocities[dim-1]];
+	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
 
 	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
 	const bool pm_asth_ssz_type= (vertical_velo > ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD) ? true: false;
@@ -462,7 +465,7 @@ namespace aspect
       LUSIComposition<dim>::get_property_information() const
       {
 
-        AssertThrow(this->n_compositional_fields() > 0,
+        AssertThrow(this->Composition<dim>::n_compositional_fields() > 0,
                     ExcMessage("You have requested the particle property <lusi "
                                "composition>, but the number of compositional fields is 0. "
                                "Please add compositional fields to your model, or remove "
@@ -470,10 +473,10 @@ namespace aspect
  
         std::vector<std::pair<std::string,unsigned int>> property_information;
 
-        for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
+        for (unsigned int i = 0; i < this->Composition<dim>::n_compositional_fields(); i++)
           {
             std::ostringstream field_name;
-            field_name << "lusi " << this->introspection().name_for_compositional_index(i);
+            field_name << "lusi " << this->Composition<dim>::introspection().name_for_compositional_index(i);
             property_information.emplace_back(field_name.str(),1);
           }
 
@@ -494,9 +497,10 @@ namespace aspect
       ASPECT_REGISTER_PARTICLE_PROPERTY(LUSIComposition,
                                         "lusi composition",
                                         "Implementation of a plugin in which the particle property is defined by the "
-                                        "Laval U. Subductiion Initiation (LUSI, G. Mercier Ph.D. thesis) compositional fields in "
+                                        "Laval U. Subduction Initiation (LUSI, G. Mercier Ph.D. thesis) compositional fields in "
                                         "the model. This can be used to track solid composition transformations and trajectories "
-                                        "evolution over time. This is a loan from C. Beaumont's SOPALE model code implementation.")
+                                        "evolution over time. This is borrowed from C. Beaumont's SOPALE model code implementation.")
+     
     }
   }
 }

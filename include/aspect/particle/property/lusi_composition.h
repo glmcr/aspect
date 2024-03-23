@@ -21,10 +21,11 @@
 #ifndef _aspect_particle_property_lusi_composition_h
 #define _aspect_particle_property_lusi_composition_h
 
-//#include <aspect/particle/property/interface.h>
+#include <aspect/particle/property/interface.h>
 #include <aspect/particle/property/composition.h>
 #include <aspect/particle/utilities_lusi.h>
 #include <aspect/simulator_access.h>
+#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
 {
@@ -44,7 +45,7 @@ namespace aspect
        * @ingroup ParticleProperties
        */
       template <int dim>
-      class LUSIComposition final : public Property::Composition<dim> //, public ::aspect::SimulatorAccess<dim>
+      class LUSIComposition final : public Property::Composition<dim> //, public Property::ViscoPlasticStrainInvariant<dim>
       {
         public:
           /**
