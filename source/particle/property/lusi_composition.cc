@@ -47,7 +47,9 @@ namespace aspect
                                                      typename ParticleHandler<dim>::particle_iterator &particle) const
       {
 
-        Composition<dim>::update_particle_property(data_position, solution, null ,particle);
+        std::vector<Tensor<1,dim>> dummy; 
+
+        Composition<dim>::update_particle_property(data_position, solution, dummy ,particle);
 
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
