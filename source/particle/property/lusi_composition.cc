@@ -47,6 +47,8 @@ namespace aspect
                                                      typename ParticleHandler<dim>::particle_iterator &particle) const
       {
 
+        Composition<dim>::update_particle_property(data_position, solution, null ,particle);
+
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
         //     the dynamic and thermodynamic conditions)
