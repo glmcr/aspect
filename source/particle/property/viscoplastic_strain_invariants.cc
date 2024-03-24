@@ -69,6 +69,8 @@ namespace aspect
                       ExcMessage("This particle property requires a compositional "
                                  "strain field (plastic_strain, viscous_strain, "
                                  "or total_strain)."));
+
+	this->strain_data= {false, 0.0, 0.0, 0.0, 0.0 };
       }
 
 
@@ -127,7 +129,9 @@ namespace aspect
         const MaterialModel::ViscoPlastic<dim> &viscoplastic
           = Plugins::get_plugin_as_type<const MaterialModel::ViscoPlastic<dim>>(this->get_material_model());
 
-        const bool plastic_yielding = viscoplastic.is_yielding(material_inputs);
+	this->strain_data= {false, 0.0, 0.0, 0.0, 0.0 };
+
+        const bool plastic_yielding = this->strain_data.plastic_yielding= viscoplastic.is_yielding(material_inputs);
 
         // Next take the integrated strain invariant from the prior time step.
         auto &data = particle->get_properties();
@@ -150,7 +154,12 @@ namespace aspect
          * */
 
         if (this->introspection().compositional_name_exists("plastic_strain") && plastic_yielding == true)
-          data[data_position] += strain_update;
+	  {
+	    if (n_components>0)
+              data[data_position] += strain_update;
+	    
+	    this->strain_data.plastic_strain= strain_update;
+	  } 
 
         if (this->introspection().compositional_name_exists("viscous_strain") && plastic_yielding == false)
           {
@@ -166,16 +175,28 @@ namespace aspect
             // strain is in the second data position, allowing us to use a single expression.
             if (n_components > 1)
               data[data_position+1] += strain_update;
+
+	    this->strain_data.viscous_strain= strain_update;
           }
 
         // Only one field, which tracks total strain and is updated regardless of whether the
         // material is yielding or not.
         if (this->introspection().compositional_name_exists("total_strain"))
-          data[data_position] += strain_update;
+	  {
+	    if (n_components>0)
+              data[data_position] += strain_update;
+	    
+	    this->strain_data.total_strain= strain_update;
+	  }
 
         // Yielding, and noninitial plastic strain (last data position, updated below) is tracked.
         if (this->introspection().compositional_name_exists("noninitial_plastic_strain") && plastic_yielding == true)
-          data[data_position+(n_components-1)] += strain_update;
+	  {
+	    if (n_components>0)
+              data[data_position+(n_components-1)] += strain_update;
+	    
+	    this->strain_data.noninitial_plastic_strain= strain_update;
+	  }
       }
 
 

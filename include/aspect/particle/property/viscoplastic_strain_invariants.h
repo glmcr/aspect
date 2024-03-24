@@ -31,6 +31,16 @@ namespace aspect
   {
     namespace Property
     {
+
+      struct strain_data
+      {
+	  bool plastic_yielding;
+	  double plastic_strain;
+	  double viscous_strain;
+	  double total_strain;
+	  double noninitial_plastic_strain;
+      };
+      
       /**
        * A class that calculates the finite strain invariant a particle has
        * experienced and assigns it to either the plastic and/or viscous strain field based
@@ -51,7 +61,6 @@ namespace aspect
           ViscoPlasticStrainInvariant ();
 
           void initialize () override;
-
 
           /**
            * @copydoc aspect::Particle::Property::Interface::initialize_one_particle_property()
@@ -89,7 +98,8 @@ namespace aspect
           get_property_information() const override;
 
         protected:
-          unsigned int n_components;
+          mutable unsigned int n_components;
+	  mutable struct strain_data strain_data;
 
         private:
 

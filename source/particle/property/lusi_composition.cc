@@ -36,7 +36,8 @@ namespace aspect
       void
       LUSIComposition<dim>::initialize ()
       {
-         this->ViscoPlasticStrainInvariant<dim>::initialize ();
+	this->n_components = 0;
+	//this->ViscoPlasticStrainInvariant<dim>::initialize ();
       }
 
       template <int dim>
@@ -134,7 +135,18 @@ namespace aspect
         const unsigned int acc_ninit_plastic_strain_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(ACC_NONINIT_PLASTIC_STRAIN_NID);
 
+	//--- pointer shortcut to the particle->get_properties()[data_position]
+	//    which allows to index the values inside it (not clean, but it works)
+	double* const part_compo_props= &particle->get_properties().data()[data_position];
+	
 	ViscoPlasticStrainInvariant<dim>::update_particle_property(acc_tot_strain_idx, solution, gradients, particle);
+	//ViscoPlasticStrainInvariant<dim>::update_particle_property(, solution, gradients, particle);
+
+	part_compo_props[acc_tot_strain_idx] += this->strain_data.total_strain;
+
+	if (this->strain_data.plastic_yielding) {
+          part_compo_props[acc_ninit_plastic_strain_idx] += this->strain_data.noninitial_plastic_strain;
+	}
 
 	const double pressureInPascals_here= \
 	  solution[this->Composition<dim>::introspection().component_indices.pressure];
@@ -149,7 +161,7 @@ namespace aspect
 	//
 	//double* const __restrict__ part_compo_props= &particle->get_properties().data()[data_position];
         //double* const part_compo_props= &particle->get_properties().data()[data_position];
-	double* const part_compo_props= &particle->get_properties().data()[data_position];
+	//double* const part_compo_props= &particle->get_properties().data()[data_position];
 
         //if (pressureInPascals_here <= MOHO_PRESSURE_IN_PASCALS) {
         // std::cout << "LUSIComposition<dim>::update_particle_property: pressure_here=" << pressure_here << std::endl;
