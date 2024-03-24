@@ -23,7 +23,7 @@
 
 #include <aspect/particle/property/interface.h>
 #include <aspect/simulator_access.h>
-#include <aspect/particle/property/viscoplastic_strain_invariants.h>
+//#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
 {
@@ -40,7 +40,7 @@ namespace aspect
        * @ingroup ParticleProperties
        */
       template <int dim>
-      class Composition : public Property::ViscoPlasticStrainInvariant<dim> //public Interface<dim>, public ::aspect::SimulatorAccess<dim>
+      class Composition : public Interface<dim>, public ::aspect::SimulatorAccess<dim>
       {
         public:
           /**

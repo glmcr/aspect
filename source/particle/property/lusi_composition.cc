@@ -23,7 +23,7 @@
 #include <aspect/particle/utilities_lusi.h>
 #include <aspect/particle/property/lusi_composition.h>
 #include <aspect/initial_composition/interface.h>
-#include <aspect/particle/property/viscoplastic_strain_invariants.h>
+//#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
 {
@@ -31,14 +31,84 @@ namespace aspect
   {
     namespace Property
     {
+      
+     template <int dim>
+      LUSIComposition<dim>:: LUSIComposition() :material_inputs(1,0){}
 
+      
       template <int dim>
       void
       LUSIComposition<dim>::initialize ()
       {
-	//this->n_components = 0;
-	this->ViscoPlasticStrainInvariant<dim>::initialize ();
+        AssertThrow(Plugins::plugin_type_matches<const MaterialModel::ViscoPlastic<dim>>
+                    (this->get_material_model()),
+                    ExcMessage("This initial condition only makes sense in combination "
+                               "with the visco_plastic material model."));
+
+        material_inputs = MaterialModel::MaterialModelInputs<dim>(1,this->n_compositional_fields());
       }
+      
+      template <int dim> void
+      LUSIComposition<dim>::get_strain_data_update(struct strain_data &struct_data_update,
+						  const Vector<double> &solution,
+						  const std::vector<Tensor<1,dim>> &gradients,
+						  typename ParticleHandler<dim>::particle_iterator &particle) const
+      {
+
+	// Current timestep
+        const double dt = this->get_timestep();
+
+        // Velocity gradients
+        Tensor<2,dim> grad_u;
+        for (unsigned int d=0; d<dim; ++d)
+          grad_u[d] = gradients[d];
+
+        material_inputs.pressure[0] = solution[this->introspection().component_indices.pressure];
+        material_inputs.temperature[0] = solution[this->introspection().component_indices.temperature];
+        material_inputs.position[0] = particle->get_location();
+
+        // Calculate strain rate from velocity gradients
+        material_inputs.strain_rate[0] = symmetrize (grad_u);
+
+        // Put compositional fields into single variable
+        for (unsigned int i = 0; i < this->n_compositional_fields(); i++)
+          {
+            material_inputs.composition[0][i] = solution[this->introspection().component_indices.compositional_fields[i]];
+          }
+
+        // Find out plastic yielding by calling function in material model.
+        const MaterialModel::ViscoPlastic<dim> &viscoplastic
+          = Plugins::get_plugin_as_type<const MaterialModel::ViscoPlastic<dim>>(this->get_material_model());
+
+        //const bool plastic_yielding = viscoplastic.is_yielding(material_inputs);
+	struct_data_update.plastic_yielding= viscoplastic.is_yielding(material_inputs);
+
+	// Calculate strain rate second invariant
+        const double edot_ii = std::sqrt(std::max(-second_invariant(deviator(material_inputs.strain_rate[0])), 0.));
+
+        // Calculate strain invariant magnitude over the last time step
+        const double strain_update = dt*edot_ii;
+	
+        if (this->introspection().compositional_name_exists("plastic_strain") && struct_data_update.plastic_yielding == true)
+          struct_data_update.plastic_strain = strain_update;
+
+        if (this->introspection().compositional_name_exists("viscous_strain") && struct_data_update.plastic_yielding == false)
+	  struct_data_update.viscous_strain = strain_update;
+
+	if (this->introspection().compositional_name_exists("total_strain"))
+           struct_data_update.total_strain= strain_update;
+
+	if (this->introspection().compositional_name_exists("noninitial_plastic_strain") && struct_data_update.plastic_yielding == true)
+          struct_data_update.noninitial_plastic_strain= strain_update;
+      }
+      
+      // template <int dim>
+      // void
+      // LUSIComposition<dim>::initialize ()
+      // {
+      // 	//this->n_components = 0;
+      // 	this->ViscoPlasticStrainInvariant<dim>::initialize ();
+      // }
 
       template <int dim>
       void
@@ -47,7 +117,7 @@ namespace aspect
       {
         Composition<dim>::initialize_one_particle_property(position,data);
 
-        ViscoPlasticStrainInvariant<dim>::initialize_one_particle_property(position,data);
+        //ViscoPlasticStrainInvariant<dim>::initialize_one_particle_property(position,data);
       }
 
       template <int dim>
@@ -131,18 +201,22 @@ namespace aspect
 
         const unsigned int acc_ninit_plastic_strain_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(ACC_NONINIT_PLASTIC_STRAIN_NID);
-
+	
 	//--- pointer shortcut to the particle->get_properties()[data_position]
 	//    which allows to index the values inside it (not clean, but it works)
 	double* const part_compo_props= &particle->get_properties().data()[data_position];
 	
-	ViscoPlasticStrainInvariant<dim>::update_particle_property(0, solution, gradients, particle);
+	//ViscoPlasticStrainInvariant<dim>::update_particle_property(0, solution, gradients, particle);
 	//ViscoPlasticStrainInvariant<dim>::update_particle_property(, solution, gradients, particle);
 
-	part_compo_props[acc_tot_strain_idx] += this->strain_data.total_strain;
+	struct strain_data strain_data_update= {false, 0.0, 0.0, 0.0, 0.0 };
 
-	if (this->strain_data.plastic_yielding) {
-          part_compo_props[acc_ninit_plastic_strain_idx] += this->strain_data.noninitial_plastic_strain;
+	LUSIComposition<dim>::get_strain_data_update(strain_data_update, solution, gradients, particle);
+
+        part_compo_props[acc_tot_strain_idx] += strain_data_update.total_strain;
+	
+	if (strain_data_update.plastic_yielding) {
+          part_compo_props[acc_ninit_plastic_strain_idx] += strain_data_update.noninitial_plastic_strain;
 	}
 
 	const double pressureInPascals_here= \

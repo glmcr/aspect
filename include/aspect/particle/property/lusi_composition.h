@@ -36,6 +36,16 @@ namespace aspect
 
       using namespace Particle::ParticleUtilities;
 
+	  struct strain_data
+        {
+          bool plastic_yielding;
+          double plastic_strain;
+          double viscous_strain;
+          double total_strain;
+          double noninitial_plastic_strain;
+	  
+        };
+      
       /**
        * Implementation of a plugin in which the particle property is defined by the
        * Laval U. Subductiion Initiation (LUSI, G. Mercier Ph.D. thesis) compositional fields in
@@ -47,9 +57,29 @@ namespace aspect
       template <int dim>
       class LUSIComposition final : public Property::Composition<dim> //, public Property::ViscoPlasticStrainInvariant<dim>
       {
-        public:
 
-           void initialize () override;
+        public:
+	
+	//   struct strain_data
+        // {
+        //   bool plastic_yielding;
+        //   double plastic_strain;
+        //   double viscous_strain;
+        //   double total_strain;
+        //   double noninitial_plastic_strain;
+	  
+        // };
+
+	LUSIComposition();
+
+        void initialize () override;
+	
+	void get_strain_data_update(struct strain_data&,
+				      const Vector<double> &solution,
+                                      const std::vector<Tensor<1,dim>> &gradients,
+                                      typename ParticleHandler<dim>::particle_iterator &particle) const;
+
+	  //void initialize () override;
 
           /**
            * Initialization function. This function is called once at the
@@ -307,6 +337,9 @@ namespace aspect
         static const PTStateMarker sszMtcPT8;	
         
       private:
+
+	mutable MaterialModel::MaterialModelInputs<dim> material_inputs;
+	
 	   static inline void lusiMaterialChange(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
 	   {
 
