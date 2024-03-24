@@ -104,6 +104,10 @@ namespace aspect
                                                                  const std::vector<Tensor<1,dim>> &gradients,
                                                                  typename ParticleHandler<dim>::particle_iterator &particle) const
       {
+
+        if (n_components < 0 || n_components > 3)
+          AssertThrow(false,ExcMessage("Invalid n_components value"));
+
         // Current timestep
         const double dt = this->get_timestep();
 
