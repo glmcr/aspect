@@ -139,7 +139,7 @@ namespace aspect
 	//    which allows to index the values inside it (not clean, but it works)
 	double* const part_compo_props= &particle->get_properties().data()[data_position];
 	
-	ViscoPlasticStrainInvariant<dim>::update_particle_property(acc_tot_strain_idx, solution, gradients, particle);
+	ViscoPlasticStrainInvariant<dim>::update_particle_property(0, solution, gradients, particle);
 	//ViscoPlasticStrainInvariant<dim>::update_particle_property(, solution, gradients, particle);
 
 	part_compo_props[acc_tot_strain_idx] += this->strain_data.total_strain;
