@@ -49,7 +49,7 @@ namespace aspect
       }
       
       template <int dim> void
-      LUSIComposition<dim>::get_strain_data_update(struct strain_data &struct_data_update,
+      LUSIComposition<dim>::get_strain_data_update(struct strain_data &strain_data_update,
 						  const Vector<double> &solution,
 						  const std::vector<Tensor<1,dim>> &gradients,
 						  typename ParticleHandler<dim>::particle_iterator &particle) const
@@ -81,7 +81,7 @@ namespace aspect
           = Plugins::get_plugin_as_type<const MaterialModel::ViscoPlastic<dim>>(this->get_material_model());
 
         //const bool plastic_yielding = viscoplastic.is_yielding(material_inputs);
-	struct_data_update.plastic_yielding= viscoplastic.is_yielding(material_inputs);
+	strain_data_update.plastic_yielding= viscoplastic.is_yielding(material_inputs);
 
 	// Calculate strain rate second invariant
         const double edot_ii = std::sqrt(std::max(-second_invariant(deviator(material_inputs.strain_rate[0])), 0.));
@@ -89,17 +89,17 @@ namespace aspect
         // Calculate strain invariant magnitude over the last time step
         const double strain_update = dt*edot_ii;
 	
-        if (this->introspection().compositional_name_exists("plastic_strain") && struct_data_update.plastic_yielding == true)
-          struct_data_update.plastic_strain = strain_update;
+        if (this->introspection().compositional_name_exists("plastic_strain") && strain_data_update.plastic_yielding == true)
+          strain_data_update.plastic_strain = strain_update;
 
-        if (this->introspection().compositional_name_exists("viscous_strain") && struct_data_update.plastic_yielding == false)
-	  struct_data_update.viscous_strain = strain_update;
+        if (this->introspection().compositional_name_exists("viscous_strain") && strain_data_update.plastic_yielding == false)
+	  strain_data_update.viscous_strain = strain_update;
 
 	if (this->introspection().compositional_name_exists("total_strain"))
-           struct_data_update.total_strain= strain_update;
+           strain_data_update.total_strain= strain_update;
 
-	if (this->introspection().compositional_name_exists("noninitial_plastic_strain") && struct_data_update.plastic_yielding == true)
-          struct_data_update.noninitial_plastic_strain= strain_update;
+	if (this->introspection().compositional_name_exists("noninitial_plastic_strain") && strain_data_update.plastic_yielding == true)
+          strain_data_update.noninitial_plastic_strain= strain_update;
       }
       
       // template <int dim>
