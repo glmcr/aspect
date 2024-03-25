@@ -108,6 +108,8 @@ namespace aspect
         if (n_components < 0 || n_components > 3)
           AssertThrow(false,ExcMessage("Invalid n_components value"));
 
+        material_inputs = MaterialModel::MaterialModelInputs<dim>(1,this->n_compositional_fields());
+
         // Current timestep
         const double dt = this->get_timestep();
 
@@ -137,9 +139,11 @@ namespace aspect
 
         const bool plastic_yielding = this->strain_data.plastic_yielding= viscoplastic.is_yielding(material_inputs);
 
+        //auto &data= 0;
+        //if (n_components > 0) {
         // Next take the integrated strain invariant from the prior time step.
-        auto &data = particle->get_properties();
-
+        //   data = particle->get_properties();
+        //}
         // Calculate strain rate second invariant
         const double edot_ii = std::sqrt(std::max(-second_invariant(deviator(material_inputs.strain_rate[0])), 0.));
 
@@ -159,27 +163,30 @@ namespace aspect
 
         if (this->introspection().compositional_name_exists("plastic_strain") && plastic_yielding == true)
 	  {
-	    if (n_components>0)
+	    if (n_components>0) {
+              auto& data = particle->get_properties();
               data[data_position] += strain_update;
-	    
+	    }
 	    this->strain_data.plastic_strain= strain_update;
 	  } 
 
         if (this->introspection().compositional_name_exists("viscous_strain") && plastic_yielding == false)
           {
             // Not yielding and only one field, which tracks the viscous strain.
-            if (n_components == 1)
+            if (n_components == 1) {
+              auto& data = particle->get_properties();
               data[data_position] += strain_update;
-
+            }
             // Not yielding and either two or three fields are tracked. If two fields are tracked,
             // they represent plastic strain (first data position) and viscous strain (second data
             // data position, updated below). If three fields are tracked, they represent plastic
             // strain (first data position), viscous strain (second data position, updated below),
             // and noninitial plastic strain (third data position). In either case, the viscous
             // strain is in the second data position, allowing us to use a single expression.
-            if (n_components > 1)
+            if (n_components > 1) {
+              auto& data = particle->get_properties();
               data[data_position+1] += strain_update;
-
+            }
 	    this->strain_data.viscous_strain= strain_update;
           }
 
@@ -187,18 +194,20 @@ namespace aspect
         // material is yielding or not.
         if (this->introspection().compositional_name_exists("total_strain"))
 	  {
-	    if (n_components>0)
+	    if (n_components>0) {
+              auto& data = particle->get_properties();
               data[data_position] += strain_update;
-	    
+	    }
 	    this->strain_data.total_strain= strain_update;
 	  }
 
         // Yielding, and noninitial plastic strain (last data position, updated below) is tracked.
         if (this->introspection().compositional_name_exists("noninitial_plastic_strain") && plastic_yielding == true)
 	  {
-	    if (n_components>0)
+	    if (n_components>0) {
+              auto& data = particle->get_properties();
               data[data_position+(n_components-1)] += strain_update;
-	    
+	    }
 	    this->strain_data.noninitial_plastic_strain= strain_update;
 	  }
       }

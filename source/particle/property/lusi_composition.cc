@@ -36,8 +36,8 @@ namespace aspect
       void
       LUSIComposition<dim>::initialize ()
       {
-	//this->n_components = 0;
-	this->ViscoPlasticStrainInvariant<dim>::initialize ();
+	this->n_components = 0;
+//	this->ViscoPlasticStrainInvariant<dim>::initialize ();
       }
 
       template <int dim>
@@ -47,7 +47,7 @@ namespace aspect
       {
         Composition<dim>::initialize_one_particle_property(position,data);
 
-        ViscoPlasticStrainInvariant<dim>::initialize_one_particle_property(position,data);
+//        ViscoPlasticStrainInvariant<dim>::initialize_one_particle_property(position,data);
       }
 
       template <int dim>
