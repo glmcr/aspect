@@ -25,7 +25,8 @@
 #include <aspect/particle/property/composition.h>
 #include <aspect/particle/utilities_lusi.h>
 #include <aspect/simulator_access.h>
-#include <aspect/particle/property/viscoplastic_strain_invariants.h>
+#include <aspect/material_model/visco_plastic.h>
+//#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
 {
