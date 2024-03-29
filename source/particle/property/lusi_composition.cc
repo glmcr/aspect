@@ -553,7 +553,10 @@ namespace aspect
       UpdateFlags
       LUSIComposition<dim>::get_needed_update_flags () const
       {
-        return Composition<dim>::get_needed_update_flags (); //update_values;
+           // Need to update both of these to send into material model.
+        return update_values | update_gradients;
+
+        //        return Composition<dim>::get_needed_update_flags (); //update_values;
       }
 
       template <int dim>
