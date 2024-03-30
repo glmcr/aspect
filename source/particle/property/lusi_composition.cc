@@ -268,6 +268,11 @@ namespace aspect
 	    // --- Ensure to always have oc. seds composition at 0.55 in the top (surface) cells
             part_compo_props[oc_seds_idx]= 0.55; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
 
+	    // --- Need to keep the acc. strains at 0.0 for oc. seds at the surface in the extension stage
+	    //     NOTE: Comment those two next lines for the convergence and slab rollback stage.
+	    part_compo_props[acc_tot_strain_idx]=
+	      part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	    
             // --- Limit all other compos between 0.0 and 0.45 
             part_compo_props[mrb_oc_crust_idx]= 
              std::max(0.0,std::min(0.45,part_compo_props[mrb_oc_crust_idx]));
@@ -309,6 +314,14 @@ namespace aspect
 	     std::max(0.0,std::min(0.45,part_compo_props[asth_olm_hyb_mat_idx]));
 	}
 
+        // --- Need to keep the acc. strains at 0.0 for MORB crust in the extension stage.
+	//     NOTE: Comment this code block for the convergence and slab rollback stage.
+	if (part_compo_props[mrb_oc_crust_idx] > 0.5)
+	  {
+	    part_compo_props[acc_tot_strain_idx]=
+	      part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	  }
+	
 	//--- Now check if the marker distance from the sides is far enough
 	//    to allow metam. changes because it seems that we have some unwanted
 	//    significant pressure oscillations near the sides at distance that are
