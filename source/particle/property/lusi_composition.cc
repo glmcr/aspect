@@ -20,6 +20,8 @@
 
 #include <aspect/geometry_model/box.h>
 #include <aspect/geometry_model/two_merged_boxes.h>
+#include <aspect/boundary_velocity/interface.h>
+#include <aspect/boundary_velocity/function.h>
 #include <aspect/particle/utilities_lusi.h>
 #include <aspect/particle/property/lusi_composition.h>
 #include <aspect/initial_composition/interface.h>
@@ -242,6 +244,10 @@ namespace aspect
         const types::boundary_id top_num_id=
 	  this->Composition<dim>::get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
 
+	//const Tensor<1,dim> bnd_velos=
+	//   Function::boundary_velocity(0,particle->get_location());
+	//bool extension_stage= false; //bnd_velos[0]
+	
         bool in_a_top_cell= false;
 
 #if DEAL_II_VERSION_GTE(9,4,0)
@@ -268,10 +274,10 @@ namespace aspect
 	    // --- Ensure to always have oc. seds composition at 0.55 in the top (surface) cells
             part_compo_props[oc_seds_idx]= 0.55; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
 
-	    // --- Need to keep the acc. strains at 0.0 for oc. seds at the surface in the extension stage
-	    //     NOTE: Comment those two next lines for the convergence and slab rollback stage.
-	    part_compo_props[acc_tot_strain_idx]=
-	      part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	    //// --- Need to keep the acc. strains at 0.0 for oc. seds at the surface in the extension stage
+	    ////     NOTE: Comment those two next lines for the convergence and slab rollback stage.
+	    //part_compo_props[acc_tot_strain_idx]=
+	    //  part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
 	    
             // --- Limit all other compos between 0.0 and 0.45 
             part_compo_props[mrb_oc_crust_idx]= 
@@ -314,13 +320,13 @@ namespace aspect
 	     std::max(0.0,std::min(0.45,part_compo_props[asth_olm_hyb_mat_idx]));
 	}
 
-        // --- Need to keep the acc. strains at 0.0 for MORB crust in the extension stage.
-	//     NOTE: Comment this code block for the convergence and slab rollback stage.
-	if (part_compo_props[mrb_oc_crust_idx] > 0.5)
-	  {
-	    part_compo_props[acc_tot_strain_idx]=
-	      part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-	  }
+        // // --- Need to keep the acc. strains at 0.0 for MORB crust in the extension stage.
+	// //     NOTE: Comment this code block for the convergence and slab rollback stage.
+	// if (part_compo_props[mrb_oc_crust_idx] > 0.5)
+	//   {
+	//     part_compo_props[acc_tot_strain_idx]=
+	//       part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	//   }
 	
 	//--- Now check if the marker distance from the sides is far enough
 	//    to allow metam. changes because it seems that we have some unwanted
@@ -352,6 +358,36 @@ namespace aspect
         if (gridXExtent <= NO_MTC_ON_DISTANCE_FROM_SIDES) {
            AssertThrow (false,ExcMessage ("Cannot have gridXExtent <= NO_MTC_ON_DISTANCE_FROM_SIDES at this point!"));
         }
+	
+	const BoundaryVelocity::Function<dim> & bndFunctionObj=
+	  this->get_boundary_velocity_manager().template get_matching_boundary_velocity_model<BoundaryVelocity::Function<dim>>();
+
+	const Tensor<1,dim> bnd_velos= bndFunctionObj.boundary_velocity(0,particle->get_location());
+
+	bool extension_stage= false;
+
+	if (xPositionMeters < gridXExtent) {
+
+	  // --- Left side of the domain box, x velo should be negative for the extension stage
+	  extension_stage= (bnd_velos[0] < 0.0);
+	     
+	} else {
+
+	  // --- Right side of the domain box, x velo should be positive for the extension stage
+          extension_stage= (bnd_velos[0] > 0.0);
+	}
+	
+	// --- Need to keep the acc. strains at 0.0 for MORB crust and oc. seds for the extension stage only
+	if (part_compo_props[mrb_oc_crust_idx] > 0.5 && extension_stage)
+	  {
+	    part_compo_props[acc_tot_strain_idx]=
+	      part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	  }
+	
+	if (part_compo_props[oc_seds_idx] > 0.5 && extension_stage) {
+	  part_compo_props[acc_tot_strain_idx]=
+	    part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+	}
 
         // --- Do the check for the safe distance from the sides:
 	if (xPositionMeters <= NO_MTC_ON_DISTANCE_FROM_SIDES ||
