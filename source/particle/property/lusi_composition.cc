@@ -366,7 +366,7 @@ namespace aspect
 
 	bool extension_stage= false;
 
-	if (xPositionMeters < gridXExtent) {
+	if (xPositionMeters < gridXExtent/2.0) {
 
 	  // --- Left side of the domain box, x velo should be negative for the extension stage
 	  extension_stage= (bnd_velos[0] < 0.0);
