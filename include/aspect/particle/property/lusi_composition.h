@@ -477,17 +477,20 @@ namespace aspect
        
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 2023.0); // --- 1750C
+      sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1823.0); 
+      //sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 2023.0); // --- 1750C
       // 1st value 1500C sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1773.0);      
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, 2023.0); // --- 50Kb, 1750C
+      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, 1823.0); // --- 50Kb, 1550C
+      //sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, 2023.0); // --- 50Kb, 1750C
       // 1st values, 10Kb & 1500C szMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.0e9, 1773.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1403.0); // --- 1130C  
+      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1404.0);  //  1131C
+      //sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1403.0); // --- 1130C  
       // 1st value, 1200C sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0);     
 
       template <int dim>
@@ -500,7 +503,7 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1700.0); // --- 25Kb, 1427C  
+      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1734.0); // --- 25Kb, 1461.5C  
       // --- 1st values 5kb, 1300C sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);     
 
       template <int dim>
