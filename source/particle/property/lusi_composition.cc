@@ -133,7 +133,11 @@ namespace aspect
         //std::vector<Tensor<1,dim>> dummy; 
 
         //Composition<dim>::update_particle_property(data_position, solution, gradients, particle);
-	
+
+	//const double simAgeInYears= this->get_time()/year_in_seconds;
+	//const unsigned int ageInYearsIdx=
+	//this->Composition<dim>::introspection().compositional_index_for_name(SIM_AGE_IN_YEARS);
+	  
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
         //     the dynamic and thermodynamic conditions)
@@ -398,12 +402,20 @@ namespace aspect
 	  return;
 	}
 
+	// --- NOTE 2024-04-20: No more need to use the vertical_velo to determine if the
+	//     type of partially melted asth. is. We now just use the extension_stage value
+	//     extension_stage == true -> MORB type
+	//     else -> SSZ type which in this case implies convergence stage with surface
+	///    extension driven only by the rollback of the subducting slab
+       
+	//
 	// --- Get the vertical velocity at the marker position
-	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+	//const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+	//// --- Determine which type of pm asth. we have depending on the vertical velo. value 
+	//const bool pm_asth_ssz_type= (vertical_velo > ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD) ? true: false;
 
-	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
-	const bool pm_asth_ssz_type= (vertical_velo > ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD) ? true: false;
-
+	const bool pm_asth_ssz_type= extension_stage ? false: true;
+	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
 	//     transforms to partially melted SSZ asthenosphere 
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
@@ -427,8 +439,8 @@ namespace aspect
 	  }	
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
-        if ( asth2SSZCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
+        if ( (asth2SSZCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	      asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here)) && ! extension_stage)
 	  {
 
            const double previousSSZMatContent= part_compo_props[ssz_oc_crust_idx];
@@ -443,8 +455,8 @@ namespace aspect
 	  } // --- pm asth -> ssz oc. crust.
 	
 	// --- (p,T) conditions for which upwelling MORB asth. partial melts transforms to MORB crust.
-        if ( asth2MRBCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here))
+        if ( (asth2MRBCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	      asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here) ) && extension_stage)
 	  {
 
            const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
@@ -459,8 +471,8 @@ namespace aspect
 	  } // --- pm mrb asth -> mrb oc. crust.
 
 	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
-	if (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	    asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
+	if ( (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && ! extension_stage)
 	  {
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
@@ -477,8 +489,8 @@ namespace aspect
 	  } // --- pm mrb asth -> mrb  oc. lith mantle
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
-	if (asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	    asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here))
+	if ((asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && extension_stage)
 	  {
 
             const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];

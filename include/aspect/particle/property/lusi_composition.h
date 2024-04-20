@@ -131,6 +131,8 @@ namespace aspect
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override;
 
+	  //static constexpr const char* SIM_AGE_IN_YEARS= "ageInYears";
+
 	  // ---
           //inline
           static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
