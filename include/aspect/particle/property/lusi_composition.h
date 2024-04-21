@@ -505,7 +505,7 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1734.0); // --- 25Kb, 1461.5C  
+      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1598.0); // --- 25Kb, 1325C  
       // --- 1st values 5kb, 1300C sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);     
 
       template <int dim>
