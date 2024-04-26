@@ -402,19 +402,15 @@ namespace aspect
 	  return;
 	}
 
-	// --- NOTE 2024-04-20: No more need to use the vertical_velo to determine if the
-	//     type of partially melted asth. is. We now just use the extension_stage value
-	//     extension_stage == true -> MORB type
-	//     else -> SSZ type which in this case implies convergence stage with surface
-	///    extension driven only by the rollback of the subducting slab
-       
-	//
 	// --- Get the vertical velocity at the marker position
-	//const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
-	//// --- Determine which type of pm asth. we have depending on the vertical velo. value 
-	//const bool pm_asth_ssz_type= (vertical_velo > ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD) ? true: false;
+	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
+	const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD) ? true: false;
 
-	const bool pm_asth_ssz_type= extension_stage ? false: true;
+	//const bool pm_asth_ssz_type= extension_stage ? false: true;
+	const bool pm_asth_ssz_type= ((!extension_stage) && pm_asth_ssz_vvelo_ok) ? true : false;
+
+	const bool pm_asth_mrb_type= extension_stage ? true : false;
 	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
 	//     transforms to partially melted SSZ asthenosphere 
@@ -431,7 +427,7 @@ namespace aspect
 	//     transforms to partially melted MORB asthenosphere 
         if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
-              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && ! pm_asth_ssz_type)
+              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_mrb_type)
 
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
@@ -577,7 +573,7 @@ namespace aspect
             eclogitesPTTri3.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 	    lusiMaterialChange(part_compo_props, oc_seds_idx,      eclogites_idx, 0.0, 1.0);
-            lusiMaterialChange(part_compo_props, mrb_oc_crust_idx,     eclogites_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, eclogites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, blueschists_idx,  eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, eclogites_idx, 0.0, 1.0);
