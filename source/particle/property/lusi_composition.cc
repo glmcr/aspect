@@ -134,10 +134,11 @@ namespace aspect
 
         //Composition<dim>::update_particle_property(data_position, solution, gradients, particle);
 
+	//// --- Example of access to another particle property (somehwat a hack but it works)
 	//const double simAgeInYears= this->get_time()/year_in_seconds;
-	//const unsigned int ageInYearsIdx=
-	//this->Composition<dim>::introspection().compositional_index_for_name(SIM_AGE_IN_YEARS);
-	  
+	//const unsigned int ageInYearsIdx= this->get_particle_world()
+        //  .get_property_manager().get_data_info().get_position_by_field_name("ageInYears");
+
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
         //     the dynamic and thermodynamic conditions)
@@ -211,6 +212,8 @@ namespace aspect
 	//--- pointer shortcut to the particle->get_properties()[data_position]
 	//    which allows to index the values inside it (not clean, but it works)
 	double* const part_compo_props= &particle->get_properties().data()[data_position];
+
+	//part_compo_props[ageInYearsIdx]= 0;
 	
 	//ViscoPlasticStrainInvariant<dim>::update_particle_property(0, solution, gradients, particle);
 	//ViscoPlasticStrainInvariant<dim>::update_particle_property(, solution, gradients, particle);
