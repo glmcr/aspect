@@ -369,20 +369,24 @@ namespace aspect
 	const BoundaryVelocity::Function<dim> & bndFunctionObj=
 	  this->get_boundary_velocity_manager().template get_matching_boundary_velocity_model<BoundaryVelocity::Function<dim>>();
 
-	const Tensor<1,dim> bnd_velos= bndFunctionObj.boundary_velocity(0,particle->get_location());
+	const Point<dim> rigth_side_surf_point(gridXExtent-NO_MTC_ON_DISTANCE_FROM_SIDES,0);
+	const Point<dim> left_side_surf_point(NO_MTC_ON_DISTANCE_FROM_SIDES,0);
 
-	bool extension_stage= false;
+	const Tensor<1,dim> rigth_bnd_velos= bndFunctionObj.boundary_velocity(0,rigth_side_surf_point);
+	const Tensor<1,dim> left_bnd_velos= bndFunctionObj.boundary_velocity(0,left_side_surf_point);
 
-	if (xPositionMeters < gridXExtent/2.0) {
+	//const Tensor<1,dim> bnd_velos= bndFunctionObj.boundary_velocity(0,particle->get_location());
 
-	  // --- Left side of the domain box, x velo should be negative for the extension stage
-	  extension_stage= (bnd_velos[0] < 0.0);
-	     
-	} else {
-
-	  // --- Right side of the domain box, x velo should be positive for the extension stage
-          extension_stage= (bnd_velos[0] > 0.0);
-	}
+        bool extension_stage= (rigth_bnd_velos[0] > 0.0 || left_bnd_velos[0] < 0.0) ? true : false;
+	
+	// bool extension_stage= false;
+	// if (xPositionMeters < gridXExtent/2.0) {
+	//   // --- Left side of the domain box, x velo should be negative for the extension stage
+	//   extension_stage= (bnd_velos[0] < 0.0);	     
+	// } else {
+	//   // --- Right side of the domain box, x velo should be positive for the extension stage
+        //   extension_stage= (bnd_velos[0] > 0.0);
+	// }
 	
 	// --- Need to keep the acc. strains at 0.0 for MORB crust and oc. seds for the extension stage only
 	if (part_compo_props[mrb_oc_crust_idx] > 0.5 && extension_stage)
