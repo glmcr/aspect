@@ -340,9 +340,9 @@ namespace aspect
 	//    significant pressure oscillations near the sides at distance that are
 	//    less than NO_MTC_ON_DISTANCE_FROM_SIDES from them
 	const double xPositionMeters= particle->get_location()[0];
-        const double yPositionMeters= particle->get_location()[1];
 
         double gridXExtent= NO_MTC_ON_DISTANCE_FROM_SIDES;
+	double gridYExtent= NO_MTC_ON_DISTANCE_FROM_SIDES;
 
         if (Plugins::plugin_type_matches<const GeometryModel::Box<dim>>(this->Composition<dim>::get_geometry_model())) {
 
@@ -350,6 +350,7 @@ namespace aspect
                 Plugins::get_plugin_as_type<const GeometryModel::Box<dim>> (this->Composition<dim>::get_geometry_model());
 
            gridXExtent= box_geometry_model.get_extents()[0];
+	   gridYExtent= box_geometry_model.get_extents()[1];
 
         } else if (Plugins::plugin_type_matches<const GeometryModel::TwoMergedBoxes<dim>> (this->Composition<dim>::get_geometry_model())) {
 
@@ -357,6 +358,7 @@ namespace aspect
                 Plugins::get_plugin_as_type<const GeometryModel::TwoMergedBoxes<dim>> (this->Composition<dim>::get_geometry_model());
 
            gridXExtent= two_merged_boxes_geometry_model.get_extents()[0];
+	   gridYExtent= two_merged_boxes_geometry_model.get_extents()[1];
 
         } else {
             AssertThrow (false,
@@ -366,6 +368,10 @@ namespace aspect
         if (gridXExtent <= NO_MTC_ON_DISTANCE_FROM_SIDES) {
            AssertThrow (false,ExcMessage ("Cannot have gridXExtent <= NO_MTC_ON_DISTANCE_FROM_SIDES at this point!"));
         }
+
+	// --- Define the yPositionMeters as being at 7km depth to be sure to
+	//     be able to correctly determine if the simulation is at the kinematically imposed extension stage
+        const double yPositionMeters= gridYExtent - 7000.0 ; //particle->get_location()[1];
 	
 	const BoundaryVelocity::Function<dim> & bndFunctionObj=
 	  this->get_boundary_velocity_manager().template get_matching_boundary_velocity_model<BoundaryVelocity::Function<dim>>();
