@@ -340,6 +340,7 @@ namespace aspect
 	//    significant pressure oscillations near the sides at distance that are
 	//    less than NO_MTC_ON_DISTANCE_FROM_SIDES from them
 	const double xPositionMeters= particle->get_location()[0];
+        const double yPositionMeters= particle->get_location()[1];
 
         double gridXExtent= NO_MTC_ON_DISTANCE_FROM_SIDES;
 
@@ -369,8 +370,8 @@ namespace aspect
 	const BoundaryVelocity::Function<dim> & bndFunctionObj=
 	  this->get_boundary_velocity_manager().template get_matching_boundary_velocity_model<BoundaryVelocity::Function<dim>>();
 
-	const Point<dim> rigth_side_surf_point(gridXExtent-NO_MTC_ON_DISTANCE_FROM_SIDES,0);
-	const Point<dim> left_side_surf_point(NO_MTC_ON_DISTANCE_FROM_SIDES,0);
+	const Point<dim> rigth_side_surf_point(gridXExtent-NO_MTC_ON_DISTANCE_FROM_SIDES,yPositionMeters);
+	const Point<dim> left_side_surf_point(NO_MTC_ON_DISTANCE_FROM_SIDES,yPositionMeters);
 
 	const Tensor<1,dim> rigth_bnd_velos= bndFunctionObj.boundary_velocity(0,rigth_side_surf_point);
 	const Tensor<1,dim> left_bnd_velos= bndFunctionObj.boundary_velocity(0,left_side_surf_point);
