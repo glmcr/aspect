@@ -344,19 +344,23 @@ namespace aspect
 	     part_compo_props[matFromIdx]= (1.0 - matToMax) * part_compo_props[matFromIdx];  //0.0;
 	   }
       };
-
+      
+      // --- PT1
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
         pmSszAsthPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,1373.0);
 
+      // --- PT2
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-        pmSszAsthPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,
-                         LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
+        pmSszAsthPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,1823.0);
+      //LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
 
+      // --- PT3
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-        pmSszAsthPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.e9,LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
+        pmSszAsthPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9,1823.0);
+      //pmSszAsthPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.e9,LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);
       //const PTStateMarker LUSIComposition<dim>::pmSszAsthPTTri13(0.95e9,LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
 
       template <int dim>
@@ -365,24 +369,27 @@ namespace aspect
       	    	       LUSIComposition<dim>::pmSszAsthPTTri12,
 		       LUSIComposition<dim>::pmSszAsthPTTri13);
 
-      // --- Tri1 (p,T) points for SSZ crust creation from partial melting of Asth.
+      // --- Tri1 (p,T) points for SSZ crust creation from partially melted Asth
+      
+      // --- PT6
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
       asth2SSZCrustPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,
 			   LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
 
+      // --- PT1
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
         asth2SSZCrustPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,1373.0);
 								     //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
-
+      // --- PT4
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      asth2SSZCrustPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0 ); //1403.0);
+      asth2SSZCrustPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1394.0); //1473.0 ); //1403.0);
 								     // LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
 
       // --- Define the (p,T) 1st triangle where the SSZ oc. crust is formed with
-      //     partial melting of the upwelling asthenosphere.
+      //     partially melted upwelling asthenosphere.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
          asth2SSZCrustPTTri1(LUSIComposition<dim>::asth2SSZCrustPTTri11,
@@ -390,22 +397,26 @@ namespace aspect
 			     LUSIComposition<dim>::asth2SSZCrustPTTri13);
 
      // --- Tri2 (p,T) points for SSZ crust creation with partial melting of Asth.
+
+      // --- PT6 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
         asth2SSZCrustPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*
                              LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS,
                              LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
 
+      // --- PT5
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
         asth2SSZCrustPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*
                              LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
                              LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
 								     //1423.0);
+      // --- PT4
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
       asth2SSZCrustPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                           LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0); //1403.0);
+                           LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1394.0); //1473.0); //1403.0);
 								     //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
 
       // --- Define the (p,T) 2nd triangle where the SSZ oc. crust is formed with
@@ -417,21 +428,25 @@ namespace aspect
 			     LUSIComposition<dim>::asth2SSZCrustPTTri23);
 
       // --- SSZ OLM tri1 vertices
+
+      // --- PT5
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
         asth2SSZOlmPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*
                            LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
 			   LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); //1423.0);
 
+      // --- PT4
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
       asth2SSZOlmPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*
-                         LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0); //1403.0);
+                         LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1394); //1473.0); //1403.0);
                                                                    //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
 
+      // --- PT7
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      asth2SSZOlmPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.95e9, 1573.0); //1473.0);
+      asth2SSZOlmPTTri13(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1612.0); //1573.0); //1473.0);
 								   //LUSIComposition<dim>::SURF_TEMPERATURE);
 
       // --- Define the 2 (p,T) triangles where the SSZ oc. lith mantle is formed with
@@ -443,18 +458,22 @@ namespace aspect
 			   LUSIComposition<dim>::asth2SSZOlmPTTri13);
 
       // --- SSZ OLM tri2 vertices
+
+      // --- PT5
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
         asth2SSZOlmPTTri21(PTStateMarker::PASCALS_2_MEGA_PASCALS*
                            LUSIComposition<dim>::MOHO_PRESSURE_PASCALS,
 			   LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); //1423.0);
 
+      // --- PT8
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.95e9,
+      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9,
 								   LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
                                                                    //LUSIComposition<dim>::LAB_TEMPERATURE_IN_KELVINS);
+      // --- PT7
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.95e9, 1573.0); //1473.0);
+      const PTStateMarker LUSIComposition<dim>::asth2SSZOlmPTTri23(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1612.0); //1473.0);
 
       // --- SSZ OLM (p,T) tri2
       template <int dim>
@@ -531,11 +550,11 @@ namespace aspect
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 973.0);
+       amphibolitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 1023.0); //973.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9, 973.0);
+       amphibolitesPTTri12(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9, 1023.0); //973.0);
 
        // --- Define the 1st p,T triangle where oc. crust material transforms to
        //     the amphibolites facies.
@@ -556,7 +575,7 @@ namespace aspect
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::
-       amphibolitesPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9,973.0);
+       amphibolitesPTTri22(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9,1023.0); //973.0);
 
        // --- Define the 2nd p,T triangle where oc. crust material transforms to
        //     the amphibolites facies.
@@ -568,11 +587,11 @@ namespace aspect
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9,973.0);
+       granulitesPTTri10(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 1023.0); //973.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9,973.0);
+       granulitesPTTri11(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9,1023.0); //973.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::
@@ -589,7 +608,7 @@ namespace aspect
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::
-       granulitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9,973.0);
+       granulitesPTTri20(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9,1023.0); //973.0);
 
        template <int dim>
        const PTStateMarker LUSIComposition<dim>::
