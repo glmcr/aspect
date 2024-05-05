@@ -230,7 +230,7 @@ namespace aspect
 	  return;
 	}
 
-	// --- (p,T) conditions for which the upwelling hydrated asth. transforms to partially melted
+	// --- (p,T) conditions for which the upwelling hydrated asth. (hybrid or not) transforms to partially melted
 	//     SSZ asthenosphere 
         if ( pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
              pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
@@ -238,6 +238,7 @@ namespace aspect
 
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
