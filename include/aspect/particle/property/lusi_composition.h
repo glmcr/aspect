@@ -325,10 +325,10 @@ namespace aspect
       const PTStateMarker LUSIComposition<dim>::occMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.35e9, 773.0);
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::occMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 973.0);     
+      const PTStateMarker LUSIComposition<dim>::occMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.3e9, 1023.0);     
 
       template <int dim>
-      const PTStateMarker LUSIComposition<dim>::occMtcPT5(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9, 973.0);
+      const PTStateMarker LUSIComposition<dim>::occMtcPT5(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.4e9, 1023.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::occMtcPT6(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.8e9, 573.0);
@@ -420,7 +420,7 @@ namespace aspect
       // --- static PTStateMarker objects definitions for class LUSIComposition for:
       //     1. Apparition of partial melts of the upwelling hydrated (SSZ) asthenosphere (pmSSZAsth)
       //     2. The formation of new SSZ oc. lithospheric mantle (sszOLM) with the pmSSZAsth
-      //     3. The formation of new SSZ oc. lithospheric mantle (sszOCC) with the pmSSZAsth
+      //     3. The formation of new SSZ oc. lithospheric crust (sszOCC) with the pmSSZAsth
       //     
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
@@ -428,15 +428,15 @@ namespace aspect
        
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1773.0);      
+      sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1823.0);      
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.0e9, 1773.0);
+      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1823.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0);     
+      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1412.0);     
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
@@ -448,11 +448,11 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);     
+      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9, 1643.0);     
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
+      sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
 
       // --- 1st p,T triangle for pm ssz asth. formation from upwelling hydrated asth.
       template <int dim>
