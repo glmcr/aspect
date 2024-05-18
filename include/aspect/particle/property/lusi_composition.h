@@ -233,7 +233,9 @@ namespace aspect
           // --- 0.5m/y in m/s
           //static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 1.5854895991882293e-08;
           // --- 0.25m/y in m/s
-          static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 7.927447995941146e-09;
+          //static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 7.927447995941146e-09;
+	  // --- 0.10m/y in m/s
+	  static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 3.1709791983764586e-09;
 	
            // ---  (p,T) tri. zone where asth. in partial SSZ melting state forms
            //      SSZ oc. crust 
@@ -249,6 +251,7 @@ namespace aspect
 	   static const PTStateMarkersTriangle pmSszAsthPTTri1;
 	   static const PTStateMarkersTriangle pmSszAsthPTTri2;
 	   static const PTStateMarkersTriangle pmSszAsthPTTri3;
+	   static const PTStateMarkersTriangle pmSszAsthPTTriMain;
 
            // ---  (p,T) tri. zone where asth. in partial MRB melting state forms
            //      MRB oc. crust         
@@ -339,7 +342,8 @@ namespace aspect
         static const PTStateMarker sszMtcPT5;
         static const PTStateMarker sszMtcPT6;
         static const PTStateMarker sszMtcPT7;
-        static const PTStateMarker sszMtcPT8;	
+        static const PTStateMarker sszMtcPT8;
+	static const PTStateMarker sszMtcPT9;
         
       private:
 
@@ -515,20 +519,29 @@ namespace aspect
       sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); // --- 25Kb
       // 1st value 5kb sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
 
-      // --- 1st p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT9(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1073.0); // --- Hydrated asth. low T vertex 47Kb, 800C
+
+      // --- main p,T triangle for pm ssz asth. production from fast upwelling of hydrated asth (no produciotn of pm MRB here)
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4);
+      pmSszAsthPTTriMain(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT9, LUSIComposition<dim>::sszMtcPT3);      
+
+      // --- 1st p,T triangle for pm ssz asth. production from fast upwelling of hydrated asth. or production of pm MRB only in the extension stage context 
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT2);
 
       // --- 1st p,T triangle for pm mrb asth. formation from slow upwelling of "dry" asth.
       //     Same as pmSszAsthPTTri1
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::pmMrbAsthPTTri1= pmSszAsthPTTri1;      
 
-      // --- 2nd p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.
+      // --- 2nd p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.  or pm MRB for extension stage 
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      pmSszAsthPTTri2(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT7);
+      pmSszAsthPTTri2(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT7, LUSIComposition<dim>::sszMtcPT4);
 
       // --- 2nd p,T triangle for pm mrb asth. formation from slow upwelling of dry asth.      
       template <int dim>
