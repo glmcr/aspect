@@ -418,13 +418,18 @@ namespace aspect
 
 	// --- Get the vertical velocity at the marker position
 	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
-	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
-	const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD) ? true: false;
+	
+	// --- Determine if the vertical velo allows the pm asth. of ssz type.
+	const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
 
 	//const bool pm_asth_ssz_type= extension_stage ? false: true;
 	const bool pm_asth_ssz_type= ((!extension_stage) && pm_asth_ssz_vvelo_ok) ? true : false;
 
-	const bool pm_asth_mrb_type= extension_stage ? true : false;
+	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
+	const bool pm_asth_mrb_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD) ? true: false;
+	
+	//const bool pm_asth_mrb_type= extension_stage ? true : false;
+	const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
 	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
 	//     transforms to partially melted SSZ asthenosphere 
@@ -435,6 +440,10 @@ namespace aspect
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+
+	    // --- also transform the partially melted MORB asthenosphere (if any) to partially melted SSZ asthenosphere
+	    //     (implies hydratation of the partially melted MORB asthenosphere )
+	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.

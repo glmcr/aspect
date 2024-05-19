@@ -235,7 +235,10 @@ namespace aspect
           // --- 0.25m/y in m/s
           //static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 7.927447995941146e-09;
 	  // --- 0.10m/y in m/s
-	  static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 3.1709791983764586e-09;
+	  static constexpr const double ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD= 3.1709791983764586e-09;
+
+	  // --- 0.02m/y in m/s
+          static constexpr const double ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD= 6.34e-10;
 	
            // ---  (p,T) tri. zone where asth. in partial SSZ melting state forms
            //      SSZ oc. crust 
