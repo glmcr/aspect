@@ -361,9 +361,10 @@ namespace aspect
                              "that could not be found in the current model. Activate this "
                              "boundary velocity model in the input file."));
 
-      typename std::map<types::boundary_id,std::vector<std::unique_ptr<BoundaryVelocity::Interface<dim>>>>::const_iterator boundary_velocity_model;
+      //typename std::map<types::boundary_id,std::vector<std::unique_ptr<BoundaryVelocity::Interface<dim>>>>::const_iterator boundary_velocity_model;
+      typename std::vector<std::unique_ptr<BoundaryVelocity::Interface<dim>>>::const_iterator boundary_velocity_model;
       for (const auto &boundary : boundary_velocity_objects)
-        for (const auto &p : boundary)
+        for (const auto &p : boundary.second)
           if (Plugins::plugin_type_matches<BoundaryVelocityType>(*p))
             return Plugins::get_plugin_as_type<BoundaryVelocityType>(*p);
 

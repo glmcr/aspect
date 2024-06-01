@@ -18,12 +18,11 @@
  <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _aspect_particle_property_composition_h
-#define _aspect_particle_property_composition_h
+#ifndef _aspect_particle_property_viscosity_h
+#define _aspect_particle_property_viscosity_h
 
 #include <aspect/particle/property/interface.h>
 #include <aspect/simulator_access.h>
-//#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
 {
@@ -32,17 +31,17 @@ namespace aspect
     namespace Property
     {
       /**
-       * Implementation of a plugin in which the particle
-       * property is defined by the compositional fields in
-       * the model. This can be used to track solid composition
-       * evolution over time.
-       *
-       * @ingroup ParticleProperties
+       *@ingroup ParticleProperties
        */
       template <int dim>
-      class Composition : public Interface<dim>, public ::aspect::SimulatorAccess<dim>
+      class Viscosity : public Interface<dim>, public ::aspect::SimulatorAccess<dim>
       {
         public:
+
+	Viscosity();
+	
+          void initialize () override;
+	  
           /**
            * Initialization function. This function is called once at the
            * creation of every particle for every property to initialize its
@@ -70,14 +69,14 @@ namespace aspect
 
           /**
            * This implementation tells the particle manager that
-           * we need to update particle properties over time.
+           * we need to update particle properties every time step.
            */
           UpdateTimeFlags
           need_update () const override;
 
           /**
            * Return which data has to be provided to update the property.
-           * The pressure and temperature need the values of their variables.
+           * The integrated strains needs the gradients of the velocity.
            */
           UpdateFlags
           get_needed_update_flags () const override;
@@ -91,6 +90,20 @@ namespace aspect
            */
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override;
+
+        private:
+          /**
+           * Objects that are used to compute the particle property. Since the
+           * object is expensive to create and is needed often it is kept as a
+           * member variable. Because it is changed inside a const member function
+           * (update_particle_property) it has to be mutable, but since it is
+           * only used inside that function and always set before being used
+           * that is not a problem. This implementation is not thread safe,
+           * but it is currently not used in a threaded context.
+           */
+          mutable MaterialModel::MaterialModelInputs<dim> material_inputs;
+          mutable MaterialModel::MaterialModelOutputs<dim> material_outputs;
+	
       };
     }
   }

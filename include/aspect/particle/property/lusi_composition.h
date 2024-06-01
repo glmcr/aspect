@@ -21,10 +21,12 @@
 #ifndef _aspect_particle_property_lusi_composition_h
 #define _aspect_particle_property_lusi_composition_h
 
-//#include <aspect/particle/property/interface.h>
+#include <aspect/particle/property/interface.h>
 #include <aspect/particle/property/composition.h>
 #include <aspect/particle/utilities_lusi.h>
 #include <aspect/simulator_access.h>
+#include <aspect/material_model/visco_plastic.h>
+//#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
 {
@@ -35,6 +37,16 @@ namespace aspect
 
       using namespace Particle::ParticleUtilities;
 
+	  struct strain_data
+        {
+          bool plastic_yielding;
+          double plastic_strain;
+          double viscous_strain;
+          double total_strain;
+          double noninitial_plastic_strain;
+	  
+        };
+      
       /**
        * Implementation of a plugin in which the particle property is defined by the
        * Laval U. Subductiion Initiation (LUSI, G. Mercier Ph.D. thesis) compositional fields in
@@ -44,9 +56,32 @@ namespace aspect
        * @ingroup ParticleProperties
        */
       template <int dim>
-      class LUSIComposition final : public Property::Composition<dim> //, public ::aspect::SimulatorAccess<dim>
+      class LUSIComposition final : public Property::Composition<dim> //, public Property::ViscoPlasticStrainInvariant<dim>
       {
+
         public:
+	
+	//   struct strain_data
+        // {
+        //   bool plastic_yielding;
+        //   double plastic_strain;
+        //   double viscous_strain;
+        //   double total_strain;
+        //   double noninitial_plastic_strain;
+	  
+        // };
+
+	LUSIComposition();
+
+        void initialize () override;
+	
+	void get_strain_data_update(struct strain_data&,
+				      const Vector<double> &solution,
+                                      const std::vector<Tensor<1,dim>> &gradients,
+                                      typename ParticleHandler<dim>::particle_iterator &particle) const;
+
+	  //void initialize () override;
+
           /**
            * Initialization function. This function is called once at the
            * creation of every particle for every property to initialize its
@@ -95,6 +130,8 @@ namespace aspect
            */
           std::vector<std::pair<std::string, unsigned int>>
           get_property_information() const override;
+
+	  //static constexpr const char* SIM_AGE_IN_YEARS= "ageInYears";
 
 	  // ---
           //inline
@@ -194,8 +231,15 @@ namespace aspect
           static constexpr const double ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS= 1523.0;
 
           // --- 0.5m/y in m/s
-          static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 1.5854895991882293e-08;
+          //static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 1.5854895991882293e-08;
+          // --- 0.25m/y in m/s
+          //static constexpr const double ASTH_PARTIAL_MELT_TYPE_VEL_THRESHOLD= 7.927447995941146e-09;
+	  // --- 0.10m/y in m/s
+	  static constexpr const double ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD= 3.1709791983764586e-09;
 
+	  // --- 0.02m/y in m/s
+          static constexpr const double ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD= 6.34e-10;
+	
            // ---  (p,T) tri. zone where asth. in partial SSZ melting state forms
            //      SSZ oc. crust 
 	   static const PTStateMarkersTriangle asth2SSZCrustPTTri1;
@@ -210,6 +254,7 @@ namespace aspect
 	   static const PTStateMarkersTriangle pmSszAsthPTTri1;
 	   static const PTStateMarkersTriangle pmSszAsthPTTri2;
 	   static const PTStateMarkersTriangle pmSszAsthPTTri3;
+	   static const PTStateMarkersTriangle pmSszAsthPTTriMain;
 
            // ---  (p,T) tri. zone where asth. in partial MRB melting state forms
            //      MRB oc. crust         
@@ -300,9 +345,13 @@ namespace aspect
         static const PTStateMarker sszMtcPT5;
         static const PTStateMarker sszMtcPT6;
         static const PTStateMarker sszMtcPT7;
-        static const PTStateMarker sszMtcPT8;	
+        static const PTStateMarker sszMtcPT8;
+	static const PTStateMarker sszMtcPT9;
         
       private:
+
+	mutable MaterialModel::MaterialModelInputs<dim> material_inputs;
+	
 	   static inline void lusiMaterialChange(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
 	   {
 
@@ -439,17 +488,20 @@ namespace aspect
        
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 2023.0); // --- 1750C
+      sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1823.0); 
+      //sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 2023.0); // --- 1750C
       // 1st value 1500C sszMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1773.0);      
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, 2023.0); // --- 50Kb, 1750C
+      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1823.0); // --- 47Kb, 1550C
+      //sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, 2023.0); // --- 50Kb, 1750C
       // 1st values, 10Kb & 1500C szMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.0e9, 1773.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1403.0); // --- 1130C  
+      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1394.0);  //  1121C
+      //sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1403.0); // --- 1130C  
       // 1st value, 1200C sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0);     
 
       template <int dim>
@@ -462,7 +514,7 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1700.0); // --- 25Kb, 1427C  
+      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1612.0); // --- 25Kb, 1340C  
       // --- 1st values 5kb, 1300C sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);     
 
       template <int dim>
@@ -470,20 +522,29 @@ namespace aspect
       sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS); // --- 25Kb
       // 1st value 5kb sszMtcPT8(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::SURF_TEMPERATURE_KELVINS);
 
-      // --- 1st p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT9(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1073.0); // --- Hydrated asth. low T vertex 47Kb, 800C
+
+      // --- main p,T triangle for pm ssz asth. production from fast upwelling of hydrated asth (no produciotn of pm MRB here)
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4);
+      pmSszAsthPTTriMain(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT9, LUSIComposition<dim>::sszMtcPT3);      
+
+      // --- 1st p,T triangle for pm ssz asth. production from fast upwelling of hydrated asth. or production of pm MRB only in the extension stage context 
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      pmSszAsthPTTri1(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT2);
 
       // --- 1st p,T triangle for pm mrb asth. formation from slow upwelling of "dry" asth.
       //     Same as pmSszAsthPTTri1
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::pmMrbAsthPTTri1= pmSszAsthPTTri1;      
 
-      // --- 2nd p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.
+      // --- 2nd p,T triangle for pm ssz asth. formation from fast upwelling of hydrated asth.  or pm MRB for extension stage 
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      pmSszAsthPTTri2(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT4, LUSIComposition<dim>::sszMtcPT7);
+      pmSszAsthPTTri2(LUSIComposition<dim>::sszMtcPT2, LUSIComposition<dim>::sszMtcPT7, LUSIComposition<dim>::sszMtcPT4);
 
       // --- 2nd p,T triangle for pm mrb asth. formation from slow upwelling of dry asth.      
       template <int dim>
