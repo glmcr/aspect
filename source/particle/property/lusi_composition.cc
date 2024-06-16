@@ -384,7 +384,7 @@ namespace aspect
 
 	//const Tensor<1,dim> bnd_velos= bndFunctionObj.boundary_velocity(0,particle->get_location());
 
-        bool extension_stage= (rigth_bnd_velos[0] > 0.0 || left_bnd_velos[0] < 0.0) ? true : false;
+        bool in_extension_stage= (rigth_bnd_velos[0] > 0.0 || left_bnd_velos[0] < 0.0) ? true : false;
 	
 	// bool extension_stage= false;
 	// if (xPositionMeters < gridXExtent/2.0) {
@@ -396,13 +396,13 @@ namespace aspect
 	// }
 	
 	// --- Need to keep the acc. strains at 0.0 for MORB crust and oc. seds for the extension stage only
-	if (part_compo_props[mrb_oc_crust_idx] > 0.5 && extension_stage)
+	if (part_compo_props[mrb_oc_crust_idx] > 0.5 && in_extension_stage)
 	  {
 	    part_compo_props[acc_tot_strain_idx]=
 	      part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
 	  }
 	
-	if (part_compo_props[oc_seds_idx] > 0.5 && extension_stage) {
+	if (part_compo_props[oc_seds_idx] > 0.5 && in_extension_stage) {
 	  part_compo_props[acc_tot_strain_idx]=
 	    part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
 	}
@@ -416,20 +416,22 @@ namespace aspect
 	  return;
 	}
 
-	// --- Get the vertical velocity at the marker position
-	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+	// // --- Get the vertical velocity at the marker position
+	// const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
 	
-	// --- Determine if the vertical velo allows the pm asth. of ssz type.
-	const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
+	// // --- Determine if the vertical velo allows the pm asth. of ssz type.
+	// const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
 
 	//const bool pm_asth_ssz_type= extension_stage ? false: true;
-	const bool pm_asth_ssz_type= ((!extension_stage) && pm_asth_ssz_vvelo_ok) ? true : false;
+	//const bool pm_asth_ssz_type= ((!extension_stage) && pm_asth_ssz_vvelo_ok) ? true : false;
+	const bool pm_asth_ssz_type= !in_extension_stage;
 
-	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
-	const bool pm_asth_mrb_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD) ? true: false;
+	// // --- Determine which type of pm asth. we have depending on the vertical velo. value 
+	// const bool pm_asth_mrb_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD) ? true: false;
 	
-	//const bool pm_asth_mrb_type= extension_stage ? true : false;
-	const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
+	// //const bool pm_asth_mrb_type= extension_stage ? true : false;
+	// const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
+	const bool pm_asth_mrb_type= in_extension_stage;
 	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
 	//     transforms to partially melted SSZ asthenosphere 
@@ -458,7 +460,7 @@ namespace aspect
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
         if ( (asth2SSZCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here)) && ! extension_stage)
+	      asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage)
 	  {
 
            const double previousSSZMatContent= part_compo_props[ssz_oc_crust_idx];
@@ -474,7 +476,7 @@ namespace aspect
 	
 	// --- (p,T) conditions for which upwelling MORB asth. partial melts transforms to MORB crust.
         if ( (asth2MRBCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here) ) && extension_stage)
+	      asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here) ) && in_extension_stage)
 	  {
 
            const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
@@ -490,7 +492,7 @@ namespace aspect
 
 	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
 	if ( (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && ! extension_stage)
+	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage)
 	  {
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
@@ -508,7 +510,7 @@ namespace aspect
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
 	if ((asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && extension_stage)
+	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage)
 	  {
 
             const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
