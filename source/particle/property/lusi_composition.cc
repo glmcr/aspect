@@ -432,13 +432,26 @@ namespace aspect
 	// //const bool pm_asth_mrb_type= extension_stage ? true : false;
 	// const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
 	const bool pm_asth_mrb_type= in_extension_stage;
+
+	bool metam_fluids_contact_with_asth= false;
+
+	// --- Verify if we have a marker having amphibolites OR granulites OR SSZ p.m. asth. AND asth. materials OR
+	//     MRB p.m. asth. in its composition. Set the metam_fluids_contact_with_asth at true to signal that
+	//     we can produce SSZ p. m. asth. This means that some metam. fluids are available here.
+	if (part_compo_props[amphibolites_idx] > 0.2 || part_compo_props[granulites_idx] > 0.2 || part_compo_props[pm_ssz_asth_mtl_idx] > 0.2)
+	  {
+	    if (part_compo_props[asth_mtl_idx] > 0.2 || part_compo_props[asth_olm_hyb_mat_idx] > 0.2 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.2 )
+	      {
+                metam_fluids_contact_with_asth= true;
+	      }
+	  }
 	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
 	//     transforms to partially melted SSZ asthenosphere 
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
-	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type )
+	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && metam_fluids_contact_with_asth)
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
