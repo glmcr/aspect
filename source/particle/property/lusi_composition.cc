@@ -199,6 +199,9 @@ namespace aspect
         const unsigned int asth_olm_hyb_mat_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
 
+        const unsigned int serp_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(SERP_NID);	
+
 	// --- NOTE: Assuming here that acc_tot_strain_idx is < acc_ninit_plastic_strain_idx
 	//           AND that acc_ninit_plastic_strain_idx = acc_tot_strain_idx + 1
 	//           (which means that the acc_ninit_plastic_strain value is located
@@ -433,6 +436,28 @@ namespace aspect
 	// const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
 	const bool pm_asth_mrb_type= in_extension_stage;
 
+	// --- Serpentinization parametrization
+	bool metam_fluids_contact_with_olmMRB= false;
+
+	if ( (part_compo_props[amphibolites_idx] > 0.2 ||
+	      part_compo_props[granulites_idx]   > 0.2 ||
+	      part_compo_props[greenschists_idx] > 0.2) && part_compo_props[mrb_lith_mtl_idx] > 0.2)
+	  {
+	    if (part_compo_props[acc_tot_strain_idx] > 7.5)
+	      {
+		metam_fluids_contact_with_olmMRB= true;
+	      }
+	  }
+
+	if ( (srpPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && metam_fluids_contact_with_olmMRB)
+	  {
+	    lusiMaterialChange(part_compo_props, mrb_lith_mtl_idx, serp_idx, 0.0, 1.0);
+	  }
+
+	// --- Serpentinization parametrization block end
+
+	// --- p.m. SSZ asth.
 	bool metam_fluids_contact_with_asth= false;
 
 	// --- Verify if we have a marker having amphibolites OR granulites OR SSZ p.m. asth. AND asth. materials OR

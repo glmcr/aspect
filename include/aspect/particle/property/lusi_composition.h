@@ -179,6 +179,8 @@ namespace aspect
 
         //static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
 
+	  static constexpr const char* SERP_NID= "serpentinite";
+
           static constexpr const char* ACC_TOTAL_STRAIN_NID= "total_strain";
 
           static constexpr const char* ACC_NONINIT_PLASTIC_STRAIN_NID= "noninitial_plastic_strain";
@@ -347,7 +349,14 @@ namespace aspect
         static const PTStateMarker sszMtcPT7;
         static const PTStateMarker sszMtcPT8;
 	static const PTStateMarker sszMtcPT9;
-        
+
+	static const PTStateMarker srpMtcPT1;
+	static const PTStateMarker srpMtcPT2;
+	static const PTStateMarker srpMtcPT3;
+	static const PTStateMarker srpMtcPT4;
+        static const PTStateMarkersTriangle srpPTTri1;
+	static const PTStateMarkersTriangle srpPTTri2;
+	
       private:
 
 	mutable MaterialModel::MaterialModelInputs<dim> material_inputs;
@@ -598,6 +607,33 @@ namespace aspect
       // --- 2nd p,T triangle for MRB OCC formation from upwelling pm mrb asth.
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::asth2MRBCrustPTTri2= asth2SSZCrustPTTri2;
+
+      // --- serpentinization of the OLM MRB section
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      srpMtcPT1(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, 673.0); // --- 400C Low P.
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      srpMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, 823.0); // --- 550C Low P.
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      srpMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.5e9, 673.0); // --- 400C High P.
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::
+      srpMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.5e9, 923.0); // --- 650C High P.
+
+      // --- 1st p,T triangle for serpentinization of the OLM MRB 
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      srpPTTri1(LUSIComposition<dim>::srpMtcPT1, LUSIComposition<dim>::srpMtcPT2, LUSIComposition<dim>::srpMtcPT3);
+
+       // --- 2nd p,T triangle for serpentinization of the OLM MRB
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      srpPTTri2(LUSIComposition<dim>::srpMtcPT2, LUSIComposition<dim>::srpMtcPT3, LUSIComposition<dim>::srpMtcPT4);     
       
     }
   }
