@@ -439,9 +439,9 @@ namespace aspect
 	// --- Serpentinization parametrization
 	bool metam_fluids_contact_with_olmMRB= false;
 
-	if ( (part_compo_props[amphibolites_idx] > 0.2 ||
-	      part_compo_props[granulites_idx]   > 0.2 ||
-	      part_compo_props[greenschists_idx] > 0.2) && part_compo_props[mrb_lith_mtl_idx] > 0.2)
+	if ( (part_compo_props[amphibolites_idx] > 0.1 ||
+	      part_compo_props[granulites_idx]   > 0.1 ||
+	      part_compo_props[greenschists_idx] > 0.1) && part_compo_props[mrb_lith_mtl_idx] > 0.1)
 	  {
 	    if (part_compo_props[acc_tot_strain_idx] > 7.5)
 	      {
@@ -452,7 +452,9 @@ namespace aspect
 	if ( (srpPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && metam_fluids_contact_with_olmMRB)
 	  {
+            // --- apply serpentinization for both MRB and SSZ OLM types
 	    lusiMaterialChange(part_compo_props, mrb_lith_mtl_idx, serp_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, ssz_lith_mtl_idx, serp_idx, 0.0, 1.0);
 	  }
 
 	// --- Serpentinization parametrization block end
@@ -463,9 +465,9 @@ namespace aspect
 	// --- Verify if we have a marker having amphibolites OR granulites OR SSZ p.m. asth. AND asth. materials OR
 	//     MRB p.m. asth. in its composition. Set the metam_fluids_contact_with_asth at true to signal that
 	//     we can produce SSZ p. m. asth. This means that some metam. fluids are available here.
-	if (part_compo_props[amphibolites_idx] > 0.2 || part_compo_props[granulites_idx] > 0.2 || part_compo_props[pm_ssz_asth_mtl_idx] > 0.2)
+	if (part_compo_props[amphibolites_idx] > 0.1 || part_compo_props[granulites_idx] > 0.1 || part_compo_props[pm_ssz_asth_mtl_idx] > 0.1)
 	  {
-	    if (part_compo_props[asth_mtl_idx] > 0.2 || part_compo_props[asth_olm_hyb_mat_idx] > 0.2 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.2 )
+	    if (part_compo_props[asth_mtl_idx] > 0.1 || part_compo_props[asth_olm_hyb_mat_idx] > 0.1 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.1 )
 	      {
                 metam_fluids_contact_with_asth= true;
 	      }
