@@ -611,11 +611,11 @@ namespace aspect
       // --- serpentinization of the OLM MRB section
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      srpMtcPT1(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, 673.0); // --- 400C Low P.
+      srpMtcPT1(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.45e9, 673.0); // --- 400C Low P.
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      srpMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, 823.0); // --- 550C Low P.
+      srpMtcPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.45e9, 823.0); // --- 550C Low P.
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
@@ -628,12 +628,12 @@ namespace aspect
       // --- 1st p,T triangle for serpentinization of the OLM MRB 
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      srpPTTri1(LUSIComposition<dim>::srpMtcPT1, LUSIComposition<dim>::srpMtcPT2, LUSIComposition<dim>::srpMtcPT3);
+      srpPTTri1(LUSIComposition<dim>::srpMtcPT1, LUSIComposition<dim>::srpMtcPT3, LUSIComposition<dim>::srpMtcPT4);
 
        // --- 2nd p,T triangle for serpentinization of the OLM MRB
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      srpPTTri2(LUSIComposition<dim>::srpMtcPT2, LUSIComposition<dim>::srpMtcPT3, LUSIComposition<dim>::srpMtcPT4);     
+      srpPTTri2(LUSIComposition<dim>::srpMtcPT1, LUSIComposition<dim>::srpMtcPT2, LUSIComposition<dim>::srpMtcPT4);     
       
     }
   }
