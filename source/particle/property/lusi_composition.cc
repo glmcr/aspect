@@ -434,7 +434,9 @@ namespace aspect
 	
 	// //const bool pm_asth_mrb_type= extension_stage ? true : false;
 	// const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
-	const bool pm_asth_mrb_type= in_extension_stage;
+	// (testing with MRB melt also in the convergence
+	//     context hence the commented following line )
+	//const bool pm_asth_mrb_type= in_extension_stage;
 
 	// --- Serpentinization parametrization
 	bool metam_fluids_contact_with_olmMRB= false;
@@ -484,15 +486,16 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 
 	    // --- also transform the partially melted MORB asthenosphere (if any) to partially melted SSZ asthenosphere
-	    //     (implies hydratation of the partially melted MORB asthenosphere )
+	    //     (implies hydration of the partially melted MORB asthenosphere )
 	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
-	//     transforms to partially melted MORB asthenosphere (no MRB melt in the convergence context)
+	//     transforms to partially melted MORB asthenosphere (testing with MRB melt also in the convergence
+	//     context hence the commented for the && pm_asth_mrb_type )
         if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
-              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_mrb_type)
+              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) ) // && pm_asth_mrb_type)
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
