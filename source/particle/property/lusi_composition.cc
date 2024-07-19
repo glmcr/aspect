@@ -441,7 +441,8 @@ namespace aspect
 	// --- Serpentinization parametrization
 	bool metam_fluids_contact_with_olmMRB= false;
 
-	if ( (part_compo_props[amphibolites_idx] > 0.1 ||
+	if ( (part_compo_props[eclogites_idx] > 0.1 ||
+	      part_compo_props[amphibolites_idx] > 0.1 ||
 	      part_compo_props[granulites_idx]   > 0.1 ||
 	      part_compo_props[greenschists_idx] > 0.1) && part_compo_props[mrb_lith_mtl_idx] > 0.1)
 	  {
@@ -464,10 +465,15 @@ namespace aspect
 	// --- p.m. SSZ asth.
 	bool metam_fluids_contact_with_asth= false;
 
-	// --- Verify if we have a marker having amphibolites OR granulites OR SSZ p.m. asth. AND asth. materials OR
-	//     MRB p.m. asth. in its composition. Set the metam_fluids_contact_with_asth at true to signal that
-	//     we can produce SSZ p. m. asth. This means that some metam. fluids are available here.
-	if (part_compo_props[amphibolites_idx] > 0.1 || part_compo_props[granulites_idx] > 0.1 || part_compo_props[pm_ssz_asth_mtl_idx] > 0.1)
+	// --- Verify if we have a marker having amphibolites OR granulites OR greenschists OR eclogites OR
+	//     SSZ p.m. asth. AND all asth. materials OR MRB p.m. asth. in its composition. Set the
+	//     metam_fluids_contact_with_asth at true to signal that we can produce SSZ p. m. asth.
+	//     This means that some metam. fluids (devolatilisation) are available here.
+	if (part_compo_props[eclogites_idx] > 0.1 ||
+	    part_compo_props[amphibolites_idx] > 0.1 ||
+	    part_compo_props[granulites_idx] > 0.1   ||
+	    part_compo_props[greenschists_idx] > 0.1 ||
+	    part_compo_props[pm_ssz_asth_mtl_idx] > 0.1)
 	  {
 	    if (part_compo_props[asth_mtl_idx] > 0.1 || part_compo_props[asth_olm_hyb_mat_idx] > 0.1 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.1 )
 	      {
@@ -476,7 +482,7 @@ namespace aspect
 	  }
 	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
-	//     transforms to partially melted SSZ asthenosphere 
+	//     AND the  partially melted MORB asth. transforms to partially melted SSZ asthenosphere 
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
@@ -633,8 +639,8 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, greenschists_idx, blueschists_idx , 0.0, 1.0);
 	  }
 
-	// --- p,T conditions under which oc. crust, blueschists, greenschists, amphibolites and
-	//     granulites transform to eclogites facies
+	// --- p,T conditions under which oc. seds, oc. crust, blueschists, greenschists, amphibolites and
+	//     granulites (and possibly serpentinite) transform to eclogites facies
 	if (eclogitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	    eclogitesPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
             eclogitesPTTri3.ptInside(pressureInMPa_here,temperature_here) )
@@ -646,6 +652,14 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, greenschists_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, granulites_idx,   eclogites_idx, 0.0, 1.0);
+
+	    // --- The marker should be outside the 2 (p,T) serp. stability triangles
+	    //     to transform it to eclogite.
+	    if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
+		 !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
+	      {
+	        lusiMaterialChange(part_compo_props, serp_idx, eclogites_idx, 0.0, 1.0);
+	      }
 	  }
 
         // --- cooled asth -> asth OLM hybrid.
