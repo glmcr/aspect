@@ -452,6 +452,7 @@ namespace aspect
 	      }
 	  }
 
+	// --- Serp. appears only in the convergence and subsequent slab roll back context.
 	if ( (srpPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && metam_fluids_contact_with_olmMRB)
 	  {
@@ -466,14 +467,15 @@ namespace aspect
 	bool metam_fluids_contact_with_asth= false;
 
 	// --- Verify if we have a marker having amphibolites OR granulites OR greenschists OR eclogites OR
-	//     SSZ p.m. asth. AND all asth. materials OR MRB p.m. asth. in its composition. Set the
+	//     serp OR SSZ p.m. asth. AND all asth. materials OR MRB p.m. asth. in its composition. Set the
 	//     metam_fluids_contact_with_asth at true to signal that we can produce SSZ p. m. asth.
 	//     This means that some metam. fluids (devolatilisation) are available here.
 	if (part_compo_props[eclogites_idx] > 0.1 ||
 	    part_compo_props[amphibolites_idx] > 0.1 ||
 	    part_compo_props[granulites_idx] > 0.1   ||
 	    part_compo_props[greenschists_idx] > 0.1 ||
-	    part_compo_props[pm_ssz_asth_mtl_idx] > 0.1)
+	    part_compo_props[pm_ssz_asth_mtl_idx] > 0.1 ||
+	    part_compo_props[serp_idx] > 0.1 )
 	  {
 	    if (part_compo_props[asth_mtl_idx] > 0.1 || part_compo_props[asth_olm_hyb_mat_idx] > 0.1 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.1 )
 	      {
@@ -486,7 +488,7 @@ namespace aspect
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
-	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && metam_fluids_contact_with_asth)
+	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type ) // test without && metam_fluids_contact_with_asth)
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
