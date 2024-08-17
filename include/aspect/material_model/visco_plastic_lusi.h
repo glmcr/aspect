@@ -26,11 +26,15 @@
 #include <aspect/material_model/visco_plastic.h>
 #include<deal.II/fe/component_mask.h>
 
+#include <aspect/particle/property/lusi_composition.h>
+
 namespace aspect
 {
   namespace MaterialModel
   {
     using namespace dealii;
+
+    static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= Particle::Property::ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS;
 
     template <int dim>
     class ViscoPlasticLUSI : public MaterialModel::ViscoPlastic<dim>
@@ -97,8 +101,13 @@ namespace aspect
         static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
 
         static constexpr const double THERMAL_EXP_LOW_T_IN_K_THRESHOLD= 500.0;
-        static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
-
+      //static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
+      
+      // use the ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS T to define the upper limit
+      // of the application of the dependance of the thermal exp. on T. This is to
+      // keep the asthenosphere at the constant 52.5 thermal cond as in Butler 2017
+      //  static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= Particle::Property::ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS;
+      
         static constexpr const double THERMAL_EXP_T_IN_K_THRD_FACT=
           0.22/(THERMAL_EXP_UPP_T_IN_K_THRESHOLD-THERMAL_EXP_LOW_T_IN_K_THRESHOLD);
       
