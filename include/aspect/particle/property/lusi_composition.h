@@ -50,7 +50,7 @@ namespace aspect
         // --- Temperature under which the cooling asth. transform to an hybrid material
         //     that has the same thermal properties as the OLM but the same WOL rheology
         //     as the asth. (T==1280C). No dependence on pressure for this hybrid material
-        static constexpr const double ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS= 1553.0;
+        static constexpr const double ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS= 1573.0; //1553.0;
       
       /**
        * Implementation of a plugin in which the particle property is defined by the
