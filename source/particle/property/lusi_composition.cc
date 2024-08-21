@@ -419,21 +419,21 @@ namespace aspect
 	  return;
 	}
 
-	// // --- Get the vertical velocity at the marker position
-	// const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+	// --- Get the vertical velocity at the marker position
+	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
 	
-	// // --- Determine if the vertical velo allows the pm asth. of ssz type.
-	// const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
+	// --- Determine if the vertical velo allows the pm asth. of ssz type.
+	const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
 
 	//const bool pm_asth_ssz_type= extension_stage ? false: true;
 	//const bool pm_asth_ssz_type= ((!extension_stage) && pm_asth_ssz_vvelo_ok) ? true : false;
 	const bool pm_asth_ssz_type= !in_extension_stage;
 
-	// // --- Determine which type of pm asth. we have depending on the vertical velo. value 
-	// const bool pm_asth_mrb_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD) ? true: false;
+	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
+	const bool pm_asth_mrb_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD) ? true: false;
 	
 	// //const bool pm_asth_mrb_type= extension_stage ? true : false;
-	// const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
+	//const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
 	// (testing with MRB melt also in the convergence
 	//     context hence the commented following line )
 	//const bool pm_asth_mrb_type= in_extension_stage;
@@ -463,39 +463,40 @@ namespace aspect
 
 	// --- Serpentinization parametrization block end
 
-	// --- p.m. SSZ asth.
-	bool metam_fluids_contact_with_asth= false;
+	// // --- p.m. SSZ asth.
+	// bool metam_fluids_contact_with_asth= false;
 
-	// --- Verify if we have a marker having amphibolites OR granulites OR greenschists OR eclogites OR
-	//     serp OR SSZ p.m. asth. AND all asth. materials OR MRB p.m. asth. in its composition. Set the
-	//     metam_fluids_contact_with_asth at true to signal that we can produce SSZ p. m. asth.
-	//     This means that some metam. fluids (devolatilisation) are available here.
-	if (part_compo_props[eclogites_idx] > 0.1 ||
-	    part_compo_props[amphibolites_idx] > 0.1 ||
-	    part_compo_props[granulites_idx] > 0.1   ||
-	    part_compo_props[greenschists_idx] > 0.1 ||
-	    part_compo_props[pm_ssz_asth_mtl_idx] > 0.1 ||
-	    part_compo_props[serp_idx] > 0.1 )
-	  {
-	    if (part_compo_props[asth_mtl_idx] > 0.1 || part_compo_props[asth_olm_hyb_mat_idx] > 0.1 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.1 )
-	      {
-                metam_fluids_contact_with_asth= true;
-	      }
-	  }
+	// // --- Verify if we have a marker having amphibolites OR granulites OR greenschists OR eclogites OR
+	// //     serp OR SSZ p.m. asth. AND all asth. materials OR MRB p.m. asth. in its composition. Set the
+	// //     metam_fluids_contact_with_asth at true to signal that we can produce SSZ p. m. asth.
+	// //     This means that some metam. fluids (devolatilisation) are available here.
+	// if (part_compo_props[eclogites_idx] > 0.1 ||
+	//     part_compo_props[amphibolites_idx] > 0.1 ||
+	//     part_compo_props[granulites_idx] > 0.1   ||
+	//     part_compo_props[greenschists_idx] > 0.1 ||
+	//     part_compo_props[pm_ssz_asth_mtl_idx] > 0.1 ||
+	//     part_compo_props[serp_idx] > 0.1 )
+	//   {
+	//     if (part_compo_props[asth_mtl_idx] > 0.1 || part_compo_props[asth_olm_hyb_mat_idx] > 0.1 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.1 )
+	//       {
+        //         metam_fluids_contact_with_asth= true;
+	//       }
+	//   }
 	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
 	//     AND the  partially melted MORB asth. transforms to partially melted SSZ asthenosphere 
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
-	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type ) // test without && metam_fluids_contact_with_asth)
+	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && pm_asth_ssz_vvelo_ok)
+	      // test without && metam_fluids_contact_with_asth)
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 
 	    // --- also transform the partially melted MORB asthenosphere (if any) to partially melted SSZ asthenosphere
 	    //     (implies hydration of the partially melted MORB asthenosphere )
-	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
@@ -503,7 +504,7 @@ namespace aspect
 	//     context hence the commented for the && pm_asth_mrb_type )
         if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
-              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) ) // && pm_asth_mrb_type)
+              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_mrb_vvelo_ok ) //&& pm_asth_mrb_type)
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
