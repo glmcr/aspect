@@ -25,6 +25,7 @@
 #include <aspect/newton.h>
 #include <aspect/adiabatic_conditions/interface.h>
 #include <aspect/gravity_model/interface.h>
+//#include <aspect/initial_composition/interface.h>
 
 namespace aspect
 {
@@ -157,22 +158,38 @@ namespace aspect
                    //}
 		 } // --- if block for thermal exp. dependance on T
 
-	       // --- Now update the thermal cond. via the thermal_diffusivities.
-	       if ( in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD) {
+	       // --- Now update the thermal cond. via the thermal_diffusivities
+	       //     EXCEPT for the asth. mantle .
+	       //const unsigned int asth_mtl_idx= 
+	       //   this->introspection().compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
+	       
+	       if ( (in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD) ) // && (asth_vol_frac < 0.9) ) {
+                 {
 
-		 double thermal_diffusivity= 0.0;
-
-		 for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
-		 {
-                    thermal_diffusivity += volume_fractions[cmp] * this->thermal_diffusivities[cmp];
-                 }
+		  const unsigned int asth_mtl_idx= this->introspection()
+		    .compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
 		 // --- NOTE: We assume here that the reference T is 273K
 		 //     Limit the thDiffFactor between 1.0 and 0.45
 		 const double thDiffFactor=
 		   std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.45));
+		   
+		 double thermal_diffusivity= 0.0;
+
+		 for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
+		 {
+		    // --- do not apply the thDiffFactor to the asth. mantle (if any)
+		    const double thDiffFactCheck= (cmp == asth_mtl_idx) ? 1.0 : thDiffFactor;
+		   
+                    thermal_diffusivity += volume_fractions[cmp] * this->thermal_diffusivities[cmp] * thDiffFactCheck;
+                 }
+
+		 // // --- NOTE: We assume here that the reference T is 273K
+		 // //     Limit the thDiffFactor between 1.0 and 0.45
+		 // const double thDiffFactor=
+		 //   std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.45));
 		 
-		 thermal_diffusivity *= thDiffFactor ;
+		 //thermal_diffusivity *= thDiffFactor ;
 
 		 out.thermal_conductivities[i]= thermal_diffusivity * out.specific_heat[i] * out.densities[i];
 		 

@@ -34,7 +34,7 @@ namespace aspect
   {
     using namespace dealii;
 
-    static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= Particle::Property::ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS;
+    //static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0; //Particle::Property::ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS;
 
     template <int dim>
     class ViscoPlasticLUSI : public MaterialModel::ViscoPlastic<dim>
@@ -101,7 +101,7 @@ namespace aspect
         static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
 
         static constexpr const double THERMAL_EXP_LOW_T_IN_K_THRESHOLD= 500.0;
-      //static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
+        static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
       
       // use the ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS T to define the upper limit
       // of the application of the dependance of the thermal exp. on T. This is to
@@ -118,7 +118,11 @@ namespace aspect
         //     on both the density AND the thermal diff.
         //     NOTE: We assume here that the reference T is 273K
         //           1573K is the T threshold for the asth. vs lith. mantle limit.
-        static constexpr const double THERMAL_DIFF_T_IN_K_FACT= 1.0/(2.0*(1573.0-273.0));
+        //static constexpr const double THERMAL_DIFF_T_IN_K_FACT= 1.0/(2.0*(1573.0-273.0));
+
+        // --- 1250K is the T where the th. diff. coefficients become constants at their lower values
+        //     (Whittington et al. 2009, Nature)
+        static constexpr const double THERMAL_DIFF_T_IN_K_FACT= 1.0/(2.0*(1250.0-273.0));
       
       //private:
       //
