@@ -74,6 +74,9 @@ namespace aspect
           
           const double reference_temperature = reference_T_cref;
 
+	  const unsigned int asth_mtl_idx= this->introspection()
+	     .compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
+	  
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
             {
@@ -127,7 +130,11 @@ namespace aspect
 		   // --- Update thermal expansivitires and densities accordinglym (for all compos)
                    for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
 		   {
-		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp];
+		      // --- do not apply the thExpFact to the asth. mantle (i.e. do not apply the dependency
+		      //     of the th. exp. on T for the asth. mantle so its th. exp. stays constant for all T)
+                      const double thExpFactCheck= (cmp == asth_mtl_idx) ? 1.0 : thExpFact;
+		     
+		      thermal_expansivities_local[cmp]= thExpFactCheck * thermal_expansivities_cref[cmp];
 
                       densities_local[cmp]= densities_cref[cmp] *
                           (1.0 - thermal_expansivities_local[cmp] * (in.temperature[i] - reference_temperature));		      
@@ -166,8 +173,8 @@ namespace aspect
 	       if ( (in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD) ) // && (asth_vol_frac < 0.9) ) {
                  {
 
-		  const unsigned int asth_mtl_idx= this->introspection()
-		    .compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
+		   //const unsigned int asth_mtl_idx= this->introspection()
+		   //  .compositional_index_for_name(ASTHENOSPHERIC_MANTLE_NID);
 
 		 // --- NOTE: We assume here that the reference T is 273K
 		 //     Limit the thDiffFactor between 1.0 and 0.45
