@@ -72,7 +72,7 @@ namespace aspect
           std::vector<double> densities_local(eos_cref.densities_constref);
           std::vector<double> thermal_expansivities_local(eos_cref.thermal_expansivities_constref);
           
-          const double reference_temperature = reference_T_cref;
+          //const double reference_temperature = reference_T_cref;
 
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
@@ -83,19 +83,19 @@ namespace aspect
 	       const std::vector<double> volume_fractions= MaterialUtilities::
 		     compute_composition_fractions(in.composition[i], volumetric_compositions);
 
+               // If adiabatic heating is used, the reference temperature used to calculate density should be the adiabatic
+               // temperature at the current position. This definition is consistent with the Extended Boussinesq Approximation.
+               const double reference_temperature = (this->include_adiabatic_heating()
+                                                     ?
+                                                     this->get_adiabatic_conditions().temperature(in.position[i])
+                                                     :
+                                                     reference_T_cref);	  	       
+
                if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD)
                  {
 
                    //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= "
                    //                  << in.temperature[i] << std::endl ;
-
-                   // If adiabatic heating is used, the reference temperature used to calculate density should be the adiabatic
-                   // temperature at the current position. This definition is consistent with the Extended Boussinesq Approximation.
-                   //const double reference_temperature = (this->include_adiabatic_heating()
-                   //                                      ?
-                   //                                      this->get_adiabatic_conditions().temperature(in.position[i])
-                   //                                      :
-                   //                                      reference_T_cref);
 
                    //this->get_pcout() << "ViscoPlasticLUSI:: reference_temperature=" << reference_temperature << std::endl ;
 
@@ -130,7 +130,8 @@ namespace aspect
 		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp];
 
                       densities_local[cmp]= densities_cref[cmp] *
-                          (1.0 - thermal_expansivities_local[cmp] * (in.temperature[i] - reference_temperature));		      
+			  (1.0 - thermal_expansivities_local[cmp] * (in.temperature[i] - reference_temperature));
+		      // Usage of the constant ref. T (1.0 - thermal_expansivities_local[cmp] * (in.temperature[i] - reference_T_cref));		      
 		   }
 
                    out.densities[i]=
@@ -173,6 +174,7 @@ namespace aspect
 		 //     Limit the thDiffFactor between 1.0 and 0.45
 		 const double thDiffFactor=
 		   std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.45));
+		 // Usage of the constant ref. T std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] -reference_T_cref), 0.45));
 		   
 		 double thermal_diffusivity= 0.0;
 
