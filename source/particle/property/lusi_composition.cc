@@ -410,12 +410,22 @@ namespace aspect
 	    part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
 	}
 
+        // --- cooled asth (if any) -> asth non-convec hybrid.
+        if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
+	  {
+            lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
+          }
+	else // --- heated asth non-convec. hybrid (if any) -> asth
+	  {
+            lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
+	  }
+	
         // --- Do the check for the safe distance from the sides:
 	if (xPositionMeters <= NO_MTC_ON_DISTANCE_FROM_SIDES ||
             xPositionMeters >= (gridXExtent - NO_MTC_ON_DISTANCE_FROM_SIDES)) {
 	    //xPositionMeters >= (box_geometry_model.get_extents()[0] - NO_MTC_ON_DISTANCE_FROM_SIDES)) {
 
-	  // --- Do not do any metam. changes here, just returns.
+	  // --- Do not do any metam. changes here (except for the asth. -> non convec asth and vice-versa), just returns.
 	  return;
 	}
 
@@ -665,15 +675,15 @@ namespace aspect
 	      }
 	  }
 
-        // --- cooled asth -> asth OLM hybrid.
-        if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
-	  {
-            lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
-          }
-	else // --- heated asth OLM hybrid (if any) -> asth
-	  {
-            lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
-	  }
+        // // --- cooled asth -> asth OLM hybrid.
+        // if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
+	//   {
+        //     lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
+        //   }
+	// else // --- heated asth OLM hybrid (if any) -> asth
+	//   {
+        //     lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
+	//   }
 
         //// --- Prograde only oc. seds. (i.e. mainly qtz) -> coesite transition.
         //if (qtz2CoesPTRect.ptInside(pressure_here,temperature_here))
