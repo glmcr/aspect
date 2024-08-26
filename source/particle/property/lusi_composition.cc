@@ -25,6 +25,7 @@
 #include <aspect/particle/utilities_lusi.h>
 #include <aspect/particle/property/lusi_composition.h>
 #include <aspect/initial_composition/interface.h>
+#include <aspect//material_model/equation_of_state/multicomponent_incompressible.h>
 //#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
@@ -139,6 +140,12 @@ namespace aspect
 	//const unsigned int ageInYearsIdx= this->get_particle_world()
         //  .get_property_manager().get_data_info().get_position_by_field_name("ageInYears");
 
+        // Find out plastic yielding by calling function in material model.
+        const MaterialModel::ViscoPlastic<dim> &viscoplastic
+          = Plugins::get_plugin_as_type<const MaterialModel::ViscoPlastic<dim>>(this->get_material_model());
+
+	const MaterialModel::EquationOfState::MulticomponentIncompressible<dim> eos_cref= viscoplastic.equation_of_state_constref;
+	
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
         //     the dynamic and thermodynamic conditions)
