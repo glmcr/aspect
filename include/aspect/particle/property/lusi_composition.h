@@ -139,6 +139,8 @@ namespace aspect
 
 	  //static constexpr const char* SIM_AGE_IN_YEARS= "ageInYears";
 
+	 static constexpr const double MAX_COMPO_VALUE= 5.0;
+	
 	  // ---
           //inline
           static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
@@ -366,8 +368,28 @@ namespace aspect
       private:
 
 	mutable MaterialModel::MaterialModelInputs<dim> material_inputs;
+
+	   static inline void lusiMaterialChangeAdj(double* const part_compo_props, int matFromIdx, int matToIdx, double adjustFactor, double matToMax)
+	   {
+
+	     // adjustFactor MUST be > 0.0
+	     // matToMax MUST be > 0.0
+	       
+	     // --- Transfer particle matFrom material (could be 0.0) concentration to
+	     //     to the matTo material with the application of the adjustment factor
+	     //     (which is for the volume adjustment normally) which could be 1.0
+	     part_compo_props[matToIdx] += adjustFactor * part_compo_props[matFromIdx];
+
+	     //--- Keeping matTo compo prop between 0.0 and matToMax
+             part_compo_props[matToIdx]=
+               std::max(0.0,std::min(matToMax,part_compo_props[matToIdx]));
+
+	     // --- Need to set matFrom to 0.0 here because we assume that all its volume
+	     //     has been transfered to the destination material.
+	     part_compo_props[matFromIdx]= 0.0;
+	   }
 	
-	   static inline void lusiMaterialChange(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
+	   static inline void lusiMaterialChangeMinMax(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
 	   {
 
              // --- NOTE: matToMax MUST be between 0.0 and 1.0
