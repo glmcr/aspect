@@ -369,7 +369,7 @@ namespace aspect
 
 	mutable MaterialModel::MaterialModelInputs<dim> material_inputs;
 
-	   static inline void lusiMaterialChangeAdj(double* const part_compo_props, int matFromIdx, int matToIdx, double adjustFactor, double matToMax)
+	static inline void lusiMaterialChangeAdj(double* const part_compo_props, int matFromIdx, int matToIdx, double adjustFactor) //double matToMax)
 	   {
 
 	     // adjustFactor MUST be > 0.0
@@ -382,7 +382,7 @@ namespace aspect
 
 	     //--- Keeping matTo compo prop between 0.0 and matToMax
              part_compo_props[matToIdx]=
-               std::max(0.0,std::min(matToMax,part_compo_props[matToIdx]));
+               std::max(0.0, std::min(MAX_COMPO_VALUE, part_compo_props[matToIdx]));
 
 	     // --- Need to set matFrom to 0.0 here because we assume that all its volume
 	     //     has been transfered to the destination material.
@@ -392,8 +392,9 @@ namespace aspect
 	   static inline void lusiMaterialChangeMinMax(double* const part_compo_props, int matFromIdx, int matToIdx, double matToMin, double matToMax)
 	   {
 
-             // --- NOTE: matToMax MUST be between 0.0 and 1.0
-             //     NOTE: matToMin MUST be between 0.0 and 1.0
+             // --- matToMax MUST be between 0.0 and 1.0
+             //     matToMin MUST be between 0.0 and 1.0
+	     //    NOTE: matToMin could probably be always 0.0 ?? do we really need it ?? 
 
 	     // --- Transfer particle matFrom material (could be 0.0) concentration to
 	     //     to the matTo material
@@ -401,11 +402,11 @@ namespace aspect
 
 	     //--- Keeping matTo compo prop between matToMin and matToMax
              part_compo_props[matToIdx]=
-                std::max(matToMin,std::min(matToMax,part_compo_props[matToIdx]));
+                std::max(matToMin, std::min(MAX_COMPO_VALUE,part_compo_props[matToIdx]));
 
 	     // --- Need to set matFrom to (1.0 - matToMax) * part_compo_props[matFromIdx]
              //     here once its concentration matToMax has been transfered to the destination material.
-	     part_compo_props[matFromIdx]= (1.0 - matToMax) * part_compo_props[matFromIdx];  //0.0;
+	     part_compo_props[matFromIdx]= std::max(0.0, std::min(MAX_COMPO_VALUE, (1.0 - matToMax) * part_compo_props[matFromIdx]));  //0.0;
 	   }
         
       }; // --- class LUSIComposition
