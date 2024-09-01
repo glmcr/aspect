@@ -439,8 +439,17 @@ namespace aspect
 	  return;
 	}
 
-	// --- Get the vertical velocity at the marker position
+	// --- Get the horizontal velocity component at the marker position
+	const double horiz_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[0]];
+	
+	// --- Get the vertical velocity component at the marker position
 	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+
+	// --- Determine if the p.m. asth (regardless if it is SZZ or MORB type) needs to be transformed to new OLM material.
+	//     Do not transform the p.m. asth to OLM if the vertical_velo > horiz_velo (in absolute values) but keep the
+	//     p.m. asth of the marker as it is and it could be transformed later to OLM OR to oceanic crust depending on
+	//     its velocity component and also on its location in terms of (p,T) conditions.
+	const bool create_new_olm= (std::fabs(vertical_velo) < std::fabs(horiz_velo)) ? true : false;   
 	
 	// --- Determine if the vertical velo allows the pm asth. of ssz type.
 	const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
@@ -511,7 +520,7 @@ namespace aspect
 	//   }
 	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
-	//     AND the  partially melted MORB asth. transforms to partially melted SSZ asthenosphere 
+	//     AND the partially melted MORB asth. transforms to partially melted SSZ asthenosphere 
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
@@ -568,10 +577,10 @@ namespace aspect
              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
            }
 	  } // --- pm mrb asth -> mrb oc. crust.
-
+	
 	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
 	if ( (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage)
+	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && create_new_olm )
 	  {
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
@@ -589,7 +598,7 @@ namespace aspect
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
 	if ((asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage)
+	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage && create_new_olm )
 	  {
 
             const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
