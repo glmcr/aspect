@@ -459,7 +459,7 @@ namespace aspect
 	const bool pm_asth_ssz_type= !in_extension_stage;
 
 	// --- Determine which type of pm asth. we have depending on the vertical velo. value 
-	const bool pm_asth_mrb_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD) ? true: false;
+	//const bool pm_asth_mrb_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD) ? true: false;
 	
 	// //const bool pm_asth_mrb_type= extension_stage ? true : false;
 	//const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
@@ -540,7 +540,7 @@ namespace aspect
 	//     context hence the commented for the && pm_asth_mrb_type )
         if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
-              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_mrb_vvelo_ok ) //&& pm_asth_mrb_type)
+              pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) ) //Test without vel. control && pm_asth_mrb_vvelo_ok ) //&& pm_asth_mrb_type)
 	  {
 	    lusiMaterialChangeMinMax(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChangeMinMax(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
