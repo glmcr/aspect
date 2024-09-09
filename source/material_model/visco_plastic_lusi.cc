@@ -31,6 +31,66 @@ namespace aspect
 {
   namespace MaterialModel
   {
+    
+    template <int dim>
+    std::vector<double>
+    ViscoPlasticLUSI<dim>::
+      compute_compos_fractions_lusi(const std::vector<double> &compositional_fields, const ComponentMask &field_mask) const
+      {
+	
+        std::vector<double> composition_fractions(compositional_fields.size()+1);
+
+        // 
+        double sum_composition = 0.0;
+        std::vector<double> x_comp = compositional_fields;
+
+	// --- find the max compo that has the max value
+        double compoMax= -1.0;
+	 
+        for (unsigned int i=0; i < x_comp.size(); ++i)
+          if (field_mask[i] == true)
+            {
+              //x_comp[i] = std::min(std::max(x_comp[i], 0.0), 1.0);
+              //sum_composition += x_comp[i];
+	     
+	     x_comp[i] = std::max(0.0, x_comp[i]);
+	     compoMax= (x_comp[i] > compoMax) ? x_comp[i]: compoMax;
+            }
+
+        AssertThrow( compoMax > 0.0,
+                     ExcMessage("The compoMax value MUST be > 0.0 at this point !!"));
+	
+	const double compoNormFact= 1.0/compoMax;
+
+        for (unsigned int i=0; i < x_comp.size(); ++i)
+          if (field_mask[i] == true)
+            {
+	      x_comp[i] *= compoNormFact;
+	      sum_composition += x_comp[i];
+	    }
+	
+        // // Compute background field fraction
+        // if (sum_composition >= 1.0)
+        //   composition_fractions[0] = 0.0;
+        // else
+        //   composition_fractions[0] = 1.0 - sum_composition;
+
+	// background field fraction always at zero here
+        composition_fractions[0] = 0.0;
+	
+        // normalize field fractions
+        for (unsigned int i=0; i < x_comp.size(); ++i)
+          if (field_mask[i] == true)
+            {
+	      composition_fractions[i+1] = x_comp[i]/sum_composition;
+              //if (sum_composition >= 1.0)
+              //  composition_fractions[i+1] = x_comp[i]/sum_composition;
+              //else
+              //  composition_fractions[i+1] = x_comp[i];
+            }
+
+        return composition_fractions;
+      }	
 
     template <int dim>
     void
@@ -58,7 +118,7 @@ namespace aspect
       //     is done.
       if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
         {
-          const ComponentMask volumetric_compositions = this->rheology->get_volumetric_composition_mask();
+          const ComponentMask volumetric_compositions_msk = this->rheology->get_volumetric_composition_mask();
 	  
           const EquationOfState::MulticomponentIncompressible<dim> eos_cref= this->equation_of_state_constref;
 
@@ -80,9 +140,10 @@ namespace aspect
 
                //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl ;
 
-	       const std::vector<double> volume_fractions= MaterialUtilities::
-		     compute_composition_fractions(in.composition[i], volumetric_compositions);
-
+	       const std::vector<double> volume_fractions=
+	          this->compute_compos_fractions_lusi(in.composition[i], volumetric_compositions_msk);
+	       // MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions_msk);
+		 
                // If adiabatic heating is used, the reference temperature used to calculate density should be the adiabatic
                // temperature at the current position. This definition is consistent with the Extended Boussinesq Approximation.
                const double reference_temperature = (this->include_adiabatic_heating()

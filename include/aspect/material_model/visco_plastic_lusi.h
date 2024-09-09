@@ -41,6 +41,8 @@ namespace aspect
     {
       public:
 
+      std::vector<double> compute_compos_fractions_lusi(const std::vector<double> &compositional_fields, const ComponentMask &field_mask) const;
+
       void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
                     MaterialModel::MaterialModelOutputs<dim> &out) const override;
         // /**
