@@ -452,7 +452,7 @@ namespace aspect
 	const bool create_new_olm= (std::fabs(vertical_velo) < std::fabs(horiz_velo)) ? true : false;   
 	
 	// --- Determine if the vertical velo allows the pm asth. of ssz type.
-	const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
+	//const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
 
 	//const bool pm_asth_ssz_type= extension_stage ? false: true;
 	//const bool pm_asth_ssz_type= ((!extension_stage) && pm_asth_ssz_vvelo_ok) ? true : false;
@@ -469,62 +469,84 @@ namespace aspect
 
 	// --- Serpentinization parametrization
 	bool metam_fluids_contact_with_olmMRB= false;
+	bool metam_fluids_contact_with_olmSSZ= false;
 
-	if ( (part_compo_props[eclogites_idx] > 0.1 ||
-	      part_compo_props[amphibolites_idx] > 0.1 ||
-	      part_compo_props[granulites_idx]   > 0.1 ||
-	      part_compo_props[greenschists_idx] > 0.1) && part_compo_props[mrb_lith_mtl_idx] > 0.1)
+	const double olmMetamFluidsCompoThreshold= 0.05;
+
+	if ( part_compo_props[eclogites_idx] > olmMetamFluidsCompoThreshold ||
+	     part_compo_props[amphibolites_idx] > olmMetamFluidsCompoThreshold ||
+	     part_compo_props[granulites_idx]   > olmMetamFluidsCompoThreshold ||
+	     part_compo_props[greenschists_idx] > olmMetamFluidsCompoThreshold ) //&& part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsContactThreshold)
 	  {
 	    if (part_compo_props[acc_tot_strain_idx] > 7.5)
 	      {
-		metam_fluids_contact_with_olmMRB= true;
+		if (part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
+		  {
+		    metam_fluids_contact_with_olmMRB= true;
+		  }
+
+		if (part_compo_props[ssz_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
+		  {
+		    metam_fluids_contact_with_olmSSZ= true;
+		  }
 	      }
 	  }
 
 	// --- Serp. appears only in the convergence and subsequent slab roll back context.
 	if ( (srpPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && metam_fluids_contact_with_olmMRB)
+	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage ) //&& metam_fluids_contact_with_olmMRB)
 	  {
 
 	    //const double serpVolAdjFact= densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx];
 	    //const std::vector<double> densities_cref= eos_cref.densities_constref;
-	      
-            // --- apply serpentinization and its related (increasing) volume change for both MRB and SSZ OLM types
-	    lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, serp_idx,
-				  densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
-	    
-            lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, serp_idx,
-				  densities_cref[ssz_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
-	  }
+
+	    // --- apply serpentinization and its related (increasing) volume change for both MRB and SSZ OLM types
+	    //     if we have some metam. fluids available 
+	    if (metam_fluids_contact_with_olmMRB)
+	      {
+	        lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, serp_idx,
+				      densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
+	      }
+
+	    if (metam_fluids_contact_with_olmSSZ)
+	      {
+                lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, serp_idx,
+		         	      densities_cref[ssz_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
+	      }
+	  } 
 
 	// --- Serpentinization parametrization block end
 
 	// // --- p.m. SSZ asth.
-	// bool metam_fluids_contact_with_asth= false;
+	bool metam_fluids_contact_with_asth= false;
 
-	// // --- Verify if we have a marker having amphibolites OR granulites OR greenschists OR eclogites OR
-	// //     serp OR SSZ p.m. asth. AND all asth. materials OR MRB p.m. asth. in its composition. Set the
-	// //     metam_fluids_contact_with_asth at true to signal that we can produce SSZ p. m. asth.
-	// //     This means that some metam. fluids (devolatilisation) are available here.
-	// if (part_compo_props[eclogites_idx] > 0.1 ||
-	//     part_compo_props[amphibolites_idx] > 0.1 ||
-	//     part_compo_props[granulites_idx] > 0.1   ||
-	//     part_compo_props[greenschists_idx] > 0.1 ||
-	//     part_compo_props[pm_ssz_asth_mtl_idx] > 0.1 ||
-	//     part_compo_props[serp_idx] > 0.1 )
-	//   {
-	//     if (part_compo_props[asth_mtl_idx] > 0.1 || part_compo_props[asth_olm_hyb_mat_idx] > 0.1 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.1 )
-	//       {
-        //         metam_fluids_contact_with_asth= true;
-	//       }
-	//   }
+	const double asthMetamFluidsCompoThreshold= 0.01;
+
+	// --- Verify if we have a marker having amphibolites OR granulites OR greenschists OR eclogites OR
+	//     serp OR SSZ p.m. asth. AND all asth. materials OR MRB p.m. asth. in its composition being > metamFluidsCompoThreshold.
+	//     Set the metam_fluids_contact_with_asth at true to signal that we can produce SSZ p. m. asth.
+	//     This means that some metam. fluids (devolatilisation) are available where the marker is.
+	if (part_compo_props[eclogites_idx] > asthMetamFluidsCompoThreshold ||
+	    part_compo_props[amphibolites_idx] > asthMetamFluidsCompoThreshold ||
+	    part_compo_props[granulites_idx] > asthMetamFluidsCompoThreshold  ||
+	    part_compo_props[greenschists_idx] > asthMetamFluidsCompoThreshold ||
+	    part_compo_props[pm_ssz_asth_mtl_idx] > asthMetamFluidsCompoThreshold ||
+	    part_compo_props[serp_idx] > asthMetamFluidsCompoThreshold)
+	  {
+	    if (part_compo_props[asth_mtl_idx] > asthMetamFluidsCompoThreshold ||
+		part_compo_props[asth_olm_hyb_mat_idx] > asthMetamFluidsCompoThreshold ||
+		part_compo_props[pm_mrb_asth_mtl_idx] > asthMetamFluidsCompoThreshold )
+	      {
+                metam_fluids_contact_with_asth= true;
+	      }
+	  }
 	
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
 	//     AND the partially melted MORB asth. transforms to partially melted SSZ asthenosphere 
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
-	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && pm_asth_ssz_vvelo_ok)
+	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && metam_fluids_contact_with_asth) //&& pm_asth_ssz_vvelo_ok)
 	      // test without && metam_fluids_contact_with_asth)
 	  {
 	    lusiMaterialChangeMinMax(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
