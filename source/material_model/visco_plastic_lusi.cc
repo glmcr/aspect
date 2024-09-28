@@ -141,8 +141,8 @@ namespace aspect
                //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl ;
 
 	       const std::vector<double> volume_fractions=
-	          this->compute_compos_fractions_lusi(in.composition[i], volumetric_compositions_msk);
-	       // MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions_msk);
+		 //  this->compute_compos_fractions_lusi(in.composition[i], volumetric_compositions_msk);
+	         MaterialUtilities::compute_composition_fractions(in.composition[i], volumetric_compositions_msk);
 		 
                // If adiabatic heating is used, the reference temperature used to calculate density should be the adiabatic
                // temperature at the current position. This definition is consistent with the Extended Boussinesq Approximation.
