@@ -148,6 +148,8 @@ namespace aspect
 
 	// --- Extrac the matrerials densities vector fromt the viscoplastic.equation_of_state_constref object
 	const std::vector<double> densities_cref=  viscoplastic.equation_of_state_constref.densities_constref; //eos_cref.densities_constref;
+
+        //const ComponentMask volumetric_compositions_msk = viscoplastic.rheology_constref.get_volumetric_composition_mask();
 	
 	// --- Now take care of the ad-hoc material changes
         //     (i.e. rock type transformation depending on
@@ -504,18 +506,39 @@ namespace aspect
 	    //     if we have some metam. fluids available 
 	    if (metam_fluids_contact_with_olmMRB)
 	      {
+
+                // --- Need to reset the acc. strains to 0.0 but we need to use the mrb_lith_mtl_idx volume fraction
+                //part_compo_props[acc_tot_strain_idx] -= 
+                //part_compo_props[acc_ninit_plastic_strain_idx] -=
+		
 	        lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, serp_idx,
 				      densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
 	      }
 
 	    if (metam_fluids_contact_with_olmSSZ)
 	      {
+                // --- Need to reset the acc. strains to 0.0 but we need to use the ssz_lith_mtl_idx volume fraction
+                //part_compo_props[acc_tot_strain_idx] -= 
+                //part_compo_props[acc_ninit_plastic_strain_idx] -=
+		
                 lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, serp_idx,
 		         	      densities_cref[ssz_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
 	      }
 	  } 
+	  // --- Onset of serpentinization parametrization block end
 
-	// --- Serpentinization parametrization block end
+         // --- Case where the marker is outside the 2 (p,T) serp. stability triangles
+	 //     so transform it (if any) back to OLM MRB 
+	 if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
+	    	 !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
+	      {
+                // --- Need to reset the acc. strains to 0.0 but using the serp. volume fraction
+                //part_compo_props[acc_tot_strain_idx] -= 
+                //part_compo_props[acc_ninit_plastic_strain_idx] -= 
+		
+	        lusiMaterialChangeAdj(part_compo_props, serp_idx, mrb_lith_mtl_idx,
+	    			      densities_cref[serp_idx]/densities_cref[mrb_lith_mtl_idx]); //, MAX_COMPO_VALUE);
+	      }	
 
 	// // --- p.m. SSZ asth.
 	bool metam_fluids_contact_with_asth= false;
@@ -650,13 +673,13 @@ namespace aspect
            lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, greenschists_idx,
 				 densities_cref[ssz_oc_crust_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);
 
-	    // --- blueschists -> amphibolites unlikely but not impossible in case the blueschists
-	    //     are heated.
-	    lusiMaterialChangeAdj(part_compo_props, blueschists_idx, greenschists_idx,
-				  densities_cref[blueschists_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);	   
+	    // // --- blueschists -> greenschists_idx unlikely but not impossible in case the blueschists
+	    // //     are heated in a quasi-isobaric flat path or the total pressure oscillates
+	    //        at the limit between the greenschists and blueschists stability zones
+	   
+	    // lusiMaterialChangeAdj(part_compo_props, blueschists_idx, greenschists_idx,
+	    // 			  densities_cref[blueschists_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);	   
 
-
-	    
            // part_compo_props[greenschists_idx] += part_compo_props[oc_crust_idx];
            // part_compo_props[greenschists_idx]=
            //     std::max(0.0,std::min(1.0,part_compo_props[greenschists_idx]));	   
@@ -681,10 +704,11 @@ namespace aspect
 	    lusiMaterialChangeAdj(part_compo_props, greenschists_idx, amphibolites_idx,
 				  densities_cref[greenschists_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
 
-	    // --- blueschists_idx -> amphibolites_idx unlikely but not impossible in case the blueschists
-	    //     are heated in a quasi-isobaric headpin path
-	    lusiMaterialChangeAdj(part_compo_props, blueschists_idx, amphibolites_idx,
-				  densities_cref[blueschists_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);	    
+	    // // --- blueschists_idx -> amphibolites_idx unlikely but not impossible in case the blueschists
+	    // //     are heated in a quasi-isobaric flat path or that the total pressure oscillates
+	    //        at the limit between the amphibolites and eclogites stability zones
+	    // lusiMaterialChangeAdj(part_compo_props, blueschists_idx, amphibolites_idx,
+	    // 			  densities_cref[blueschists_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);	    
 	  }
 
 	// --- p,T prograde conditions under which oc. crust, greenschists and amphibolites transform
@@ -708,12 +732,14 @@ namespace aspect
 	    lusiMaterialChangeAdj(part_compo_props, amphibolites_idx, granulites_idx,
 			          densities_cref[amphibolites_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
 
-	    // --- in the unlikely case blueschists and-or eclogites are heated in a quasi-isobaric headpin path
-	    lusiMaterialChangeAdj(part_compo_props, blueschists_idx, granulites_idx,
-			          densities_cref[blueschists_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE );
+	    // // --- in the unlikely case blueschists and-or eclogites are heated and that the total pressure oscillates
+	    //        at the limit between the granulites and eclogites stability zones
+	    
+	    // lusiMaterialChangeAdj(part_compo_props, blueschists_idx, granulites_idx,
+	    // 		          densities_cref[blueschists_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE );
 
-	    lusiMaterialChangeAdj(part_compo_props, eclogites_idx, granulites_idx,
-			          densities_cref[eclogites_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);	    
+	    // lusiMaterialChangeAdj(part_compo_props, eclogites_idx, granulites_idx,
+	    // 		          densities_cref[eclogites_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);	    
 
 	    //// --- Parametrization of the amphibolite facies materials partial melting
 	    ////    (%5 partial melt, other materials that amphibolite should be at %0.0
@@ -746,15 +772,15 @@ namespace aspect
 	    lusiMaterialChangeAdj(part_compo_props, greenschists_idx, blueschists_idx,
 				  densities_cref[greenschists_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
 
-	    // --- retrograde paths (quasi-isobaric headpin cooling paths)	    
+	    // --- retrograde T paths (quasi-isobaric headpin cooling paths)	    
 	    // lusiMaterialChangeAdj(part_compo_props, amphibolites_idx, blueschists_idx,
-	    // 			  densities_cref[amphibolites_idx]/densities_cref[blueschists_idx], MAX_COMPO_VALUE);
+	    // 			  densities_cref[blueschists_idx]/densities_cref[amphibolites_idx], MAX_COMPO_VALUE);
 
 	    // lusiMaterialChangeAdj(part_compo_props, granulites_idx, blueschists_idx,
-	    // 			  densities_cref[granulites_idx_idx]/densities_cref[blueschists_idx], MAX_COMPO_VALUE);
+	    // 			  densities_cref[blueschists_idx]/densities_cref[granulites_idx], MAX_COMPO_VALUE);
 	    
 	    // lusiMaterialChangeAdj(part_compo_props, eclogites_idx, blueschists_idx,
-	    // 			  densities_cref[eclogites_idx]/densities_cref[blueschists_idx], MAX_COMPO_VALUE);
+	    // 			  densities_cref[blueschists_idx]/densities_cref[eclogites_idx], MAX_COMPO_VALUE);
 	    
 	  }
 
@@ -785,14 +811,14 @@ namespace aspect
 	    lusiMaterialChangeAdj(part_compo_props, granulites_idx, eclogites_idx,
 				  densities_cref[granulites_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
 
-	    // --- The marker should be outside the 2 (p,T) serp. stability triangles
-	    //     to transform it to eclogite.
-	    if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
-		 !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
-	      {
-	        lusiMaterialChangeAdj(part_compo_props, serp_idx, eclogites_idx,
-				      densities_cref[serp_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
-	      }
+	    // // --- The marker should be outside the 2 (p,T) serp. stability triangles
+	    // //     to transform it to eclogite.
+	    // if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
+	    // 	 !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
+	    //   {
+	    //     lusiMaterialChangeAdj(part_compo_props, serp_idx, eclogites_idx,
+	    // 			      densities_cref[serp_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+	    //   }
 	  }
 
         // // --- cooled asth -> asth OLM hybrid.
