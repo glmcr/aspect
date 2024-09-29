@@ -394,13 +394,15 @@ namespace aspect
 
              // --- matToMax MUST be between 0.0 and 1.0
              //     matToMin MUST be between 0.0 and 1.0
-	     //    NOTE: matToMin could probably be always 0.0 ?? do we really need it ?? 
+	     //     NOTE: matToMin could probably be always 0.0 ?? do we really need it ??
+
+	     //     NOTE: matToMax MUST need to be at least > 0.0 and <= 1.0
 
 	     // --- Transfer particle matFrom material (could be 0.0) concentration to
 	     //     to the matTo material
 	     part_compo_props[matToIdx] += matToMax * part_compo_props[matFromIdx];
 
-	     //--- Keeping matTo compo prop between matToMin and matToMax
+	     //--- Keeping matTo compo prop between matToMin and MAX_COMPO_VALUE
              part_compo_props[matToIdx]=
                 std::max(matToMin, std::min(MAX_COMPO_VALUE,part_compo_props[matToIdx]));
 
