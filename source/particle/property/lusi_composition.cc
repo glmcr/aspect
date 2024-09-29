@@ -511,8 +511,10 @@ namespace aspect
                 //part_compo_props[acc_tot_strain_idx] -= 
                 //part_compo_props[acc_ninit_plastic_strain_idx] -=
 		
-	        lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, serp_idx,
-				      densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
+	        //lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, serp_idx,
+		//		      densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
+
+		lusiMaterialChangeMinMax(part_compo_props, mrb_lith_mtl_idx, serp_idx, 0.0, MAX_COMPO_VALUE);
 	      }
 
 	    if (metam_fluids_contact_with_olmSSZ)
@@ -521,8 +523,10 @@ namespace aspect
                 //part_compo_props[acc_tot_strain_idx] -= 
                 //part_compo_props[acc_ninit_plastic_strain_idx] -=
 		
-                lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, serp_idx,
-		         	      densities_cref[ssz_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
+                //lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, serp_idx,
+		//         	      densities_cref[ssz_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
+		
+		lusiMaterialChangeMinMax(part_compo_props, ssz_lith_mtl_idx, serp_idx, 0.0, MAX_COMPO_VALUE);
 	      }
 	  } 
 	  // --- Onset of serpentinization parametrization block end
@@ -536,8 +540,10 @@ namespace aspect
                 //part_compo_props[acc_tot_strain_idx] -= 
                 //part_compo_props[acc_ninit_plastic_strain_idx] -= 
 		
-	        lusiMaterialChangeAdj(part_compo_props, serp_idx, mrb_lith_mtl_idx,
-	    			      densities_cref[serp_idx]/densities_cref[mrb_lith_mtl_idx]); //, MAX_COMPO_VALUE);
+	        //lusiMaterialChangeAdj(part_compo_props, serp_idx, mrb_lith_mtl_idx,
+	    	//		      densities_cref[serp_idx]/densities_cref[mrb_lith_mtl_idx]); //, MAX_COMPO_VALUE);
+
+		lusiMaterialChangeMinMax(part_compo_props, serp_idx, mrb_lith_mtl_idx, 0.0, MAX_COMPO_VALUE);
 	      }	
 
 	// // --- p.m. SSZ asth.
@@ -664,17 +670,23 @@ namespace aspect
 	    greenSchistsPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {	    
 
-	   lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, greenschists_idx,
-				 densities_cref[oc_seds_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);
+	    //lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, greenschists_idx,
+	    //			 densities_cref[oc_seds_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);
+
+	   lusiMaterialChangeMinMax(part_compo_props, oc_seds_idx, greenschists_idx, 0.0, MAX_COMPO_VALUE);
 	   
-           lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, greenschists_idx,
-				 densities_cref[mrb_oc_crust_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);
+           //lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, greenschists_idx,
+	   //			 densities_cref[mrb_oc_crust_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);
+
+	   lusiMaterialChangeMinMax(part_compo_props, mrb_oc_crust_idx, greenschists_idx, 0.0, MAX_COMPO_VALUE);
 	   
-           lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, greenschists_idx,
-				 densities_cref[ssz_oc_crust_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);
+           //lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, greenschists_idx,
+	   //			 densities_cref[ssz_oc_crust_idx]/densities_cref[greenschists_idx]); //, MAX_COMPO_VALUE);
+
+	   lusiMaterialChangeMinMax(part_compo_props, ssz_oc_crust_idx, greenschists_idx, 0.0, MAX_COMPO_VALUE);
 
 	    // // --- blueschists -> greenschists_idx unlikely but not impossible in case the blueschists
-	    // //     are heated in a quasi-isobaric flat path or the total pressure oscillates
+	    // //     are heated in a quasi-isobaric path or the total pressure oscillates
 	    //        at the limit between the greenschists and blueschists stability zones
 	   
 	    // lusiMaterialChangeAdj(part_compo_props, blueschists_idx, greenschists_idx,
@@ -692,21 +704,29 @@ namespace aspect
 	if (amphibolitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	    amphibolitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
-	    lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, amphibolites_idx,
-			          densities_cref[oc_seds_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+	    //lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, amphibolites_idx,
+	    //		          densities_cref[oc_seds_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, oc_seds_idx, amphibolites_idx , 0.0, MAX_COMPO_VALUE);
 	    
-            lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, amphibolites_idx,
-			          densities_cref[mrb_oc_crust_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+            //lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, amphibolites_idx,
+	    //		          densities_cref[mrb_oc_crust_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, mrb_oc_crust_idx, amphibolites_idx , 0.0, MAX_COMPO_VALUE);
 	    
-            lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, amphibolites_idx,
-				  densities_cref[ssz_oc_crust_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+            //lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, amphibolites_idx,
+	    ///			  densities_cref[ssz_oc_crust_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, ssz_oc_crust_idx, amphibolites_idx , 0.0, MAX_COMPO_VALUE);
 	    
-	    lusiMaterialChangeAdj(part_compo_props, greenschists_idx, amphibolites_idx,
-				  densities_cref[greenschists_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+	    //lusiMaterialChangeAdj(part_compo_props, greenschists_idx, amphibolites_idx,
+	    //			  densities_cref[greenschists_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, greenschists_idx, amphibolites_idx , 0.0, MAX_COMPO_VALUE);
 
 	    // // --- blueschists_idx -> amphibolites_idx unlikely but not impossible in case the blueschists
-	    // //     are heated in a quasi-isobaric flat path or that the total pressure oscillates
-	    //        at the limit between the amphibolites and eclogites stability zones
+	    // //     are heated in a quasi-isobaric p path or that the total pressure oscillates
+	    //        at the limit between the amphibolites and blueschists zones
 	    // lusiMaterialChangeAdj(part_compo_props, blueschists_idx, amphibolites_idx,
 	    // 			  densities_cref[blueschists_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);	    
 	  }
@@ -717,23 +737,33 @@ namespace aspect
 	    granulitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 
-	    lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, granulites_idx,
-				  densities_cref[oc_seds_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
-	    
-            lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, granulites_idx,
-				  densities_cref[mrb_oc_crust_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
-	    
-            lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, granulites_idx,
-				  densities_cref[ssz_oc_crust_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
-	    
-	    lusiMaterialChangeAdj(part_compo_props, greenschists_idx, granulites_idx,
-				  densities_cref[greenschists_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
-	    
-	    lusiMaterialChangeAdj(part_compo_props, amphibolites_idx, granulites_idx,
-			          densities_cref[amphibolites_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
+	    //lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, granulites_idx,
+	    //			  densities_cref[oc_seds_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
 
-	    // // --- in the unlikely case blueschists and-or eclogites are heated and that the total pressure oscillates
-	    //        at the limit between the granulites and eclogites stability zones
+	    lusiMaterialChangeMinMax(part_compo_props, oc_seds_idx, granulites_idx, 0.0, MAX_COMPO_VALUE);
+	    
+            //lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, granulites_idx,
+	    //			  densities_cref[mrb_oc_crust_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, mrb_oc_crust_idx, granulites_idx, 0.0, MAX_COMPO_VALUE);
+	    
+            //lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, granulites_idx,
+	    //			  densities_cref[ssz_oc_crust_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, ssz_oc_crust_idx, granulites_idx, 0.0, MAX_COMPO_VALUE);
+	    
+	    //lusiMaterialChangeAdj(part_compo_props, greenschists_idx, granulites_idx,
+	    //			  densities_cref[greenschists_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, greenschists_idx, granulites_idx, 0.0, MAX_COMPO_VALUE);
+	    
+	    //lusiMaterialChangeAdj(part_compo_props, amphibolites_idx, granulites_idx,
+	    //		          densities_cref[amphibolites_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, greenschists_idx, granulites_idx, 0.0, MAX_COMPO_VALUE);
+
+	    // // --- in the unlikely case blueschists and-or eclogites would be heated in a quasi-isobaric p path or
+	    //        that the total pressure would oscillate at the limit between the granulites and eclogites stability zones
 	    
 	    // lusiMaterialChangeAdj(part_compo_props, blueschists_idx, granulites_idx,
 	    // 		          densities_cref[blueschists_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE );
@@ -760,17 +790,25 @@ namespace aspect
 	if (blueschistsPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
             blueschistsPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
-	    lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, blueschists_idx,
-				  densities_cref[oc_seds_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
+	    //lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, blueschists_idx,
+	    //			  densities_cref[oc_seds_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, oc_seds_idx, blueschists_idx, 0.0, MAX_COMPO_VALUE);
 	    
-            lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, blueschists_idx,
-				  densities_cref[mrb_oc_crust_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
+            //lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, blueschists_idx,
+	    //			  densities_cref[mrb_oc_crust_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, mrb_oc_crust_idx, blueschists_idx, 0.0, MAX_COMPO_VALUE);
 	    
-            lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, blueschists_idx,
-			          densities_cref[ssz_oc_crust_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
+            //lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, blueschists_idx,
+	    //		          densities_cref[ssz_oc_crust_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, ssz_oc_crust_idx, blueschists_idx, 0.0, MAX_COMPO_VALUE);
 	    
-	    lusiMaterialChangeAdj(part_compo_props, greenschists_idx, blueschists_idx,
-				  densities_cref[greenschists_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
+	    //lusiMaterialChangeAdj(part_compo_props, greenschists_idx, blueschists_idx,
+	    //			  densities_cref[greenschists_idx]/densities_cref[blueschists_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, greenschists_idx, blueschists_idx, 0.0, MAX_COMPO_VALUE);
 
 	    // --- retrograde T paths (quasi-isobaric headpin cooling paths)	    
 	    // lusiMaterialChangeAdj(part_compo_props, amphibolites_idx, blueschists_idx,
@@ -790,26 +828,40 @@ namespace aspect
 	    eclogitesPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
             eclogitesPTTri3.ptInside(pressureInMPa_here,temperature_here) )
 	  {
-	    lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, eclogites_idx,
-				  densities_cref[oc_seds_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
-	    
-            lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, eclogites_idx,
-				  densities_cref[mrb_oc_crust_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
-	    
-            lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, eclogites_idx,
-				  densities_cref[ssz_oc_crust_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+	    //lusiMaterialChangeAdj(part_compo_props, oc_seds_idx, eclogites_idx,
+	    //			  densities_cref[oc_seds_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
 
-	    lusiMaterialChangeAdj(part_compo_props, blueschists_idx, eclogites_idx,
-				  densities_cref[blueschists_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
-
-	    lusiMaterialChangeAdj(part_compo_props, greenschists_idx, eclogites_idx,
-				  densities_cref[greenschists_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
-
-	    lusiMaterialChangeAdj(part_compo_props, amphibolites_idx, eclogites_idx,
-			          densities_cref[amphibolites_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+	    lusiMaterialChangeMinMax(part_compo_props, oc_seds_idx, eclogites_idx, 0.0, MAX_COMPO_VALUE);
 	    
-	    lusiMaterialChangeAdj(part_compo_props, granulites_idx, eclogites_idx,
-				  densities_cref[granulites_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+            //lusiMaterialChangeAdj(part_compo_props, mrb_oc_crust_idx, eclogites_idx,
+	    //			  densities_cref[mrb_oc_crust_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, mrb_oc_crust_idx, eclogites_idx, 0.0, MAX_COMPO_VALUE);
+	    
+            //lusiMaterialChangeAdj(part_compo_props, ssz_oc_crust_idx, eclogites_idx,
+	    //			  densities_cref[ssz_oc_crust_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, ssz_oc_crust_idx, eclogites_idx, 0.0, MAX_COMPO_VALUE);
+
+	    //lusiMaterialChangeAdj(part_compo_props, blueschists_idx, eclogites_idx,
+	    //			  densities_cref[blueschists_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, blueschists_idx, eclogites_idx, 0.0, MAX_COMPO_VALUE);
+
+	    //lusiMaterialChangeAdj(part_compo_props, greenschists_idx, eclogites_idx,
+	    //			  densities_cref[greenschists_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, greenschists_idx, eclogites_idx, 0.0, MAX_COMPO_VALUE);
+
+	    //lusiMaterialChangeAdj(part_compo_props, amphibolites_idx, eclogites_idx,
+	    //		          densities_cref[amphibolites_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, amphibolites_idx, eclogites_idx, 0.0, MAX_COMPO_VALUE);
+	    
+	    //lusiMaterialChangeAdj(part_compo_props, granulites_idx, eclogites_idx,
+	    //			  densities_cref[granulites_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+
+	    lusiMaterialChangeMinMax(part_compo_props, granulites_idx, eclogites_idx, 0.0, MAX_COMPO_VALUE);
 
 	    // // --- The marker should be outside the 2 (p,T) serp. stability triangles
 	    // //     to transform it to eclogite.
