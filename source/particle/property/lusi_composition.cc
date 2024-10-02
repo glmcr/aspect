@@ -146,8 +146,12 @@ namespace aspect
 
 	//const MaterialModel::EquationOfState::MulticomponentIncompressible<dim> eos_cref= viscoplastic.equation_of_state_constref;
 
-	// --- Extrac the matrerials densities vector fromt the viscoplastic.equation_of_state_constref object
-	const std::vector<double> densities_cref=  viscoplastic.equation_of_state_constref.densities_constref; //eos_cref.densities_constref;
+	// --- Extract the materials densities vector from the viscoplastic.equation_of_state.constref object
+	//     but without the background value at index 0 in order to be able to use the same compositions indices
+	//     as for the markers fields
+	const std::vector<double> densities_cref=
+	  std::vector<double>(viscoplastic.equation_of_state_constref.densities_constref.begin()+1,
+			      viscoplastic.equation_of_state_constref.densities_constref.end() );
 
         //const ComponentMask volumetric_compositions_msk = viscoplastic.rheology_constref.get_volumetric_composition_mask();
 	
