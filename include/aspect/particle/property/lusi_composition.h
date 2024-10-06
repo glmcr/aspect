@@ -367,6 +367,13 @@ namespace aspect
         static const PTStateMarkersTriangle srpPTTri1;
 	static const PTStateMarkersTriangle srpPTTri2;
 	
+	static const PTStateMarker mtmFluidsPT1;
+	static const PTStateMarker mtmFluidsPT2;
+	static const PTStateMarker mtmFluidsPT3;
+	static const PTStateMarker mtmFluidsPT4;
+        static const PTStateMarkersTriangle mtmFluidsPTTri1;
+	static const PTStateMarkersTriangle mtmFluidsPTTri2;
+	
       private:
 
 	mutable MaterialModel::MaterialModelInputs<dim> material_inputs;
@@ -664,7 +671,29 @@ namespace aspect
        // --- 2nd p,T triangle for serpentinization of the OLM MRB
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
-      srpPTTri2(LUSIComposition<dim>::srpMtcPT1, LUSIComposition<dim>::srpMtcPT2, LUSIComposition<dim>::srpMtcPT4);     
+      srpPTTri2(LUSIComposition<dim>::srpMtcPT1, LUSIComposition<dim>::srpMtcPT2, LUSIComposition<dim>::srpMtcPT4);
+
+      // --- (p,T) points of the 2 triangles where the amphibolites, granulites and eclogites release some fluids.
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::mtmFluidsPT1(0.0, 1173.0); // --- surf, 900C
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::mtmFluidsPT2(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.2e9, 923.0); // --- 2Kb, 650C
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::mtmFluidsPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*2e9, 873.0); // --- 20Kb, 600C
+
+      template <int dim>
+      const PTStateMarker LUSIComposition<dim>::mtmFluidsPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*2e9, 1173.0); // --- 20Kb, 900C
+
+      // --- (p,T) triangles where the amphibolites, granulites and eclogites release some fluids.
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      mtmFluidsPTTri1(LUSIComposition<dim>::mtmFluidsPT1, LUSIComposition<dim>::mtmFluidsPT2, LUSIComposition<dim>::mtmFluidsPT3);
+
+      template <int dim>
+      const PTStateMarkersTriangle LUSIComposition<dim>::
+      mtmFluidsPTTri2(LUSIComposition<dim>::mtmFluidsPT1, LUSIComposition<dim>::mtmFluidsPT3, LUSIComposition<dim>::mtmFluidsPT4);     
       
     }
   }

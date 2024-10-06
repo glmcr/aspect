@@ -473,6 +473,16 @@ namespace aspect
 	//     context hence the commented following line )
 	//const bool pm_asth_mrb_type= in_extension_stage;
 
+        // --- Verify if the marker is in the (p,T) zones where
+	//     we can have metam. fluids release.
+	bool metam_fluids_release= false;
+
+	if ( mtmFluidsPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
+	     mtmFluidsPTTri1.ptInside(pressureInMPa_here,temperature_here) )
+	  {
+	    metam_fluids_release= true;
+	  }
+
 	// --- Serpentinization parametrization
 	bool metam_fluids_contact_with_olmMRB= false;
 	bool metam_fluids_contact_with_olmSSZ= false;
@@ -481,8 +491,8 @@ namespace aspect
 
 	if ( part_compo_props[eclogites_idx] > olmMetamFluidsCompoThreshold ||
 	     part_compo_props[amphibolites_idx] > olmMetamFluidsCompoThreshold ||
-	     part_compo_props[granulites_idx]   > olmMetamFluidsCompoThreshold ||
-	     part_compo_props[greenschists_idx] > olmMetamFluidsCompoThreshold ) //&& part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsContactThreshold)
+	     part_compo_props[granulites_idx]   > olmMetamFluidsCompoThreshold ) //&& metam_fluids_release)
+	       //&& part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsContactThreshold)
 	  {
 	    if (part_compo_props[acc_tot_strain_idx] > 7.5)
 	      {
@@ -499,8 +509,9 @@ namespace aspect
 	  }
 
 	// --- Serp. appears only in the convergence and subsequent slab roll back context.
+	//     and also only if metam_fluids_release is true.
 	if ( (srpPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage ) //&& metam_fluids_contact_with_olmMRB)
+	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && metam_fluids_release ) //&& metam_fluids_contact_with_olmMRB)
 	  {
 
 	    //const double serpVolAdjFact= densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx];
@@ -532,9 +543,10 @@ namespace aspect
 	  // --- Onset of serpentinization parametrization block end
 
          // --- Case where the marker is outside the 2 (p,T) serp. stability triangles
-	 //     so transform it (if any) back to OLM MRB 
+	 //     so transform it (if any) back to OLM MRB
+	 //     TODO: Use hydrated OLM instead.
 	 if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
-	    	 !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
+	      !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	      {
                 // --- Need to reset the acc. strains to 0.0 but using the serp. volume fraction
                 //part_compo_props[acc_tot_strain_idx] -= 
@@ -549,16 +561,17 @@ namespace aspect
 
 	const double asthMetamFluidsCompoThreshold= 0.01;
 
-	// --- Verify if we have a marker having amphibolites OR granulites OR greenschists OR eclogites OR
+	// --- Verify if we have a marker having amphibolites OR granulites OR eclogites OR
 	//     serp OR SSZ p.m. asth. AND all asth. materials OR MRB p.m. asth. in its composition being > metamFluidsCompoThreshold.
 	//     Set the metam_fluids_contact_with_asth at true to signal that we can produce SSZ p. m. asth.
-	//     This means that some metam. fluids (devolatilisation) are available where the marker is.
-	if (part_compo_props[eclogites_idx] > asthMetamFluidsCompoThreshold ||
-	    part_compo_props[amphibolites_idx] > asthMetamFluidsCompoThreshold ||
-	    part_compo_props[granulites_idx] > asthMetamFluidsCompoThreshold  ||
-	    part_compo_props[greenschists_idx] > asthMetamFluidsCompoThreshold ||
-	    part_compo_props[pm_ssz_asth_mtl_idx] > asthMetamFluidsCompoThreshold ||
-	    part_compo_props[serp_idx] > asthMetamFluidsCompoThreshold)
+	//     This means that some metam. fluids (devolatilisation) are available where the marker is IF
+	//     metam_fluids_release is true
+	if ((part_compo_props[eclogites_idx] > asthMetamFluidsCompoThreshold ||
+	     part_compo_props[amphibolites_idx] > asthMetamFluidsCompoThreshold ||
+	     part_compo_props[granulites_idx] > asthMetamFluidsCompoThreshold  ||
+	     //part_compo_props[greenschists_idx] > asthMetamFluidsCompoThreshold ||
+	     part_compo_props[pm_ssz_asth_mtl_idx] > asthMetamFluidsCompoThreshold ||
+	     part_compo_props[serp_idx] > asthMetamFluidsCompoThreshold) && metam_fluids_release )
 	  {
 	    if (part_compo_props[asth_mtl_idx] > asthMetamFluidsCompoThreshold ||
 		part_compo_props[asth_olm_hyb_mat_idx] > asthMetamFluidsCompoThreshold ||
