@@ -189,6 +189,8 @@ namespace aspect
 
 	  static constexpr const char* SERP_NID= "serpentinite";
 
+	  static constexpr const char* HYDR_OLM= "hydratedOLM";
+
           static constexpr const char* ACC_TOTAL_STRAIN_NID= "total_strain";
 
           static constexpr const char* ACC_NONINIT_PLASTIC_STRAIN_NID= "noninitial_plastic_strain";
