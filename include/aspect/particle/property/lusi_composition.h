@@ -189,7 +189,7 @@ namespace aspect
 
 	  static constexpr const char* SERP_NID= "serpentinite";
 
-	  static constexpr const char* HYDR_OLM= "hydratedOLM";
+	  static constexpr const char* HYDR_OLM_NID= "hydratedOLM";
 
           static constexpr const char* ACC_TOTAL_STRAIN_NID= "total_strain";
 
@@ -251,6 +251,10 @@ namespace aspect
 
 	  // --- 0.02m/y in m/s
           static constexpr const double ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD= 6.34e-10;
+
+	  static constexpr const double TOTSTRAIN_THRESHOLD_FOR_HYDR_ASTH_PM= 1.5;
+
+	  static constexpr const double TOTSTRAIN_THRESHOLD_FOR_HYDR_OLM= TOTSTRAIN_THRESHOLD_FOR_HYDR_ASTH_PM;
 	
            // ---  (p,T) tri. zone where asth. in partial SSZ melting state forms
            //      SSZ oc. crust 
