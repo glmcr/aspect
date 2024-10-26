@@ -545,7 +545,11 @@ namespace aspect
                 //part_compo_props[acc_ninit_plastic_strain_idx] -=
 		
 	        lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, serp_idx,
-				      densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
+				      densities_cref[mrb_lith_mtl_idx]/densities_cref[serp_idx]);
+
+		// --- We also have transf. of hydr. olm. (if any) to serp in this case
+	        lusiMaterialChangeAdj(part_compo_props, hydr_olm_idx, serp_idx,
+				      densities_cref[hydr_olm_idx]/densities_cref[serp_idx]);
 	      }
 
 	    if (metam_fluids_contact_with_olmSSZ)
@@ -556,6 +560,10 @@ namespace aspect
 		
                 lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, serp_idx,
 		         	      densities_cref[ssz_lith_mtl_idx]/densities_cref[serp_idx]); //, MAX_COMPO_VALUE);
+
+		// --- We also have transf. of hydr. olm. (if any) to serp in this case
+	        lusiMaterialChangeAdj(part_compo_props, hydr_olm_idx, serp_idx,
+				      densities_cref[hydr_olm_idx]/densities_cref[serp_idx]);
 	      }
 	  } 
 	  // --- Onset of serpentinization parametrization block end
