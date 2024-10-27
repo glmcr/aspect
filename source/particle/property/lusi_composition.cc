@@ -510,6 +510,12 @@ namespace aspect
 		      lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, hydr_olm_idx,
 				      densities_cref[mrb_lith_mtl_idx]/densities_cref[hydr_olm_idx]);
 		  }
+	         // --- Here the SSZ OLM becomes hydrated OLM. 
+               	if (part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
+		  {
+		      lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, hydr_olm_idx,
+				      densities_cref[ssz_lith_mtl_idx]/densities_cref[hydr_olm_idx]);
+		  }
 	    }
 	    
 	    if ((part_compo_props[acc_tot_strain_idx] > 7.5) && !in_extension_stage)
@@ -522,6 +528,11 @@ namespace aspect
 		if (part_compo_props[ssz_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
 		  {
 		    metam_fluids_contact_with_olmSSZ= true;
+		  }
+
+		if (part_compo_props[hydr_olm_idx] > olmMetamFluidsCompoThreshold)
+		  {
+		    metam_fluids_contact_with_olmMRB= metam_fluids_contact_with_olmSSZ= true;
 		  }
 	      }
 	  }
