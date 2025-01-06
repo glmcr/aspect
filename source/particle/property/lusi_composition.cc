@@ -617,10 +617,10 @@ namespace aspect
 		part_compo_props[asth_olm_hyb_mat_idx] > asthMetamFluidsCompoThreshold ||
 		part_compo_props[pm_mrb_asth_mtl_idx] > asthMetamFluidsCompoThreshold )
 	      {
-	         if (part_compo_props[acc_tot_strain_idx] > TOTSTRAIN_THRESHOLD_FOR_HYDR_ASTH_PM)
-	         {
+	         //if (part_compo_props[acc_tot_strain_idx] > TOTSTRAIN_THRESHOLD_FOR_HYDR_ASTH_PM)
+	        //{
                    metam_fluids_contact_with_asth= true;
-	         }
+	        //} 
 	      }
 	  }
 
