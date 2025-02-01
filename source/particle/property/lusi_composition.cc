@@ -511,7 +511,7 @@ namespace aspect
 				      densities_cref[mrb_lith_mtl_idx]/densities_cref[hydr_olm_idx]);
 		  }
 	         // --- Here the SSZ OLM becomes hydrated OLM. 
-               	if (part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
+               	if (part_compo_props[ssz_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
 		  {
 		      lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, hydr_olm_idx,
 				      densities_cref[ssz_lith_mtl_idx]/densities_cref[hydr_olm_idx]);
