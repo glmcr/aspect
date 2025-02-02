@@ -591,8 +591,9 @@ namespace aspect
 	        lusiMaterialChangeAdj(part_compo_props, serp_idx, hydr_olm_idx,
 	    			      densities_cref[serp_idx]/densities_cref[hydr_olm_idx]); //, MAX_COMPO_VALUE);
 
-		lusiMaterialChangeAdj(part_compo_props, serp_idx, ssz_lith_mtl_idx,
-	    			      densities_cref[serp_idx]/densities_cref[ssz_lith_mtl_idx]);
+                // --- Useless since part_compo_props[serp_idx] is now 0.0 after the last lusiMaterialChangeAdj method usage
+		//lusiMaterialChangeAdj(part_compo_props, serp_idx, ssz_lith_mtl_idx,
+	    	//		      densities_cref[serp_idx]/densities_cref[ssz_lith_mtl_idx]);
 	      }	
 
 	// // --- p.m. SSZ asth.
