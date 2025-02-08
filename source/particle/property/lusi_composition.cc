@@ -628,8 +628,8 @@ namespace aspect
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
-	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && metam_fluids_contact_with_asth) //&& pm_asth_ssz_vvelo_ok)
-	      // test without && metam_fluids_contact_with_asth)
+	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type ) //&& metam_fluids_contact_with_asth) //&& pm_asth_ssz_vvelo_ok)
+	      // test without metam_fluids_contact_with_asth
 	  {
 	    
 	    lusiMaterialChangeMinMax(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
