@@ -545,6 +545,7 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
+      //sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.4e9, 1553.0); // --- 24Kb, 1280C
       //sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9, 1823.0);   // --- 15kb, 1550C
       sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1823.0); // --- 47Kb, 1550C
       //sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, 2023.0); // --- 50Kb, 1750C
@@ -578,10 +579,11 @@ namespace aspect
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
+      sszMtcPT9(LUSIComposition<dim>::SURF_ATMOS_PRESSURE_PASCALS, 1023.0); // --- without hydr. olm low using eclo stab T vertex surf., 750C
       //sszMtcPT9(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9, 1073.0);   // --- Hydrated asth. low T vertex 15Kb, 800C 
-      sszMtcPT9(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1073.0); // --- Hydrated asth. low T vertex 47Kb, 800C
+      //sszMtcPT9(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1073.0); // --- Hydrated asth. low T vertex 47Kb, 800C
 
-      // --- main p,T triangle for pm ssz asth. production from fast upwelling of hydrated asth (no produciotn of pm MRB here)
+      // --- specific p,T triangle for pm ssz asth. production from fast upwelling of hydrated asth (no produciotn of pm MRB here)
       template <int dim>
       const PTStateMarkersTriangle LUSIComposition<dim>::
       pmSszAsthPTTriMain(LUSIComposition<dim>::sszMtcPT1, LUSIComposition<dim>::sszMtcPT9, LUSIComposition<dim>::sszMtcPT3);      
