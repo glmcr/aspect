@@ -501,22 +501,23 @@ namespace aspect
 	     //part_compo_props[granulites_idx]   > olmMetamFluidsCompoThreshold ) //&& metam_fluids_release)
 	       //&& part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsContactThreshold)
 	  {
-	    
-	    if ((part_compo_props[acc_tot_strain_idx] > TOTSTRAIN_THRESHOLD_FOR_HYDR_OLM) && !in_extension_stage)
-	    {
-	        // --- Here the dry MRB OLM becomes hydrated OLM. 
-               	if (part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
-		  {
-		      lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, hydr_olm_idx,
-				      densities_cref[mrb_lith_mtl_idx]/densities_cref[hydr_olm_idx]);
-		  }
-	         // --- Here the SSZ OLM becomes hydrated OLM. 
-               	if (part_compo_props[ssz_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
-		  {
-		      lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, hydr_olm_idx,
-				      densities_cref[ssz_lith_mtl_idx]/densities_cref[hydr_olm_idx]);
-		  }
-	    }
+
+            //  --- Removed transformation of mrb_lith_mtl_idx and ssz_lith_mtl_idx to hydrated olm
+	    // if ((part_compo_props[acc_tot_strain_idx] > TOTSTRAIN_THRESHOLD_FOR_HYDR_OLM) && !in_extension_stage)
+	    // {
+	    //     // --- Here the dry MRB OLM becomes hydrated OLM. 
+            //    	if (part_compo_props[mrb_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
+	    //       {
+	    //           lusiMaterialChangeAdj(part_compo_props, mrb_lith_mtl_idx, hydr_olm_idx,
+	    //     		      densities_cref[mrb_lith_mtl_idx]/densities_cref[hydr_olm_idx]);
+	    //       }
+	    //      // --- Here the SSZ OLM becomes hydrated OLM. 
+            //    	if (part_compo_props[ssz_lith_mtl_idx] > olmMetamFluidsCompoThreshold)
+	    //       {
+	    //           lusiMaterialChangeAdj(part_compo_props, ssz_lith_mtl_idx, hydr_olm_idx,
+	    //     		      densities_cref[ssz_lith_mtl_idx]/densities_cref[hydr_olm_idx]);
+	    //       }
+	    // }
 	    
 	    if ((part_compo_props[acc_tot_strain_idx] > 7.5) && !in_extension_stage)
 	      {
@@ -581,20 +582,17 @@ namespace aspect
 
          // --- Case where the marker is outside the 2 (p,T) serp. stability triangles
 	 //     so transform it (if any) back to hydrated OLM
-	 if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
-	      !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
-	      {
-                // --- Need to reset the acc. strains to 0.0 but using the serp. volume fraction
-                //part_compo_props[acc_tot_strain_idx] -= 
-                //part_compo_props[acc_ninit_plastic_strain_idx] -= 
+	 // if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
+	 //      !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
+	 //      {
+                
+         //        // --- Need to reset the acc. strains to 0.0 but using the serp. volume fraction
+         //        //part_compo_props[acc_tot_strain_idx] -= 
+         //        //part_compo_props[acc_ninit_plastic_strain_idx] -= 
 		
-	        lusiMaterialChangeAdj(part_compo_props, serp_idx, hydr_olm_idx,
-	    			      densities_cref[serp_idx]/densities_cref[hydr_olm_idx]); //, MAX_COMPO_VALUE);
-
-                // --- Useless since part_compo_props[serp_idx] is now 0.0 after the last lusiMaterialChangeAdj method usage
-		//lusiMaterialChangeAdj(part_compo_props, serp_idx, ssz_lith_mtl_idx,
-	    	//		      densities_cref[serp_idx]/densities_cref[ssz_lith_mtl_idx]);
-	      }	
+	 //        lusiMaterialChangeAdj(part_compo_props, serp_idx, hydr_olm_idx,
+	 //    			      densities_cref[serp_idx]/densities_cref[hydr_olm_idx]); //, MAX_COMPO_VALUE);
+	 //      }	
 
 	// // --- p.m. SSZ asth.
 	bool metam_fluids_contact_with_asth= false;
@@ -766,6 +764,15 @@ namespace aspect
 	    lusiMaterialChangeAdj(part_compo_props, greenschists_idx, amphibolites_idx,
 				  densities_cref[greenschists_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
 
+            // --- Case where the marker is outside the 2 (p,T) serp. stability triangles
+	    //     so transform it (if any) to amphibolite (unlikely but we never know)
+	    if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
+	         !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
+              {
+                 lusiMaterialChangeAdj(part_compo_props, serp_idx, amphibolites_idx,
+				  densities_cref[serp_idx]/densities_cref[amphibolites_idx]); //, MAX_COMPO_VALUE);
+              }
+
 	    // // --- blueschists_idx -> amphibolites_idx unlikely but not impossible in case the blueschists
 	    // //     are heated in a quasi-isobaric flat path or that the total pressure oscillates
 	    //        at the limit between the amphibolites and eclogites stability zones
@@ -794,6 +801,15 @@ namespace aspect
 	    lusiMaterialChangeAdj(part_compo_props, amphibolites_idx, granulites_idx,
 			          densities_cref[amphibolites_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
 
+            // --- Case where the marker is outside the 2 (p,T) serp. stability triangles
+	    //     so transform it (if any) to granulite (very unlikely but we never know)
+	    if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
+	         !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
+              {
+                 lusiMaterialChangeAdj(part_compo_props, serp_idx, granulites_idx,
+				  densities_cref[serp_idx]/densities_cref[granulites_idx]); //, MAX_COMPO_VALUE);
+              }
+            
 	    // // --- in the unlikely case blueschists and-or eclogites are heated and that the total pressure oscillates
 	    //        at the limit between the granulites and eclogites stability zones
 	    
@@ -872,6 +888,15 @@ namespace aspect
 	    
 	    lusiMaterialChangeAdj(part_compo_props, granulites_idx, eclogites_idx,
 				  densities_cref[granulites_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+
+            // --- Case where the marker is outside the 2 (p,T) serp. stability triangles
+	    //     so transform it (if any) to eclogite (unlikely but we never know)
+	    if ( !srpPTTri1.ptInside(pressureInMPa_here,temperature_here) &&
+	         !srpPTTri2.ptInside(pressureInMPa_here,temperature_here) )
+              {
+                 lusiMaterialChangeAdj(part_compo_props, serp_idx,eclogites_idx,
+				  densities_cref[serp_idx]/densities_cref[eclogites_idx]); //, MAX_COMPO_VALUE);
+              }           
 
 	    // // --- The marker should be outside the 2 (p,T) serp. stability triangles
 	    // //     to transform it to eclogite.
