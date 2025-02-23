@@ -464,7 +464,7 @@ namespace aspect
         // --- Determine if the marker is subjected to (significant) decompression by simply checking if it's
         //     vertical velo is positive and larger than the quarter of its horizontal velo. It is a very
         //     ad-hoc and rough parametrization and we would maybe need to use the value of the time derivative
-        //     of the pressure or alternatively check if the value of the adiatic heating is negative (which implies \
+        //     of the pressure or alternatively check if the value of the adiatic heating is negative (which implies
         //     decompression) to have something better ?? 
         const bool in_decompression= (vertical_velo > 0.0 && (std::fabs(vertical_velo) > 0.25*std::fabs(horiz_velo))) ? true : false;
 	
