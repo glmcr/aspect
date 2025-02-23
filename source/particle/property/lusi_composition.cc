@@ -458,7 +458,13 @@ namespace aspect
 	//     Do not transform the p.m. asth to OLM if the vertical_velo > horiz_velo (in absolute values) but keep the
 	//     p.m. asth of the marker as it is and it could be transformed later to OLM OR to oceanic crust depending on
 	//     its velocity component and also on its location in terms of (p,T) conditions.
-	const bool create_new_olm= (std::fabs(vertical_velo) < std::fabs(horiz_velo)) ? true : false;   
+	const bool create_new_olm= (std::fabs(vertical_velo) < std::fabs(horiz_velo)) ? true : false;
+
+        // --- Determine if the marker is subjected to (significant) decompression by simply checking if it's
+        //     vertical velo is larger than its horizontal velo. It is a very ad-hoc and rough parametrization
+        //     and we would maybe need to use the value of the time derivative of the pressure or alternatively
+        //     check if the value of the adiatic heating is negative (which implies decompression)?? 
+        const bool in_decompression= (std::fabs(vertical_velo) > std::fabs(horiz_velo)) ? true : false;
 	
 	// --- Determine if the vertical velo allows the pm asth. of ssz type.
 	//const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
@@ -624,11 +630,14 @@ namespace aspect
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
-	//     AND the partially melted MORB asth. transforms to partially melted SSZ asthenosphere 
+	//     AND the partially melted MORB asth. transforms to partially melted SSZ asthenosphere.
+        //     (happens only for the convergence+rollback modeand if the marker is considered to be
+        //      subjected to a significant decompression)
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
-	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type ) //&& metam_fluids_contact_with_asth) //&& pm_asth_ssz_vvelo_ok)
+	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && in_decompression)
+              //&& metam_fluids_contact_with_asth) && pm_asth_ssz_vvelo_ok)
 	      // test without metam_fluids_contact_with_asth
 	  {
 	    
