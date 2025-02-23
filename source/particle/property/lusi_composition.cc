@@ -633,7 +633,7 @@ namespace aspect
 
 	// --- (p,T) and upwelling conditions for which the upwelling hydrated asth. and the hyb. asth. mat.
 	//     AND the partially melted MORB asth. transforms to partially melted SSZ asthenosphere.
-        //     (happens only for the convergence+rollback modeand if the marker is considered to be
+        //     (happens only for the convergence+rollback mode and if the marker is considered to be
         //      subjected to a significant decompression)
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
