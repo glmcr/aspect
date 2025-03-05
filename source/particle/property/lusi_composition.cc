@@ -470,7 +470,7 @@ namespace aspect
         //     ad-hoc and rough parametrization and we would maybe need to use the value of the time derivative
         //     of the pressure or alternatively check if the value of the adiatic heating is negative (which implies
         //     decompression) to have something better ?? 
-        const bool in_decompression= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD); // && (vertical_velo_absv > horiz_velo_absv));  //? true : false;
+        const bool ssz_decompression= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD); // && (vertical_velo_absv > horiz_velo_absv));  //? true : false;
 	
 	// --- Determine if the vertical velo allows the pm asth. of ssz type.
 	//const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
@@ -642,7 +642,7 @@ namespace aspect
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
-	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && in_decompression)
+	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && ssz_decompression)
               //&& metam_fluids_contact_with_asth) && pm_asth_ssz_vvelo_ok)
 	      // test without metam_fluids_contact_with_asth
 	  {
