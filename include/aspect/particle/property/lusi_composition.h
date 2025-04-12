@@ -156,16 +156,26 @@ namespace aspect
           //// --- prograde MTM facies for oc. seds (qtz -> coesite)
           //static constexpr const char* COESITE_NID= "coesite";
 
-	  // --- prograde MTM facies for oc. crust
+	  // --- prograde MTM facies for oc. crust and oc. seds (F_)
 	  static constexpr const char* GREENSCHISTS_NID= "greenschists";
+
+          static constexpr const char* F_GREENSCHISTS_NID= "fGreenschists";
 
 	  static constexpr const char* AMPHIBOLITES_NID= "amphibolites";
 
+          static constexpr const char* F_AMPHIBOLITES_NID= "fAmphibolites";
+
 	  static constexpr const char* GRANULITES_NID= "granulites";
 
+          static constexpr const char* F_GRANULITES_NID= "fGranulites";
+        
           static constexpr const char* ECLOGITES_NID= "eclogites";
 
+          static constexpr const char* F_ECLOGITES_NID= "fEclogites";
+
 	  static constexpr const char* BLUESCHISTS_NID= "blueschists";
+
+          static constexpr const char* F_BLUESCHISTS_NID= "fBlueschists";
 
 	  static constexpr const char* PARTIALLY_MELTED_SSZ_ASTH_NID= "pmeltedSszAsth";
         

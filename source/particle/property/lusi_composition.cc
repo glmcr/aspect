@@ -181,21 +181,36 @@ namespace aspect
         const unsigned int greenschists_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(GREENSCHISTS_NID);
 
+        const unsigned int f_greenschists_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(F_GREENSCHISTS_NID);
+        
         const unsigned int amphibolites_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(AMPHIBOLITES_NID);
 
+        const unsigned int f_amphibolites_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(F_AMPHIBOLITES_NID);
+        
         //const unsigned int amphibolitesPM_idx=
         //  this->introspection().compositional_index_for_name(AMPHIBOLITES_PM_NID);
 
         const unsigned int granulites_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(GRANULITES_NID);
 
+        const unsigned int f_granulites_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(F_GRANULITES_NID);       
+
         const unsigned int eclogites_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(ECLOGITES_NID);
+
+        const unsigned int f_eclogites_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(F_ECLOGITES_NID);        
 
         const unsigned int blueschists_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(BLUESCHISTS_NID);
 
+        const unsigned int f_blueschists_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(F_BLUESCHISTS_NID);
+        
         const unsigned int asth_olm_hyb_mat_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
 
@@ -448,22 +463,26 @@ namespace aspect
         const bool ssz_decompression= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD); // && (vertical_velo_absv > horiz_velo_absv)) ? true : false;
 
 	// --- Serpentinization parametrization
-	bool metam_fluids_contact_with_olmMRB= false;
+	bool metam_fluids_contact_with_olm= false;
 
 	if ( (part_compo_props[amphibolites_idx] > 0.1 ||
 	      part_compo_props[granulites_idx]   > 0.1 ||
-	      part_compo_props[greenschists_idx] > 0.1) && part_compo_props[mrb_lith_mtl_idx] > 0.1)
+	      part_compo_props[greenschists_idx] > 0.1 ||
+              part_compo_props[f_amphibolites_idx] > 0.1 ||
+	      part_compo_props[f_granulites_idx]   > 0.1 ||
+	      part_compo_props[f_greenschists_idx] > 0.1 ) &&
+             ( part_compo_props[mrb_lith_mtl_idx] > 0.1 || part_compo_props[ssz_lith_mtl_idx] > 0.1 ) )
 	  {
 	    if (part_compo_props[acc_tot_strain_idx] > 7.5)
 	      {
-		metam_fluids_contact_with_olmMRB= true;
+		metam_fluids_contact_with_olm= true;
 	      }
 	  }
 
 	if ( (srpPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && metam_fluids_contact_with_olmMRB)
+	      srpPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && metam_fluids_contact_with_olm)
 	  {
-            // --- apply serpentinization for both MRB and SSZ OLM types
+            // --- apply serpentinization for both MRB and SSZ OLM types (if any)
 	    lusiMaterialChange(part_compo_props, mrb_lith_mtl_idx, serp_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_lith_mtl_idx, serp_idx, 0.0, 1.0);
 	  }
@@ -476,7 +495,11 @@ namespace aspect
 	// --- Verify if we have a marker having amphibolites OR granulites OR SSZ p.m. asth. AND asth. materials OR
 	//     MRB p.m. asth. in its composition. Set the metam_fluids_contact_with_asth at true to signal that
 	//     we can produce SSZ p. m. asth. This means that some metam. fluids are available here.
-	if (part_compo_props[amphibolites_idx] > 0.1 || part_compo_props[granulites_idx] > 0.1 || part_compo_props[pm_ssz_asth_mtl_idx] > 0.1)
+	if (part_compo_props[amphibolites_idx] > 0.1   ||
+            part_compo_props[granulites_idx] > 0.1     ||
+            part_compo_props[f_amphibolites_idx] > 0.1 ||
+            part_compo_props[f_granulites_idx] > 0.1   ||
+            part_compo_props[pm_ssz_asth_mtl_idx] > 0.1)
 	  {
 	    if (part_compo_props[asth_mtl_idx] > 0.1 || part_compo_props[asth_olm_hyb_mat_idx] > 0.1 || part_compo_props[pm_mrb_asth_mtl_idx] > 0.1 )
 	      {
@@ -582,7 +605,7 @@ namespace aspect
 	    greenSchistsPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 
-	   lusiMaterialChange(part_compo_props, oc_seds_idx, greenschists_idx , 0.0, 1.0);
+	   lusiMaterialChange(part_compo_props, oc_seds_idx, f_greenschists_idx , 0.0, 1.0);
            lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, greenschists_idx , 0.0, 1.0);
            lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, greenschists_idx , 0.0, 1.0);
 	  
@@ -598,7 +621,7 @@ namespace aspect
 	if (amphibolitesPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	    amphibolitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
-	    lusiMaterialChange(part_compo_props, oc_seds_idx, amphibolites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, oc_seds_idx, f_amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, amphibolites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, amphibolites_idx, 0.0, 1.0);
@@ -610,11 +633,13 @@ namespace aspect
 	    granulitesPTTri2.ptInside(pressureInMPa_here,temperature_here) )
 	  {
 
-	    lusiMaterialChange(part_compo_props, oc_seds_idx, granulites_idx , 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, oc_seds_idx, f_granulites_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, granulites_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, granulites_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, granulites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, granulites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, f_greenschists_idx, f_granulites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, f_amphibolites_idx, f_granulites_idx, 0.0, 1.0);            
 
 	    //// --- Parametrization of the amphibolite facies materials partial melting
 	    ////    (%5 partial melt, other materials that amphibolite should be at %0.0
@@ -635,10 +660,11 @@ namespace aspect
 	if (blueschistsPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
             blueschistsPTTri2.ptInside(pressureInMPa_here,temperature_here))
 	  {
-	    lusiMaterialChange(part_compo_props, oc_seds_idx, blueschists_idx , 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, oc_seds_idx, f_blueschists_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, blueschists_idx , 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, blueschists_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, blueschists_idx , 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, f_greenschists_idx, f_blueschists_idx , 0.0, 1.0);
 	  }
 
 	// --- p,T conditions under which oc. crust, blueschists, greenschists, amphibolites and
@@ -647,13 +673,17 @@ namespace aspect
 	    eclogitesPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
             eclogitesPTTri3.ptInside(pressureInMPa_here,temperature_here) )
 	  {
-	    lusiMaterialChange(part_compo_props, oc_seds_idx,      eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, oc_seds_idx,      f_eclogites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, eclogites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, blueschists_idx,  eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, eclogites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, granulites_idx,   eclogites_idx, 0.0, 1.0);
+ 	    lusiMaterialChange(part_compo_props, f_blueschists_idx,  f_eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, f_greenschists_idx, f_eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, f_amphibolites_idx, f_eclogites_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, f_granulites_idx,   f_eclogites_idx, 0.0, 1.0);           
 	  }
 
         // --- cooled asth -> asth OLM hybrid.
