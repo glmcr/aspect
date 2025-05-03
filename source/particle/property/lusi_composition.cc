@@ -545,7 +545,7 @@ namespace aspect
 
 	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
 	if ( (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage ) //&& create_new_olm)
+	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && create_new_olm_ssz)
 	  {
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
