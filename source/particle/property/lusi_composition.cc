@@ -445,6 +445,8 @@ namespace aspect
 
         const bool create_new_olm_mrb= ((vertical_velo < 0.0) || (vertical_velo_absv < horiz_velo_absv)); //? true : false;
 
+        const bool create_new_olm_ssz= (vertical_velo < ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD);
+
         const bool ssz_decompression= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD); // && (vertical_velo_absv > horiz_velo_absv)) ? true : false;
 
 	// --- Serpentinization parametrization
