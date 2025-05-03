@@ -443,7 +443,7 @@ namespace aspect
 	// const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
 	const bool pm_asth_mrb_type= in_extension_stage;
 
-        const bool create_new_olm= ((vertical_velo < 0.0) || (vertical_velo_absv < horiz_velo_absv)); //? true : false;
+        const bool create_new_olm_mrb= ((vertical_velo < 0.0) || (vertical_velo_absv < horiz_velo_absv)); //? true : false;
 
         const bool ssz_decompression= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD); // && (vertical_velo_absv > horiz_velo_absv)) ? true : false;
 
@@ -543,7 +543,7 @@ namespace aspect
 
 	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
 	if ( (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && create_new_olm)
+	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage ) //&& create_new_olm)
 	  {
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
@@ -561,7 +561,7 @@ namespace aspect
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
 	if ((asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage && create_new_olm)
+	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage && create_new_olm_mrb)
 	  {
 
             const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
