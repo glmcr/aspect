@@ -181,12 +181,14 @@ namespace aspect
 
 	  static constexpr const char* SERP_NID= "serpentinite";
 
+          static constexpr const char* LAB_MELT_LAYER_NID= "labMeltLayer";
+
           static constexpr const char* ACC_TOTAL_STRAIN_NID= "total_strain";
 
           static constexpr const char* ACC_NONINIT_PLASTIC_STRAIN_NID= "noninitial_plastic_strain";
         
 	  // --- Surf T 273.25
-	 static constexpr const double SURF_TEMPERATURE_KELVINS= 273.25;
+	  static constexpr const double SURF_TEMPERATURE_KELVINS= 273.25;
 
 	  // --- Surf pressure (atmos. pressure at sea level
 	  static constexpr const double SURF_ATMOS_PRESSURE_PASCALS= 101500.0;

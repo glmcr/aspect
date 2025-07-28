@@ -200,7 +200,10 @@ namespace aspect
           this->Composition<dim>::introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
 
         const unsigned int serp_idx=
-          this->Composition<dim>::introspection().compositional_index_for_name(SERP_NID);	
+          this->Composition<dim>::introspection().compositional_index_for_name(SERP_NID);
+
+        const unsigned int lab_melt_layer_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(LAB_MELT_LAYER_NID);        
 
 	// --- NOTE: Assuming here that acc_tot_strain_idx is < acc_ninit_plastic_strain_idx
 	//           AND that acc_ninit_plastic_strain_idx = acc_tot_strain_idx + 1
@@ -489,7 +492,9 @@ namespace aspect
 
 	    // --- also transform the partially melted MORB asthenosphere (if any) to partially melted SSZ asthenosphere
 	    //     (implies hydratation of the partially melted MORB asthenosphere )
-	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+
+            lusiMaterialChange(part_compo_props, lab_melt_layer_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
@@ -500,6 +505,8 @@ namespace aspect
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
+            
+            lusiMaterialChange(part_compo_props, lab_melt_layer_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 	  }	
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
