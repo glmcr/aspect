@@ -18,6 +18,7 @@
   <http://www.gnu.org/licenses/>.
 */
 
+#include <aspect/geometry_model/box.h>
 #include <aspect/material_model/visco_plastic_lusi.h>
 #include <aspect/utilities.h>
 #include <deal.II/fe/fe_values.h>
@@ -73,10 +74,25 @@ namespace aspect
           
           const double reference_temperature = reference_T_cref;
 
+          const GeometryModel::Box<dim> &box_geometry_model = Plugins::
+            get_plugin_as_type<const GeometryModel::Box<dim>> (this->get_geometry_model()); //(this->Composition<dim>::get_geometry_model());
+
+          // --- Verify that the max depth of the 2D domain is <= MAX_DEPTH_FOR_BETA_CALC
+          //     Otherwise we have a SNAFU !!
+          const double domainDepth= box_geometry_model.get_extents()[1];
+          
+          AssertThrow(domainDepth <= MAX_DEPTH_FOR_BETA_CALC,
+                      ExcMessage("Cannot have domainDepth <= MAX_DEPTH_FOR_BETA_CALC !!"));
+
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
             {
 
+                const Point<dim> position = in.position[i];
+
+                // --- 2D: y elevation from the bottom 
+                const double pointElev= position[1];
+              
                //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl ;
 
 	       const std::vector<double> volume_fractions= MaterialUtilities::
@@ -123,13 +139,16 @@ namespace aspect
                    // densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
                    //  (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
-		   // --- Update thermal expansivitires and densities accordinglym (for all compos)
+                   const double betaAtDepth= BETA_AT_MAX_DEPTH*(1.0 + BETA_DEPTH_DEPENDENCY_FACTOR*(pointElev/MAX_DEPTH_FOR_BETA_CALC));
+
+		   // --- Update thermal expansivities and densities accordingly (for all compos at this grid location)
+                   //     NOTE: the contribution of the betaAtDepth*in.pressure[i] term is only significant for pressure > ~1.2 GPa
                    for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
 		   {
 		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp];
 
                       densities_local[cmp]= densities_cref[cmp] *
-                          (1.0 - thermal_expansivities_local[cmp] * (in.temperature[i] - reference_temperature));		      
+                        ( (1.0 - thermal_expansivities_local[cmp] * (in.temperature[i] - reference_temperature)) + betaAtDepth*in.pressure[i]);		      
 		   }
 
                    out.densities[i]=

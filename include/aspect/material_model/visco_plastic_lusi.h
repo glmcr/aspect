@@ -110,6 +110,18 @@ namespace aspect
         //     NOTE: We assume here that the reference T is 273K
         //           1573K is the T threshold for the asth. vs lith. mantle limit.
         static constexpr const double THERMAL_DIFF_T_IN_K_FACT= 1.0/(2.0*(1573.0-273.0));
+
+
+        // --- Maximum depth for which the BETA_AT_MAX_DEPTH const can be used to
+        //     calculate the depth dependant compressibilty values
+        static constexpr const double MAX_DEPTH_FOR_BETA_CALC= 700.0e3;
+
+        // --- Generic beta compressibilty for asth. mantle (also used for OLM and eclogites)
+        //     at the BETA_AT_MAX_DEPTH depth.
+        //     Taken from the Aspect data/adiabatic-conditions/ascii-data/example_isentrope.txt file
+        static constexpr const double BETA_AT_MAX_DEPTH= 3.6532479016332e-12;
+
+        static constexpr const double BETA_DEPTH_DEPENDENCY_FACTOR= 1.7870680044593086;
       
       //private:
       //

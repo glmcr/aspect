@@ -243,7 +243,18 @@ namespace aspect
 
 	  // --- 0.02m/y in m/s
           static constexpr const double ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD= 6.34e-10;
-	
+
+          // // --- Maximum depth for which the BETA_AT_MAX_DEPTH const can be used to
+          // //     calculate the depth dependant compressibilty values
+          // static constexpr const double MAX_DEPTH_FOR_BETA_CALC= 700.0e3;
+
+          // // --- Generic beta compressibilty for asth. mantle (also used for OLM and eclogites)
+          // //     at the BETA_AT_MAX_DEPTH depth.
+          // //     Taken from the Aspect data/adiabatic-conditions/ascii-data/example_isentrope.txt file
+          // static constexpr const double BETA_AT_MAX_DEPTH= 3.6532479016332e-12;
+
+          // static constexpr const double BETA_DEPTH_DEPENDENCY_FACTOR= 1.7870680044593086;
+        
            // ---  (p,T) tri. zone where asth. in partial SSZ melting state forms
            //      SSZ oc. crust 
 	   static const PTStateMarkersTriangle asth2SSZCrustPTTri1;
