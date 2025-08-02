@@ -88,10 +88,7 @@ namespace aspect
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
             {
 
-                const Point<dim> position = in.position[i];
-
-                // --- 2D: y elevation from the bottom 
-                const double pointElev= position[1];
+               const double depthAtPosition = this->get_geometry_model().depth(in.position[i]);
               
                //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl ;
 
@@ -139,7 +136,7 @@ namespace aspect
                    // densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
                    //  (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
-                   const double betaAtDepth= BETA_AT_MAX_DEPTH*(1.0 + BETA_DEPTH_DEPENDENCY_FACTOR*(pointElev/MAX_DEPTH_FOR_BETA_CALC));
+                   const double betaAtDepth= BETA_AT_MAX_DEPTH*(1.0 + BETA_DEPTH_DEPENDENCY_FACTOR*(depthAtPosition/MAX_DEPTH_FOR_BETA_CALC));
 
 		   // --- Update thermal expansivities and densities accordingly (for all compos at this grid location)
                    //     NOTE: the contribution of the betaAtDepth*in.pressure[i] term is only significant for pressure > ~1.2 GPa
