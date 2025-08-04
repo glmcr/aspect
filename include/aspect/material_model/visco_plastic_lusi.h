@@ -121,7 +121,12 @@ namespace aspect
         //     Taken from the Aspect data/adiabatic-conditions/ascii-data/example_isentrope.txt file
         static constexpr const double BETA_AT_MAX_DEPTH= 3.6532479016332e-12;
 
+        // for beta (inversely proportional) dependency on the pressure:
+        // not used for now
         static constexpr const double BETA_DEPTH_DEPENDENCY_FACTOR= 1.7870680044593086;
+
+        // --- Beta computed from Griffin 2000.
+        static constexpr const double GRIFFIN_BETA_CONST= 1.914e-11;
       
       //private:
       //
