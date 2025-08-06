@@ -136,17 +136,18 @@ namespace aspect
                    // densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
                    //  (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
-                   //const double betaAtDepth= BETA_AT_MAX_DEPTH*(1.0 + BETA_DEPTH_DEPENDENCY_FACTOR*(depthAtPosition/MAX_DEPTH_FOR_BETA_CALC));
+                   const double betaAtDepth= GRIFFIN_BETA_CONST_ATM_PRESSURE - in.pressure[i]*GRIFFIN_BETA_CONST_PDEP_FACTOR;
 
 		   // --- Update thermal expansivities and densities accordingly (for all compos at this grid location)
-                   //     NOTE: the contribution of the betaAtDepth*in.pressure[i] term is only significant for pressure > ~1.2 GPa
+                   //     NOTE: the contribution of the betaAtDepth*in.pressure[i] term is (normally) only significant
+                   //     for pressures > ~1.2 GPa
                    for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
 		   {
 		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp];
 
                       densities_local[cmp]= densities_cref[cmp] *
                         ( (1.0 - thermal_expansivities_local[cmp] *
-                           (in.temperature[i] - reference_temperature)) + GRIFFIN_BETA_CONST*in.pressure[i]); //betaAtDepth*in.pressure[i]);		      
+                           (in.temperature[i] - reference_temperature)) + betaAtDepth*in.pressure[i]);		      
 		   }
 
                    out.densities[i]=

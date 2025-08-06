@@ -123,10 +123,17 @@ namespace aspect
 
         // for beta (inversely proportional) dependency on the pressure:
         // not used for now
-        static constexpr const double BETA_DEPTH_DEPENDENCY_FACTOR= 1.7870680044593086;
+        //static constexpr const double BETA_DEPTH_DEPENDENCY_FACTOR= 1.7870680044593086;
 
-        // --- Beta computed from Griffin 2000.
-        static constexpr const double GRIFFIN_BETA_CONST= 1.914e-11;
+        // --- Beta (compressibility at atm. pressure computed from Griffin 2000 (fig. 4 p. 614).
+        //static constexpr const double GRIFFIN_BETA_CONST= 1.914e-11;
+        static constexpr const double GRIFFIN_BETA_CONST_ATM_PRESSURE= 2.0828887914893618e-11;
+
+        // --- Factor use to calculate the beta parameter considering its inversely proportional
+        //     dependency on the pressure (considered as linear here)
+        //
+        //     beta(p)= GRIFFIN_BETA_CONST_ATM_PRESSURE - (P - P(ATM))* GRIFFIN_BETA_CONST_PDEP_FACTOR
+        static constexpr const double GRIFFIN_BETA_CONST_PDEP_FACTOR= 4.825531914893617e-22;
       
       //private:
       //
