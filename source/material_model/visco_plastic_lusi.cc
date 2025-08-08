@@ -111,8 +111,9 @@ namespace aspect
 
                    //this->get_pcout() << "ViscoPlasticLUSI:: reference_temperature=" << reference_temperature << std::endl ;
 
-                   const double thExpFact= 1.0 +
-                       (in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
+                   // --- 2025-08-08 test with constant th. exp
+                   const double thExpFact= 1.0; //+
+                   //(in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
 
                    // thermal_expansivities_local[asth_mtl_idx]=
                    //      thExpFact*thermal_expansivities_cref[asth_mtl_idx];
