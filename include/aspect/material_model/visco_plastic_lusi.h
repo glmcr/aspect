@@ -133,7 +133,8 @@ namespace aspect
         //     dependency on the pressure (considered as linear here)
         //
         //     beta(p)= GRIFFIN_BETA_CONST_ATM_PRESSURE - (P - P(ATM))* GRIFFIN_BETA_CONST_PDEP_FACTOR
-        static constexpr const double GRIFFIN_BETA_CONST_PDEP_FACTOR= 4.825531914893617e-22;
+        //static constexpr const double GRIFFIN_BETA_CONST_PDEP_FACTOR= 4.825531914893617e-22;
+        static constexpr const double GRIFFIN_BETA_CONST_PDEP_FACTOR= 5.551914893617e-22;
       
       //private:
       //
