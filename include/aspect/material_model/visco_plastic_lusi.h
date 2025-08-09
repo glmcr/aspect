@@ -135,6 +135,8 @@ namespace aspect
         //     beta(p)= GRIFFIN_BETA_CONST_ATM_PRESSURE - (P - P(ATM))* GRIFFIN_BETA_CONST_PDEP_FACTOR
         //static constexpr const double GRIFFIN_BETA_CONST_PDEP_FACTOR= 4.825531914893617e-22;
         static constexpr const double GRIFFIN_BETA_CONST_PDEP_FACTOR= 5.551914893617e-22;
+
+        static constexpr const double TH_EXP_PRESS_DEP_FACTOR= 7.518713240990376e-16;
       
       //private:
       //

@@ -111,9 +111,9 @@ namespace aspect
 
                    //this->get_pcout() << "ViscoPlasticLUSI:: reference_temperature=" << reference_temperature << std::endl ;
 
-                   // --- 2025-08-08 test with constant th. exp
-                   const double thExpFact= 1.0; //+
-                   //(in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
+                   // --- 
+                   const double thExpFact= 1.0 +
+                     (in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
 
                    // thermal_expansivities_local[asth_mtl_idx]=
                    //      thExpFact*thermal_expansivities_cref[asth_mtl_idx];
@@ -139,12 +139,19 @@ namespace aspect
 
                    const double betaAtDepth= GRIFFIN_BETA_CONST_ATM_PRESSURE - in.pressure[i]*GRIFFIN_BETA_CONST_PDEP_FACTOR;
 
+                   const double thExpAtDepth= in.pressure[i]*TH_EXP_PRESS_DEP_FACTOR;
+
 		   // --- Update thermal expansivities and densities accordingly (for all compos at this grid location)
                    //     NOTE: the contribution of the betaAtDepth*in.pressure[i] term is (normally) only significant
                    //     for pressures > ~1.2 GPa
                    for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
 		   {
-		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp];
+                      // --- The increase in th. exp. with T is itself decreased by the th. exp. inverse dependency on P
+		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp] - thExpAtDepth;
+
+                      // --- The th. exp. can theorically become negative but we nevertheless do not allow it here. 
+                      AssertThrow(thermal_expansivities_local[cmp] > 0,
+                                  ExcMessage("Cannot have thermal_expansivities_local[cmp] < 0 !!"));
 
                       densities_local[cmp]= densities_cref[cmp] *
                         ( (1.0 - thermal_expansivities_local[cmp] *
