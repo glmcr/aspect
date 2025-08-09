@@ -82,7 +82,7 @@ namespace aspect
           const double domainDepth= box_geometry_model.get_extents()[1];
           
           AssertThrow(domainDepth <= MAX_DEPTH_FOR_BETA_CALC,
-                      ExcMessage("Cannot have domainDepth <= MAX_DEPTH_FOR_BETA_CALC !!"));
+                      ExcMessage("Cannot have domainDepth > MAX_DEPTH_FOR_BETA_CALC !!"));
 
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
@@ -139,17 +139,19 @@ namespace aspect
 
                    const double betaAtDepth= GRIFFIN_BETA_CONST_ATM_PRESSURE - in.pressure[i]*GRIFFIN_BETA_CONST_PDEP_FACTOR;
 
-                   const double thExpAtDepth= in.pressure[i]*TH_EXP_PRESS_DEP_FACTOR;
+                   double thExpAtDepth= in.pressure[i]*TH_EXP_PRESS_DEP_FACTOR;
 
 		   // --- Update thermal expansivities and densities accordingly (for all compos at this grid location)
                    //     NOTE: the contribution of the betaAtDepth*in.pressure[i] term is (normally) only significant
                    //     for pressures > ~1.2 GPa
                    for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
 		   {
+                     //thExpAtDepth= (thExpAtDepth > thermal_expansivities_cref[cmp] 
+                     
                       // --- The increase in th. exp. with T is itself decreased by the th. exp. inverse dependency on P
 		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp] - thExpAtDepth;
 
-                      // --- The th. exp. can theorically become negative but we nevertheless do not allow it here. 
+                      // --- The th. exp. can (in theory) become negative but we nevertheless do not allow it here. 
                       AssertThrow(thermal_expansivities_local[cmp] > 0,
                                   ExcMessage("Cannot have thermal_expansivities_local[cmp] < 0 !!"));
 

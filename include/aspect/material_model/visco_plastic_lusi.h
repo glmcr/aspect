@@ -87,14 +87,14 @@ namespace aspect
 
         // // ---
         // //inline
-        static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
+        //static constexpr const char* ASTHENOSPHERIC_MANTLE_NID= "asthenosphere";
 
         // // ---
         // //inline
-        static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
+        //static constexpr const char* LITHOSPHERIC_MANTLE_NID= "oceanicLithMantle";
 
         // // ---
-        static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
+        //static constexpr const char* OCEANIC_CRUST_NID= "oceanicCrust";
 
         static constexpr const double THERMAL_EXP_LOW_T_IN_K_THRESHOLD= 500.0;
         static constexpr const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
@@ -136,8 +136,8 @@ namespace aspect
         //static constexpr const double GRIFFIN_BETA_CONST_PDEP_FACTOR= 4.825531914893617e-22;
         static constexpr const double GRIFFIN_BETA_CONST_PDEP_FACTOR= 5.551914893617e-22;
 
-        static constexpr const double TH_EXP_PRESS_DEP_FACTOR= 7.518713240990376e-16;
-      
+        static constexpr const double TH_EXP_PRESS_DEP_FACTOR= 4.518713240990376e-16;
+
       //private:
       //
       //  /**
