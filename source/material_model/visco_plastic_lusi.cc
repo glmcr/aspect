@@ -154,9 +154,11 @@ namespace aspect
                      //     pressures < 1.5 GPa so the increase prevails for such "low" pressures)
                      thermal_expansivities_local[cmp]= (thExpFact * thermal_expansivities_cref[cmp]) * thExpFactAtDepth  ;
 
-                      // --- The th. exp. can (in theory) become negative but we nevertheless do not allow it here. 
-                      AssertThrow(thermal_expansivities_local[cmp] > 0,
-                                  ExcMessage("Cannot have thermal_expansivities_local[cmp] < 0 !!"));
+                     // --- The th. exp. can (in theory) become negative but we nevertheless do not allow it here.
+                     //     (somewhat overkill since we are using multiplication for the calculation of thExpFactAtDepth)
+                     thermal_expansivities_local[cmp]= (thermal_expansivities_local[cmp] < 0) ? 0.0 : thermal_expansivities_local[cmp];
+                     //AssertThrow(thermal_expansivities_local[cmp] >= 0,
+                     //            ExcMessage("Cannot have thermal_expansivities_local[cmp] < 0 !!"));
 
                       densities_local[cmp]= densities_cref[cmp] *
                         ( (1.0 - thermal_expansivities_local[cmp] *
