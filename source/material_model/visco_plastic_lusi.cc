@@ -137,9 +137,10 @@ namespace aspect
                    // densities_local[oc_lith_mtl_idx]= densities_cref[oc_lith_mtl_idx] *
                    //  (1.0 - thermal_expansivities_local[oc_lith_mtl_idx]* (in.temperature[i] - reference_temperature));
 
-                   const double betaAtDepth= GRIFFIN_BETA_CONST_ATM_PRESSURE - in.pressure[i]*GRIFFIN_BETA_CONST_PDEP_FACTOR;
+                   //const double betaAtDepth= GRIFFIN_BETA_CONST_ATM_PRESSURE - in.pressure[i]*GRIFFIN_BETA_CONST_PDEP_FACTOR;
+                   const double betaAtDepth= GRIFFIN_BETA_CONST_ATM_PRESSURE * (1.0/(1.0 + in.pressure[i] * GRIFFIN_BETA_CONST_PDEP_FACTOR));
 
-                   double thExpAtDepth= in.pressure[i]*TH_EXP_PRESS_DEP_FACTOR;
+                   const double thExpFactAtDepth= 1.0/(1.0 + in.pressure[i] * TH_EXP_PDEP_FACTOR);
 
 		   // --- Update thermal expansivities and densities accordingly (for all compos at this grid location)
                    //     NOTE: the contribution of the betaAtDepth*in.pressure[i] term is (normally) only significant
@@ -148,8 +149,10 @@ namespace aspect
 		   {
                      //thExpAtDepth= (thExpAtDepth > thermal_expansivities_cref[cmp] 
                      
-                      // --- The increase in th. exp. with T is itself decreased by the th. exp. inverse dependency on P
-		      thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp] - thExpAtDepth;
+                     // --- The increase in th. exp. with T (thExpFact * thermal_expansivities_cref[cmp]) is itself
+                     //     damped by the th. exp. inverse dependency on P (NOTE: this thExpFactAtDepth is ~1.0 for
+                     //     pressures < 1.5 GPa so the increase prevails for such "low" pressures)
+                     thermal_expansivities_local[cmp]= (thExpFact * thermal_expansivities_cref[cmp]) * thExpFactAtDepth  ;
 
                       // --- The th. exp. can (in theory) become negative but we nevertheless do not allow it here. 
                       AssertThrow(thermal_expansivities_local[cmp] > 0,
