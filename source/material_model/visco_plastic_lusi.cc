@@ -165,7 +165,7 @@ namespace aspect
                  // --- Do not modify the thermal diffusivity of the asthenosphere
                  //     (which is also the background material) which is set at 1.25e-5 at STP
                  //     NOTE: This is very ugly, need to implement something more clean
-                 const double thDiffThresholdAsth= 1.0e-5
+                 const double thDiffThresholdAsth= 1.0e-5;
 
  		 // --- NOTE: We assume here that the reference T is 273K
 		 //     Limit the thDiffFactor between 1.0 and 0.45
