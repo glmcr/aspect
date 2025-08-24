@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 by the authors of the ASPECT code.
+  Copyright (C) 2022 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -30,7 +30,7 @@
 
 #include "../benchmarks/newton_solver_benchmark_set/nonlinear_channel_flow/simple_nonlinear.cc"
 
-template<int dim>
+template <int dim>
 int f(double parameter)
 {
 
@@ -215,7 +215,7 @@ int f(double parameter)
 
   if (Error)
     {
-      std::cout << "Some parts of the test where not succesfull." << std::endl;
+      std::cout << "Some parts of the test were not successful." << std::endl;
     }
   else
     {

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -40,12 +40,12 @@ namespace aspect
 
 
       template <int dim>
-      std::pair<std::string, Vector<float> *>
+      std::pair<std::string, std::unique_ptr<Vector<float>>>
       BoundaryIndicator<dim>::execute() const
       {
-        std::pair<std::string, Vector<float> *>
+        std::pair<std::string, std::unique_ptr<Vector<float>>>
         return_value ("boundary_indicator",
-                      new Vector<float>(this->get_triangulation().n_active_cells()));
+                      std::make_unique<Vector<float>>(this->get_triangulation().n_active_cells()));
 
         // retrieve the largest used boundary indicator and add one.
         // this value will be set for internal cells

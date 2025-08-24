@@ -1,7 +1,11 @@
 
-#include <world_builder/world.h>
+#include "world_builder/world.h"
 
 #include <stdio.h>
+
+// we don't need the c++ MPI wrappers
+#define OMPI_SKIP_MPICXX 1
+#define MPICH_SKIP_MPICXX
 #include <mpi.h>
 
 int main(int argc, char *argv[]) {
@@ -16,7 +20,7 @@ int main(int argc, char *argv[]) {
   unsigned int random_number_seed = 1; // use a random number seed larger than zero
   double composition = 0;
   bool has_output_dir = 0; // false
-  char output_dir[] = "../../doc/manual/";
+  char output_dir[] = "../../doc/";
 
    if( argc > 2 ) {
       printf("Too many arguments supplied.\n");
@@ -45,11 +49,21 @@ int main(int argc, char *argv[]) {
 
   printf("2d temperature: \n");
   std::array<double,2> coords_2d = {{x, z}};
+  temperature = world->temperature(coords_2d,depth);
+  printf("temperature in C = %f \n", temperature);
+
+  printf("2d temperature (deprecated): \n");
+  coords_2d = {{x, z}};
   temperature = world->temperature(coords_2d,depth,gravity);
   printf("temperature in C = %f \n", temperature);
 
   printf("3d temperature: \n");
   std::array<double,3> coords_3d = {{x, y, y}};
+  temperature = world->temperature(coords_3d,depth);
+  printf("temperature in C = %f \n", temperature);
+
+  printf("3d temperature (deprecated): \n");
+  coords_3d = {{x, y, y}};
   temperature = world->temperature(coords_3d,depth,gravity);
   printf("temperature in C = %f \n", temperature);
 

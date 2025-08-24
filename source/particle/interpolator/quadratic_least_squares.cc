@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2019 - 2024 by the authors of the ASPECT code.
 
  This file is part of ASPECT.
 
@@ -19,16 +19,12 @@
  */
 
 #include <aspect/particle/interpolator/quadratic_least_squares.h>
-#include <aspect/particle/interpolator/bilinear_least_squares.h>
-#include <aspect/postprocess/particles.h>
-#include <aspect/simulator.h>
+#include <aspect/particle/manager.h>
+#include <aspect/utilities.h>
 
 #include <deal.II/grid/grid_tools.h>
 #include <deal.II/base/signaling_nan.h>
 #include <deal.II/lac/qr.h>
-#include <deal.II/grid/tria_iterator_base.h>
-
-#include <boost/lexical_cast.hpp>
 
 namespace aspect
 {
@@ -37,39 +33,39 @@ namespace aspect
     namespace Interpolator
     {
       template <int dim>
-      double QuadraticLeastSquares<dim>::evaluate_interpolation_function(const Vector<double> &coefficents, const Point<dim> &position) const
+      double QuadraticLeastSquares<dim>::evaluate_interpolation_function(const Vector<double> &coefficients, const Point<dim> &position) const
       {
         if (dim == 2)
           {
-            return coefficents[0] +
-                   coefficents[1] * position[0] +
-                   coefficents[2] * position[1] +
-                   coefficents[3] * position[0] * position[1] +
-                   coefficents[4] * position[0] * position[0] +
-                   coefficents[5] * position[1] * position[1];
+            return coefficients[0] +
+                   coefficients[1] * position[0] +
+                   coefficients[2] * position[1] +
+                   coefficients[3] * position[0] * position[1] +
+                   coefficients[4] * position[0] * position[0] +
+                   coefficients[5] * position[1] * position[1];
           }
         else
           {
-            return coefficents[0] +
-                   coefficents[1] * position[0] +
-                   coefficents[2] * position[1] +
-                   coefficents[3] * position[2] +
-                   coefficents[4] * position[0] * position[1] +
-                   coefficents[5] * position[0] * position[2] +
-                   coefficents[6] * position[1] * position[2] +
-                   coefficents[7] * position[0] * position[0] +
-                   coefficents[8] * position[1] * position[1] +
-                   coefficents[9] * position[2] * position[2];
+            return coefficients[0] +
+                   coefficients[1] * position[0] +
+                   coefficients[2] * position[1] +
+                   coefficients[3] * position[2] +
+                   coefficients[4] * position[0] * position[1] +
+                   coefficients[5] * position[0] * position[2] +
+                   coefficients[6] * position[1] * position[2] +
+                   coefficients[7] * position[0] * position[0] +
+                   coefficients[8] * position[1] * position[1] +
+                   coefficients[9] * position[2] * position[2];
           }
       }
 
 
-      template<int dim>
-      std::pair<double, double> QuadraticLeastSquares<dim>::get_interpolation_bounds(const Vector<double> &coefficents) const
+      template <int dim>
+      std::pair<double, double> QuadraticLeastSquares<dim>::get_interpolation_bounds(const Vector<double> &coefficients) const
       {
         double interpolation_min = std::numeric_limits<double>::max();
         double interpolation_max = std::numeric_limits<double>::lowest();
-        for (const auto &critical_point : get_critical_points(coefficents))
+        for (const auto &critical_point : get_critical_points(coefficients))
           {
             bool critical_point_in_cell = true;
             for (unsigned int d = 0; d < dim; ++d)
@@ -79,7 +75,7 @@ namespace aspect
               }
             if (critical_point_in_cell)
               {
-                const double value_at_critical_point = evaluate_interpolation_function(coefficents, critical_point);
+                const double value_at_critical_point = evaluate_interpolation_function(coefficients, critical_point);
                 interpolation_min = std::min(interpolation_min, value_at_critical_point);
                 interpolation_max = std::max(interpolation_max, value_at_critical_point);
               }
@@ -89,14 +85,14 @@ namespace aspect
 
 
       template <int dim>
-      std::vector<Point<dim>> QuadraticLeastSquares<dim>::get_critical_points(const Vector<double> &coefficents) const
+      std::vector<Point<dim>> QuadraticLeastSquares<dim>::get_critical_points(const Vector<double> &coefficients) const
       {
         std::vector<Point<dim>> critical_points;
-        const double epsilon = 10. * coefficents.linfty_norm() * std::numeric_limits<double>::epsilon();
+        const double epsilon = 10. * coefficients.linfty_norm() * std::numeric_limits<double>::epsilon();
         if (dim == 2)
           {
             // reserve the maximum number of critical points
-            // in 2D: one inside, 4 edges, and 4 corners
+            // in 2d: one inside, 4 edges, and 4 corners
             critical_points.reserve(1 + 4 + 4);
             // If finding the critical point of the function (or along a cell edge) would
             // require division by 0, or the solve of a singular matrix, then there is not
@@ -106,13 +102,13 @@ namespace aspect
 
             // compute the location of the global critical point
             Tensor<2, dim, double> critical_point_A;
-            critical_point_A[0][0] = 2 * coefficents[4];
-            critical_point_A[0][1] = coefficents[3];
-            critical_point_A[1][0] = coefficents[3];
-            critical_point_A[1][1] = 2 * coefficents[5];
+            critical_point_A[0][0] = 2 * coefficients[4];
+            critical_point_A[0][1] = coefficients[3];
+            critical_point_A[1][0] = coefficients[3];
+            critical_point_A[1][1] = 2 * coefficients[5];
             Tensor<1, dim, double> critical_point_b;
-            critical_point_b[0] = -coefficents[1];
-            critical_point_b[1] = -coefficents[2];
+            critical_point_b[0] = -coefficients[1];
+            critical_point_b[1] = -coefficients[2];
             if (std::abs(determinant(critical_point_A)) > epsilon)
               {
                 critical_points.emplace_back(invert(critical_point_A) * critical_point_b);
@@ -122,19 +118,19 @@ namespace aspect
             // critical point inside the unit cell, because the value at the edges can be a minimum, while
             // the critical point inside the cell is a maximum, or vice-versa. Additionally the critical
             // point could be a saddle point, in which case we would still need to find a minimum and maximum over the cell.
-            if (std::abs(coefficents[5]) > epsilon)
+            if (std::abs(coefficients[5]) > epsilon)
               {
-                critical_points.emplace_back(-0.5, -(2 * coefficents[2] - coefficents[3])/(4 * coefficents[5]));
-                critical_points.emplace_back( 0.5, -(2 * coefficents[2] + coefficents[3])/(4 * coefficents[5]));
+                critical_points.emplace_back(-0.5, -(2 * coefficients[2] - coefficients[3])/(4 * coefficients[5]));
+                critical_points.emplace_back( 0.5, -(2 * coefficients[2] + coefficients[3])/(4 * coefficients[5]));
               }
-            if (std::abs(coefficents[4]) > epsilon)
+            if (std::abs(coefficients[4]) > epsilon)
               {
-                critical_points.emplace_back(-(2 * coefficents[1] - coefficents[3])/(4 * coefficents[4]), -0.5);
-                critical_points.emplace_back(-(2 * coefficents[1] + coefficents[3])/(4 * coefficents[4]),  0.5);
+                critical_points.emplace_back(-(2 * coefficients[1] - coefficients[3])/(4 * coefficients[4]), -0.5);
+                critical_points.emplace_back(-(2 * coefficients[1] + coefficients[3])/(4 * coefficients[4]),  0.5);
               }
 
-            // Compute the critical value for each of the corners. This is neccessary even if critical points
-            // have already been found in previous steps, as the global critical point could be a minimium,
+            // Compute the critical value for each of the corners. This is necessary even if critical points
+            // have already been found in previous steps, as the global critical point could be a minimum,
             // and the edge critical points could also be minimums.
             for (double x = -0.5; x <= 0.5; ++x)
               {
@@ -147,7 +143,7 @@ namespace aspect
         else if (dim == 3)
           {
             // reserve the maximum number of critical points
-            // in 3D: one inside, 6 faces, 12 edges, and 8 corners
+            // in 3d: one inside, 6 faces, 12 edges, and 8 corners
             critical_points.reserve(1 + 6 + 12 + 8);
             // If finding the critical point of the function (or along a cell edge) would
             // require division by 0, or the solve of a singular matrix, then there is not
@@ -158,19 +154,19 @@ namespace aspect
             // Compute the location of the global critical point
             {
               Tensor<2, dim, double> critical_point_A;
-              critical_point_A[0][0] = 2 * coefficents[7];
-              critical_point_A[0][1] = coefficents[4];
-              critical_point_A[0][2] = coefficents[5];
-              critical_point_A[1][0] = coefficents[4];
-              critical_point_A[1][1] = 2 * coefficents[8];
-              critical_point_A[1][2] = coefficents[6];
-              critical_point_A[2][0] = coefficents[5];
-              critical_point_A[2][1] = coefficents[6];
-              critical_point_A[2][2] = 2 * coefficents[9];
+              critical_point_A[0][0] = 2 * coefficients[7];
+              critical_point_A[0][1] = coefficients[4];
+              critical_point_A[0][2] = coefficients[5];
+              critical_point_A[1][0] = coefficients[4];
+              critical_point_A[1][1] = 2 * coefficients[8];
+              critical_point_A[1][2] = coefficients[6];
+              critical_point_A[2][0] = coefficients[5];
+              critical_point_A[2][1] = coefficients[6];
+              critical_point_A[2][2] = 2 * coefficients[9];
               Tensor<1, dim, double> critical_point_b;
-              critical_point_b[0] = -coefficents[1];
-              critical_point_b[1] = -coefficents[2];
-              critical_point_b[2] = -coefficents[3];
+              critical_point_b[0] = -coefficients[1];
+              critical_point_b[1] = -coefficients[2];
+              critical_point_b[2] = -coefficients[3];
               if (std::abs(determinant(critical_point_A)) > epsilon)
                 {
                   critical_points.emplace_back(invert(critical_point_A) * critical_point_b);
@@ -178,65 +174,65 @@ namespace aspect
             }
 
             // Compute the location of critical points along the faces of the cell.
-            // This is is neccessary even if we found a global critical point as it
+            // This is is necessary even if we found a global critical point as it
             // could be a minimum and the faces could have a maximum or vice-versa.
             Tensor<2, 2, double> critical_point_A;
             Tensor<1, 2, double> critical_point_b;
             Tensor<1, 2, double> critical_point_X;
             // The columns of this critical_point_A correspond to Y and Z.
-            critical_point_A[0][0] = 2 * coefficents[8];
-            critical_point_A[0][1] = coefficents[6];
-            critical_point_A[1][0] = coefficents[6];
-            critical_point_A[1][1] = 2 * coefficents[9];
+            critical_point_A[0][0] = 2 * coefficients[8];
+            critical_point_A[0][1] = coefficients[6];
+            critical_point_A[1][0] = coefficients[6];
+            critical_point_A[1][1] = 2 * coefficients[9];
             if (std::abs(determinant(critical_point_A)) > epsilon)
               {
                 const Tensor<2, 2, double> critical_point_A_inv = invert(critical_point_A);
                 double x = -0.5;
-                critical_point_b[0] = -(coefficents[2] + coefficents[4] * x);
-                critical_point_b[1] = -(coefficents[3] + coefficents[5] * x);
+                critical_point_b[0] = -(coefficients[2] + coefficients[4] * x);
+                critical_point_b[1] = -(coefficients[3] + coefficients[5] * x);
                 critical_point_X = critical_point_A_inv * critical_point_b;
                 critical_points.emplace_back(x, critical_point_X[0], critical_point_X[1]);
                 x = 0.5;
-                critical_point_b[0] = -(coefficents[2] + coefficents[4] * x);
-                critical_point_b[1] = -(coefficents[3] + coefficents[5] * x);
+                critical_point_b[0] = -(coefficients[2] + coefficients[4] * x);
+                critical_point_b[1] = -(coefficients[3] + coefficients[5] * x);
                 critical_point_X = critical_point_A_inv * critical_point_b;
                 critical_points.emplace_back(x, critical_point_X[0], critical_point_X[1]);
               }
             // The columns of this critical_point_A correspond to X and Z.
-            critical_point_A[0][0] = 2 * coefficents[7];
-            critical_point_A[0][1] = coefficents[5];
-            critical_point_A[1][0] = coefficents[5];
-            critical_point_A[1][1] = 2 * coefficents[9];
+            critical_point_A[0][0] = 2 * coefficients[7];
+            critical_point_A[0][1] = coefficients[5];
+            critical_point_A[1][0] = coefficients[5];
+            critical_point_A[1][1] = 2 * coefficients[9];
             if (std::abs(determinant(critical_point_A)) > epsilon)
               {
                 const Tensor<2, 2, double> critical_point_A_inv = invert(critical_point_A);
                 double y = -0.5;
-                critical_point_b[0] = -(coefficents[1] + coefficents[4] * y);
-                critical_point_b[1] = -(coefficents[3] + coefficents[6] * y);
+                critical_point_b[0] = -(coefficients[1] + coefficients[4] * y);
+                critical_point_b[1] = -(coefficients[3] + coefficients[6] * y);
                 critical_point_X = critical_point_A_inv * critical_point_b;
                 critical_points.emplace_back(critical_point_X[0], y, critical_point_X[1]);
                 y = 0.5;
-                critical_point_b[0] = -(coefficents[1] + coefficents[4] * y);
-                critical_point_b[1] = -(coefficents[3] + coefficents[6] * y);
+                critical_point_b[0] = -(coefficients[1] + coefficients[4] * y);
+                critical_point_b[1] = -(coefficients[3] + coefficients[6] * y);
                 critical_point_X = critical_point_A_inv * critical_point_b;
                 critical_points.emplace_back(critical_point_X[0], y, critical_point_X[1]);
               }
             // The columns of this critical_point_A correspond to X and Y.
-            critical_point_A[0][0] = 2 * coefficents[7];
-            critical_point_A[0][1] = coefficents[4];
-            critical_point_A[1][0] = coefficents[4];
-            critical_point_A[1][1] = 2 * coefficents[8];
+            critical_point_A[0][0] = 2 * coefficients[7];
+            critical_point_A[0][1] = coefficients[4];
+            critical_point_A[1][0] = coefficients[4];
+            critical_point_A[1][1] = 2 * coefficients[8];
             if (std::abs(determinant(critical_point_A)) > epsilon)
               {
                 const Tensor<2, 2, double> critical_point_A_inv = invert(critical_point_A);
                 double z = -0.5;
-                critical_point_b[0] = -(coefficents[1] + coefficents[5] * z);
-                critical_point_b[1] = -(coefficents[2] + coefficents[6] * z);
+                critical_point_b[0] = -(coefficients[1] + coefficients[5] * z);
+                critical_point_b[1] = -(coefficients[2] + coefficients[6] * z);
                 critical_point_X = critical_point_A_inv * critical_point_b;
                 critical_points.emplace_back(critical_point_X[0], critical_point_X[1], z);
                 z = 0.5;
-                critical_point_b[0] = -(coefficents[1] + coefficents[5] * z);
-                critical_point_b[1] = -(coefficents[2] + coefficents[6] * z);
+                critical_point_b[0] = -(coefficients[1] + coefficients[5] * z);
+                critical_point_b[1] = -(coefficients[2] + coefficients[6] * z);
                 critical_point_X = critical_point_A_inv * critical_point_b;
                 critical_points.emplace_back(critical_point_X[0], critical_point_X[1], z);
               }
@@ -245,33 +241,33 @@ namespace aspect
             // This is necessary even if critical points have been found in previous
             // steps, as the global critial point and critical points on faces could
             // all be minimums.
-            if (std::abs(coefficents[9]) > epsilon)
+            if (std::abs(coefficients[9]) > epsilon)
               {
                 for (double x = -0.5; x <= 0.5; ++x)
                   {
                     for (double y = -0.5; y <= 0.5; ++y)
                       {
-                        critical_points.emplace_back(x,y, -(coefficents[3] + coefficents[5] * x + coefficents[6] * y)/(2 * coefficents[9]));
+                        critical_points.emplace_back(x,y, -(coefficients[3] + coefficients[5] * x + coefficients[6] * y)/(2 * coefficients[9]));
                       }
                   }
               }
-            if (std::abs(coefficents[8]) > epsilon)
+            if (std::abs(coefficients[8]) > epsilon)
               {
                 for (double x = -0.5; x <= 0.5; ++x)
                   {
                     for (double z = -0.5; z <= 0.5; ++z)
                       {
-                        critical_points.emplace_back(x, -(coefficents[2] + coefficents[4] * x + coefficents[6] * z) / (2 * coefficents[8]), z);
+                        critical_points.emplace_back(x, -(coefficients[2] + coefficients[4] * x + coefficients[6] * z) / (2 * coefficients[8]), z);
                       }
                   }
               }
-            if (std::abs(coefficents[7]) > epsilon)
+            if (std::abs(coefficients[7]) > epsilon)
               {
                 for (double y = -0.5; y <= 0.5; ++y)
                   {
                     for (double z = -0.5; z <= 0.5; ++z)
                       {
-                        critical_points.emplace_back(-(coefficents[1] + coefficents[4] * y + coefficents[5] * z)/(2*coefficents[7]), y, z);
+                        critical_points.emplace_back(-(coefficients[1] + coefficients[4] * y + coefficients[5] * z)/(2*coefficients[7]), y, z);
                       }
                   }
               }
@@ -309,32 +305,8 @@ namespace aspect
                     ExcMessage("Internal error: the particle property interpolator was "
                                "called without a specified component to interpolate."));
 
-        const Point<dim> approximated_cell_midpoint = std::accumulate (positions.begin(), positions.end(), Point<dim>())
-                                                      / static_cast<double> (positions.size());
-
-        typename parallel::distributed::Triangulation<dim>::active_cell_iterator found_cell;
-
-        if (cell == typename parallel::distributed::Triangulation<dim>::active_cell_iterator())
-          {
-            // We can not simply use one of the points as input for find_active_cell_around_point
-            // because for vertices of mesh cells we might end up getting ghost_cells as return value
-            // instead of the local active cell. So make sure we are well in the inside of a cell.
-            Assert(positions.size() > 0,
-                   ExcMessage("The particle property interpolator was not given any "
-                              "positions to evaluate the particle properties at."));
-
-
-            found_cell =
-              (GridTools::find_active_cell_around_point<> (this->get_mapping(),
-                                                           this->get_triangulation(),
-                                                           approximated_cell_midpoint)).first;
-          }
-        else
-          found_cell = cell;
-
         const typename ParticleHandler<dim>::particle_iterator_range particle_range =
-          particle_handler.particles_in_cell(found_cell);
-
+          particle_handler.particles_in_cell(cell);
 
         std::vector<std::vector<double>> cell_properties(positions.size(),
                                                           std::vector<double>(n_particle_properties,
@@ -347,11 +319,11 @@ namespace aspect
           return fallback_interpolator.properties_at_points(particle_handler,
                                                             positions,
                                                             selected_properties,
-                                                            found_cell);
+                                                            cell);
         const std::vector<double> cell_average_values = fallback_interpolator.properties_at_points(particle_handler,
         {positions[0]},
         selected_properties,
-        found_cell)[0];
+        cell)[0];
 
 
         // Notice that the size of matrix A is n_particles x n_matrix_columns
@@ -371,7 +343,7 @@ namespace aspect
         for (typename ParticleHandler<dim>::particle_iterator particle = particle_range.begin();
              particle != particle_range.end(); ++particle, ++particle_index)
           {
-            const auto &particle_property_value = particle->get_properties();
+            const ArrayView<double> particle_property_value = particle->get_properties();
             for (unsigned int property_index = 0; property_index < n_particle_properties; ++property_index)
               {
                 if (selected_properties[property_index] == true)
@@ -421,7 +393,7 @@ namespace aspect
         if (use_quadratic_least_squares_limiter.n_selected_components(n_particle_properties) != 0)
           {
             std::vector<typename parallel::distributed::Triangulation<dim>::active_cell_iterator> active_neighbors;
-            GridTools::get_active_neighbors<parallel::distributed::Triangulation<dim>>(found_cell, active_neighbors);
+            GridTools::get_active_neighbors<parallel::distributed::Triangulation<dim>>(cell, active_neighbors);
             for (const auto &active_neighbor : active_neighbors)
               {
                 if (active_neighbor->is_artificial())
@@ -437,14 +409,14 @@ namespace aspect
                   }
 
               }
-            if (found_cell->at_boundary())
+            if (cell->at_boundary())
               {
-                for (unsigned int face_id = 0; face_id < found_cell->reference_cell().n_faces(); ++face_id)
+                for (unsigned int face_id = 0; face_id < cell->reference_cell().n_faces(); ++face_id)
                   {
-                    if (found_cell->at_boundary(face_id))
+                    if (cell->at_boundary(face_id))
                       {
                         const unsigned int opposing_face_id = GeometryInfo<dim>::opposite_face[face_id];
-                        const auto &opposing_cell = found_cell->neighbor(opposing_face_id);
+                        const auto &opposing_cell = cell->neighbor(opposing_face_id);
                         if (opposing_cell.state() == IteratorState::IteratorStates::valid && opposing_cell->is_active() && !opposing_cell->is_artificial())
                           {
 
@@ -453,7 +425,7 @@ namespace aspect
                               {
                                 if (selected_properties[property_index] == true && use_boundary_extrapolation[property_index] == true)
                                   {
-                                    Assert(found_cell->reference_cell().is_hyper_cube() == true, ExcNotImplemented());
+                                    Assert(cell->reference_cell().is_hyper_cube() == true, ExcNotImplemented());
                                     const double expected_boundary_value = 1.5 * cell_average_values[property_index] - 0.5 * neighbor_cell_average[property_index];
                                     property_minimums[property_index] = std::min(property_minimums[property_index], expected_boundary_value);
                                     property_maximums[property_index] = std::max(property_maximums[property_index], expected_boundary_value);
@@ -475,7 +447,7 @@ namespace aspect
           return fallback_interpolator.properties_at_points(particle_handler,
                                                             positions,
                                                             selected_properties,
-                                                            found_cell);
+                                                            cell);
         std::vector<Vector<double>> QTb(n_particle_properties, Vector<double>(n_matrix_columns));
         std::vector<Vector<double>> c(n_particle_properties, Vector<double>(n_matrix_columns));
         for (unsigned int property_index = 0; property_index < n_particle_properties; ++property_index)
@@ -508,7 +480,7 @@ namespace aspect
         unsigned int index_positions = 0;
         for (typename std::vector<Point<dim>>::const_iterator itr = positions.begin(); itr != positions.end(); ++itr, ++index_positions)
           {
-            Point<dim> relative_support_point_location = this->get_mapping().transform_real_to_unit_cell(found_cell, *itr);
+            Point<dim> relative_support_point_location = this->get_mapping().transform_real_to_unit_cell(cell, *itr);
             for (unsigned int d = 0; d < dim; ++d)
               relative_support_point_location[d] -= unit_offset;
             for (unsigned int property_index = 0; property_index < n_particle_properties; ++property_index)
@@ -521,8 +493,17 @@ namespace aspect
                       {
                         // Assert that the limiter was reasonably effective. We can not expect perfect accuracy
                         // due to inaccuracies e.g. in the inversion of the mapping.
-                        Assert(interpolated_value >= property_minimums[property_index] - 1e-9 * std::max(std::abs(property_minimums[property_index]), std::abs(property_maximums[property_index])), ExcInternalError());
-                        Assert(interpolated_value <= property_maximums[property_index] + 1e-9 * std::max(std::abs(property_minimums[property_index]), std::abs(property_maximums[property_index])), ExcInternalError());
+                        const double tolerance = std::sqrt(std::numeric_limits<double>::epsilon())
+                                                 * std::max(std::abs(property_minimums[property_index]),
+                                                            std::abs(property_maximums[property_index]));
+                        (void) tolerance;
+                        Assert(interpolated_value >= property_minimums[property_index] - tolerance,
+                               ExcMessage("The particle interpolation limiter did not succeed. Interpolated value: " + std::to_string(interpolated_value)
+                                          + " is smaller than the minimum particle property value: " + std::to_string(property_minimums[property_index]) + "."));
+                        Assert(interpolated_value <= property_maximums[property_index] + tolerance,
+                               ExcMessage("The particle interpolation limiter did not succeed. Interpolated value: " + std::to_string(interpolated_value)
+                                          + " is larger than the maximum particle property value: " + std::to_string(property_maximums[property_index]) + "."));
+
                         // This chopping is done to avoid values that are just outside
                         // of the limiting bounds.
                         interpolated_value = std::min(interpolated_value, property_maximums[property_index]);
@@ -542,33 +523,25 @@ namespace aspect
       void
       QuadraticLeastSquares<dim>::declare_parameters (ParameterHandler &prm)
       {
-        prm.enter_subsection("Postprocess");
+        prm.enter_subsection("Interpolator");
         {
-          prm.enter_subsection("Particles");
+          prm.enter_subsection("Quadratic least squares");
           {
-            prm.enter_subsection("Interpolator");
-            {
-              prm.enter_subsection("Quadratic least squares");
-              {
-                prm.declare_entry("Use quadratic least squares limiter", "true",
-                                  Patterns::List(Patterns::Bool()),
-                                  "Limit the interpolation of particle properties onto the cell, so that "
-                                  "the value of each property is no smaller than its minimum and no "
-                                  "larger than its maximum on the particles of each cell, and the "
-                                  "average of neighboring cells. If more than one value is given, "
-                                  "it will be treated as a list with one component per particle property.");
-                prm.declare_entry("Use boundary extrapolation", "false",
-                                  Patterns::List(Patterns::Bool()),
-                                  "Extends the range used by 'Use quadratic least squares limiter' "
-                                  "by linearly interpolating values at cell boundaries from neighboring "
-                                  "cells. If more than one value is given, it will be treated as a list "
-                                  "with one component per particle property. Enabling 'Use boundary "
-                                  "extrapolation' requires enabling 'Use quadratic least squares "
-                                  "limiter'.");
-              }
-              prm.leave_subsection();
-            }
-            prm.leave_subsection();
+            prm.declare_entry("Use quadratic least squares limiter", "true",
+                              Patterns::List(Patterns::Bool()),
+                              "Limit the interpolation of particle properties onto the cell, so that "
+                              "the value of each property is no smaller than its minimum and no "
+                              "larger than its maximum on the particles of each cell, and the "
+                              "average of neighboring cells. If more than one value is given, "
+                              "it will be treated as a list with one component per particle property.");
+            prm.declare_entry("Use boundary extrapolation", "false",
+                              Patterns::List(Patterns::Bool()),
+                              "Extends the range used by 'Use quadratic least squares limiter' "
+                              "by linearly interpolating values at cell boundaries from neighboring "
+                              "cells. If more than one value is given, it will be treated as a list "
+                              "with one component per particle property. Enabling 'Use boundary "
+                              "extrapolation' requires enabling 'Use quadratic least squares "
+                              "limiter'.");
           }
           prm.leave_subsection();
         }
@@ -580,73 +553,59 @@ namespace aspect
       QuadraticLeastSquares<dim>::parse_parameters (ParameterHandler &prm)
       {
         fallback_interpolator.parse_parameters(prm);
-        prm.enter_subsection("Postprocess");
+
+        prm.enter_subsection("Interpolator");
         {
-          prm.enter_subsection("Particles");
+          prm.enter_subsection("Quadratic least squares");
           {
-            prm.enter_subsection("Interpolator");
-            {
-              prm.enter_subsection("Quadratic least squares");
+            const auto &particle_property_information = this->get_particle_manager(this->get_particle_manager_index()).get_property_manager().get_data_info();
+            const unsigned int n_property_components = particle_property_information.n_components();
+            const unsigned int n_internal_components = particle_property_information.get_components_by_field_name("internal: integrator properties");
+
+            const std::vector<std::string> quadratic_least_squares_limiter_split = Utilities::split_string_list(prm.get("Use quadratic least squares limiter"));
+            std::vector<bool> quadratic_least_squares_limiter_parsed;
+            if (quadratic_least_squares_limiter_split.size() == 1)
               {
-                const Postprocess::Particles<dim> &particle_postprocessor =
-                  this->get_postprocess_manager().template get_matching_postprocessor<const Postprocess::Particles<dim>>();
-                const auto &particle_property_information = particle_postprocessor.get_particle_world().get_property_manager().get_data_info();
-                const unsigned int n_property_components = particle_property_information.n_components();
-                const unsigned int n_internal_components = particle_property_information.get_components_by_field_name("internal: integrator properties");
-
-                const std::vector<std::string> quadratic_least_squares_limiter_split = Utilities::split_string_list(prm.get("Use quadratic least squares limiter"));
-                std::vector<bool> quadratic_least_squares_limiter_parsed;
-                if (quadratic_least_squares_limiter_split.size() == 1)
-                  {
-                    quadratic_least_squares_limiter_parsed = std::vector<bool>(n_property_components - n_internal_components, internal::string_to_bool(quadratic_least_squares_limiter_split[0]));
-                  }
-                else if (quadratic_least_squares_limiter_split.size() == n_property_components - n_internal_components)
-                  {
-                    for (const auto &component: quadratic_least_squares_limiter_split)
-                      quadratic_least_squares_limiter_parsed.push_back(internal::string_to_bool(component));
-                  }
-                else
-                  {
-                    AssertThrow(false, ExcMessage("The size of 'Use quadratic least squares limiter' should either be 1 or the number of particle properties"));
-                  }
-                for (unsigned int i = 0; i < n_internal_components; ++i)
-                  quadratic_least_squares_limiter_parsed.push_back(false);
-                use_quadratic_least_squares_limiter = ComponentMask(quadratic_least_squares_limiter_parsed);
-
-
-                const std::vector<std::string> boundary_extrapolation_split = Utilities::split_string_list(prm.get("Use boundary extrapolation"));
-                std::vector<bool> boundary_extrapolation_parsed;
-                if (boundary_extrapolation_split.size() == 1)
-                  {
-                    boundary_extrapolation_parsed = std::vector<bool>(n_property_components - n_internal_components, internal::string_to_bool(boundary_extrapolation_split[0]));
-                  }
-                else if (boundary_extrapolation_split.size() == n_property_components - n_internal_components)
-                  {
-                    for (const auto &component: boundary_extrapolation_split)
-                      boundary_extrapolation_parsed.push_back(internal::string_to_bool(component));
-                  }
-                else
-                  {
-                    AssertThrow(false, ExcMessage("The size of 'Use boundary extrapolation' should either be 1 or the number of particle properties"));
-                  }
-                for (unsigned int i = 0; i < n_internal_components; ++i)
-                  boundary_extrapolation_parsed.push_back(false);
-                use_boundary_extrapolation = ComponentMask(boundary_extrapolation_parsed);
-                for (unsigned int property_index = 0; property_index < n_property_components - n_internal_components; ++property_index)
-                  {
-                    AssertThrow(use_quadratic_least_squares_limiter[property_index] || !use_boundary_extrapolation[property_index],
-                                ExcMessage("'Use boundary extrapolation' must be set with 'Use quadratic least squares limiter' to be valid."));
-                  }
-
+                quadratic_least_squares_limiter_parsed = std::vector<bool>(n_property_components - n_internal_components, Utilities::string_to_bool(quadratic_least_squares_limiter_split[0]));
               }
-              prm.leave_subsection();
-            }
-            prm.leave_subsection();
-            // In general n_selected_components() requests an argument of the ComponentMask's size since it could be initialized to be entirely true without a size.
-            // Here it is given a size equal to n_property_components, so that argument is not neccessary.
-            const bool limiter_enabled_for_at_least_one_property = (use_quadratic_least_squares_limiter.n_selected_components() != 0);
-            AssertThrow(limiter_enabled_for_at_least_one_property == false || prm.get_bool("Update ghost particles") == true,
-                        ExcMessage("If 'Use quadratic least squares limiter' is enabled for any particle property, then 'Update ghost particles' must be set to true"));
+            else if (quadratic_least_squares_limiter_split.size() == n_property_components - n_internal_components)
+              {
+                for (const auto &component: quadratic_least_squares_limiter_split)
+                  quadratic_least_squares_limiter_parsed.push_back(Utilities::string_to_bool(component));
+              }
+            else
+              {
+                AssertThrow(false, ExcMessage("The size of 'Use quadratic least squares limiter' should either be 1 or the number of particle properties"));
+              }
+            for (unsigned int i = 0; i < n_internal_components; ++i)
+              quadratic_least_squares_limiter_parsed.push_back(false);
+            use_quadratic_least_squares_limiter = ComponentMask(quadratic_least_squares_limiter_parsed);
+
+
+            const std::vector<std::string> boundary_extrapolation_split = Utilities::split_string_list(prm.get("Use boundary extrapolation"));
+            std::vector<bool> boundary_extrapolation_parsed;
+            if (boundary_extrapolation_split.size() == 1)
+              {
+                boundary_extrapolation_parsed = std::vector<bool>(n_property_components - n_internal_components, Utilities::string_to_bool(boundary_extrapolation_split[0]));
+              }
+            else if (boundary_extrapolation_split.size() == n_property_components - n_internal_components)
+              {
+                for (const auto &component: boundary_extrapolation_split)
+                  boundary_extrapolation_parsed.push_back(Utilities::string_to_bool(component));
+              }
+            else
+              {
+                AssertThrow(false, ExcMessage("The size of 'Use boundary extrapolation' should either be 1 or the number of particle properties"));
+              }
+            for (unsigned int i = 0; i < n_internal_components; ++i)
+              boundary_extrapolation_parsed.push_back(false);
+            use_boundary_extrapolation = ComponentMask(boundary_extrapolation_parsed);
+            for (unsigned int property_index = 0; property_index < n_property_components - n_internal_components; ++property_index)
+              {
+                AssertThrow(use_quadratic_least_squares_limiter[property_index] || !use_boundary_extrapolation[property_index],
+                            ExcMessage("'Use boundary extrapolation' must be set with 'Use quadratic least squares limiter' to be valid."));
+              }
+
           }
           prm.leave_subsection();
         }

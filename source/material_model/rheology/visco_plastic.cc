@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2020 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -100,7 +100,7 @@ namespace aspect
                                        const unsigned int i,
                                        const std::vector<double> &volume_fractions,
                                        const std::vector<double> &phase_function_values,
-                                       const std::vector<unsigned int> &n_phases_per_composition) const
+                                       const std::vector<unsigned int> &n_phase_transitions_per_composition) const
       {
         IsostrainViscosities output_parameters;
 
@@ -112,17 +112,20 @@ namespace aspect
 
         // Assemble stress tensor if elastic behavior is enabled
         SymmetricTensor<2,dim> stress_old = numbers::signaling_nan<SymmetricTensor<2,dim>>();
-        if (use_elasticity == true)
+        if (this->get_parameters().enable_elasticity)
           {
             for (unsigned int j=0; j < SymmetricTensor<2,dim>::n_independent_components; ++j)
               stress_old[SymmetricTensor<2,dim>::unrolled_to_component_indices(j)] = in.composition[i][j];
           }
 
-        // The first time this function is called (first iteration of first time step)
-        // a specified "reference" strain rate is used as the returned value would
-        // otherwise be zero.
-        const bool use_reference_strainrate = (this->get_timestep_number() == 0) &&
-                                              (in.strain_rate[i].norm() <= std::numeric_limits<double>::min());
+        // Use a specified "reference" strain rate if the strain rate is not yet available
+        // during the very first nonlinear iteration or before. This is to avoid division by zero and
+        // to have a better estimate of the resulting viscosity during this time.
+        // During later iterations and timesteps the strain rate is capped by a minimum value min_strain_rate.
+        const bool use_reference_strainrate = this->simulator_is_past_initialization() == false
+                                              ||
+                                              (this->get_timestep_number() == 0 &&
+                                               this->get_nonlinear_iteration() == 0);
 
         double edot_ii;
         if (use_reference_strainrate)
@@ -136,21 +139,26 @@ namespace aspect
         for (unsigned int j=0; j < volume_fractions.size(); ++j)
           {
             // Step 1: viscous behavior
-            double viscosity_pre_yield = numbers::signaling_nan<double>();
-            {
+            double non_yielding_viscosity = numbers::signaling_nan<double>();
 
-              // Choice of activation volume depends on whether there is an adiabatic temperature
-              // gradient used when calculating the viscosity. This allows the same activation volume
-              // to be used in incompressible and compressible models.
-              const double temperature_for_viscosity = in.temperature[i] + adiabatic_temperature_gradient_for_viscosity*in.pressure[i];
-              AssertThrow(temperature_for_viscosity != 0, ExcMessage(
-                            "The temperature used in the calculation of the visco-plastic rheology is zero. "
-                            "This is not allowed, because this value is used to divide through. It is probably "
-                            "being caused by the temperature being zero somewhere in the model. The relevant "
-                            "values for debugging are: temperature (" + Utilities::to_string(in.temperature[i]) +
-                            "), adiabatic_temperature_gradient_for_viscosity ("
-                            + Utilities::to_string(adiabatic_temperature_gradient_for_viscosity) + ") and pressure ("
-                            + Utilities::to_string(in.pressure[i]) + ")."));
+            // Choice of activation volume depends on whether there is an adiabatic temperature
+            // gradient used when calculating the viscosity. This allows the same activation volume
+            // to be used in incompressible and compressible models.
+            const double temperature_for_viscosity = (this->simulator_is_past_initialization())
+                                                     ?
+                                                     in.temperature[i] + adiabatic_temperature_gradient_for_viscosity*in.pressure[i]
+                                                     :
+                                                     this->get_adiabatic_conditions().temperature(in.position[i]);
+
+            AssertThrow(temperature_for_viscosity != 0, ExcMessage(
+                          "The temperature used in the calculation of the visco-plastic rheology is zero. "
+                          "This is not allowed, because this value is used to divide through. It is probably "
+                          "being caused by the temperature being zero somewhere in the model. The relevant "
+                          "values for debugging are: temperature (" + Utilities::to_string(in.temperature[i]) +
+                          "), adiabatic_temperature_gradient_for_viscosity ("
+                          + Utilities::to_string(adiabatic_temperature_gradient_for_viscosity) + ") and pressure ("
+                          + Utilities::to_string(in.pressure[i]) + ")."));
+            {
 
               // Step 1a: compute viscosity from diffusion creep law, at least if it is going to be used
 
@@ -166,7 +174,7 @@ namespace aspect
                    ?
                    diffusion_creep.compute_viscosity(pressure_for_creep, temperature_for_viscosity, j,
                                                      phase_function_values,
-                                                     n_phases_per_composition)
+                                                     n_phase_transitions_per_composition)
                    :
                    numbers::signaling_nan<double>());
 
@@ -176,32 +184,42 @@ namespace aspect
                    ?
                    dislocation_creep.compute_viscosity(edot_ii, pressure_for_creep, temperature_for_viscosity, j,
                                                        phase_function_values,
-                                                       n_phases_per_composition)
+                                                       n_phase_transitions_per_composition)
                    :
                    numbers::signaling_nan<double>());
 
-              // Step 1c: select what form of viscosity to use (diffusion, dislocation, fk, or composite)
+              // Step 1c: select which form of viscosity to use (diffusion, dislocation, fk, or composite), and apply
+              // pre-exponential weakening, if required.
               switch (viscous_flow_law)
                 {
                   case diffusion:
                   {
-                    viscosity_pre_yield = viscosity_diffusion;
+                    non_yielding_viscosity = compositional_viscosity_prefactors.compute_viscosity(in, viscosity_diffusion, j, i, \
+                                                                                                  CompositionalViscosityPrefactors<dim>::ModifiedFlowLaws::diffusion);
                     break;
                   }
                   case dislocation:
                   {
-                    viscosity_pre_yield = viscosity_dislocation;
+                    non_yielding_viscosity = compositional_viscosity_prefactors.compute_viscosity(in, viscosity_dislocation, j, i, \
+                                                                                                  CompositionalViscosityPrefactors<dim>::ModifiedFlowLaws::dislocation);
                     break;
                   }
                   case frank_kamenetskii:
                   {
-                    viscosity_pre_yield = frank_kamenetskii_rheology->compute_viscosity(in.temperature[i], j);
+                    non_yielding_viscosity = frank_kamenetskii_rheology->compute_viscosity(in.temperature[i], j,
+                                                                                           pressure_for_creep,
+                                                                                           this->get_adiabatic_conditions().density(this->get_geometry_model().representative_point(0)),
+                                                                                           this->get_gravity_model().gravity_vector(in.position[0]).norm());
                     break;
                   }
                   case composite:
                   {
-                    viscosity_pre_yield = (viscosity_diffusion * viscosity_dislocation)/
-                                          (viscosity_diffusion + viscosity_dislocation);
+                    const double scaled_viscosity_diffusion = compositional_viscosity_prefactors.compute_viscosity(in, viscosity_diffusion, j, i, \
+                                                              CompositionalViscosityPrefactors<dim>::ModifiedFlowLaws::diffusion);
+                    const double scaled_viscosity_dislocation = compositional_viscosity_prefactors.compute_viscosity(in, viscosity_dislocation, j, i, \
+                                                                CompositionalViscosityPrefactors<dim>::ModifiedFlowLaws::dislocation);
+                    non_yielding_viscosity = (scaled_viscosity_diffusion * scaled_viscosity_dislocation)/
+                                             (scaled_viscosity_diffusion + scaled_viscosity_dislocation);
                     break;
                   }
                   default:
@@ -211,71 +229,80 @@ namespace aspect
                   }
                 }
 
-              // Step 1d: compute viscosity from Peierls creep law and harmonically average with current viscosities
+              // Step 1d: compute the viscosity from the Peierls creep law and harmonically average with current viscosities
               if (use_peierls_creep)
                 {
                   const double viscosity_peierls = peierls_creep->compute_viscosity(edot_ii, pressure_for_creep, temperature_for_viscosity, j,
                                                                                     phase_function_values,
-                                                                                    n_phases_per_composition);
-                  viscosity_pre_yield = (viscosity_pre_yield * viscosity_peierls) / (viscosity_pre_yield + viscosity_peierls);
+                                                                                    n_phase_transitions_per_composition);
+                  non_yielding_viscosity = (non_yielding_viscosity * viscosity_peierls) / (non_yielding_viscosity + viscosity_peierls);
                 }
             }
 
 
             // Step 1e: multiply the viscosity by a constant (default value is 1)
-            viscosity_pre_yield = constant_viscosity_prefactors.compute_viscosity(viscosity_pre_yield, j);
+            non_yielding_viscosity = constant_viscosity_prefactors.compute_viscosity(non_yielding_viscosity, j);
 
             // Step 2: calculate strain weakening factors for the cohesion, friction, and pre-yield viscosity
             // If no strain weakening is applied, the factors are 1.
-            const std::array<double, 3> weakening_factors = strain_rheology.compute_strain_weakening_factors(j, in.composition[i]);
+            std::array<double, 3> weakening_factors = strain_rheology.compute_strain_weakening_factors(in.composition[i], j);
+
+            if (strain_rheology.use_temperature_activated_strain_softening)
+              weakening_factors = strain_rheology.apply_temperature_dependence_to_strain_weakening_factors(weakening_factors,temperature_for_viscosity,j);
+
             // Apply strain weakening to the viscous viscosity.
-            viscosity_pre_yield *= weakening_factors[2];
+            non_yielding_viscosity *= weakening_factors[2];
 
 
             // Step 3: calculate the viscous stress magnitude
             // and strain rate. If requested compute visco-elastic contributions.
-            double current_edot_ii = edot_ii;
+            double effective_edot_ii = edot_ii;
 
-            if (use_elasticity)
+            if (this->get_parameters().enable_elasticity)
               {
                 const std::vector<double> &elastic_shear_moduli = elastic_rheology.get_elastic_shear_moduli();
 
-                if (use_reference_strainrate == true)
-                  current_edot_ii = ref_strain_rate;
-                else
+                if (use_reference_strainrate == false)
                   {
+                    // Overwrite effective_edot_ii with a value that includes a term that accounts for
+                    // elastic stress arising from a previous time step.
+                    // If used, this variable is no longer the "true" strain rate, but is instead
+                    // an effective value that enables the use of a standard isotropic viscosity
+                    // formulation (i.e. where stress and strain are related by a scalar viscosity).
+                    // The additional strain rate component is supported by a corresponding fictional body force.
                     Assert(std::isfinite(in.strain_rate[i].norm()),
                            ExcMessage("Invalid strain_rate in the MaterialModelInputs. This is likely because it was "
                                       "not filled by the caller."));
-                    const double viscoelastic_strain_rate_invariant = elastic_rheology.calculate_viscoelastic_strain_rate(in.strain_rate[i],
-                                                                      stress_old,
-                                                                      elastic_shear_moduli[j]);
+                    const SymmetricTensor<2,dim> effective_strain_rate =
+                      elastic_rheology.calculate_viscoelastic_strain_rate(in.strain_rate[i],
+                                                                          stress_old,
+                                                                          elastic_shear_moduli[j]);
 
-                    current_edot_ii = std::max(viscoelastic_strain_rate_invariant,
-                                               min_strain_rate);
+                    effective_edot_ii = std::max(std::sqrt(std::max(-second_invariant(effective_strain_rate), 0.)),
+                                                 min_strain_rate);
                   }
 
-                // Step 3a: calculate viscoelastic (effective) viscosity
-                viscosity_pre_yield = elastic_rheology.calculate_viscoelastic_viscosity(viscosity_pre_yield,
-                                                                                        elastic_shear_moduli[j]);
+                // Step 3a: calculate the viscoelastic (effective) viscosity
+                non_yielding_viscosity = elastic_rheology.calculate_viscoelastic_viscosity(non_yielding_viscosity,
+                                                                                           elastic_shear_moduli[j]);
               }
 
-            // Step 3b: calculate current (viscous or viscous + elastic) stress magnitude
-            double current_stress = 2. * viscosity_pre_yield * current_edot_ii;
+            // Step 3b: calculate non yielding (viscous or viscous + elastic) stress magnitude
+            double non_yielding_stress = 2. * non_yielding_viscosity * effective_edot_ii;
 
-            // Step 4a: calculate strain-weakened friction and cohesion
+            // Step 4a: calculate the strain-weakened friction and cohesion
             const DruckerPragerParameters drucker_prager_parameters = drucker_prager_plasticity.compute_drucker_prager_parameters(j,
                                                                       phase_function_values,
-                                                                      n_phases_per_composition);
+                                                                      n_phase_transitions_per_composition);
             const double current_cohesion = drucker_prager_parameters.cohesion * weakening_factors[0];
             double current_friction = drucker_prager_parameters.angle_internal_friction * weakening_factors[1];
 
-            // Steb 4b: calculate friction angle dependent on strain rate if specified
-            // apply the strain rate dependence to the friction angle (including strain weakening  if present)
+            // Step 4b: calculate the friction angle dependent on strain rate if specified
+            // apply the strain rate dependence to the friction angle (including strain weakening if present)
             // Note: Maybe this should also be turned around to first apply strain rate dependence and then
             // the strain weakening to the dynamic friction angle. Didn't come up with a clear argument for
             // one order or the other.
-            current_friction = friction_models.compute_friction_angle(current_edot_ii,
+            current_friction = friction_models.compute_friction_angle(effective_edot_ii,
                                                                       j,
                                                                       current_friction,
                                                                       in.position[i]);
@@ -289,40 +316,48 @@ namespace aspect
             // than the lithostatic pressure.
 
             double pressure_for_plasticity = in.pressure[i];
-            if (allow_negative_pressures_in_plasticity == false)
-              pressure_for_plasticity = std::max(in.pressure[i],0.0);
 
-            // Step 5a: calculate Drucker-Prager yield stress
+            if (use_adiabatic_pressure_in_plasticity)
+              pressure_for_plasticity = this->get_adiabatic_conditions().pressure(in.position[i]);
+
+            if (allow_negative_pressures_in_plasticity == false)
+              pressure_for_plasticity = std::max(pressure_for_plasticity,0.0);
+
+            // Step 5a: calculate the Drucker-Prager yield stress
             const double yield_stress = drucker_prager_plasticity.compute_yield_stress(current_cohesion,
                                                                                        current_friction,
                                                                                        pressure_for_plasticity,
                                                                                        drucker_prager_parameters.max_yield_stress);
 
-            // Step 5b: select if yield viscosity is based on Drucker Prager or stress limiter rheology
-            double viscosity_yield = viscosity_pre_yield;
+            // Step 5b: select if the yield viscosity is based on Drucker Prager or a stress limiter rheology
+            double effective_viscosity = non_yielding_viscosity;
             switch (yield_mechanism)
               {
                 case stress_limiter:
                 {
                   //Step 5b-1: always rescale the viscosity back to the yield surface
                   const double viscosity_limiter = yield_stress / (2.0 * ref_strain_rate)
-                                                   * std::pow((edot_ii/ref_strain_rate),
+                                                   * std::pow((effective_edot_ii/ref_strain_rate),
                                                               1./exponents_stress_limiter[j] - 1.0);
-                  viscosity_yield = 1. / ( 1./viscosity_limiter + 1./viscosity_pre_yield);
+                  effective_viscosity = 1. / ( 1./viscosity_limiter + 1./non_yielding_viscosity);
                   break;
                 }
                 case drucker_prager:
                 {
-                  // Step 5b-2: if the current stress is greater than the yield stress,
+                  // Step 5b-2: if the non-yielding stress is greater than the yield stress,
                   // rescale the viscosity back to yield surface
-                  if (current_stress >= yield_stress)
+                  if (non_yielding_stress >= yield_stress)
                     {
-                      viscosity_yield = drucker_prager_plasticity.compute_viscosity(current_cohesion,
-                                                                                    current_friction,
-                                                                                    pressure_for_plasticity,
-                                                                                    current_edot_ii,
-                                                                                    drucker_prager_parameters.max_yield_stress,
-                                                                                    viscosity_pre_yield);
+                      // The following uses the effective_edot_ii
+                      // (which has been modified for elastic effects, above),
+                      // and calculates the effective viscosity over all active rheological elements
+                      // assuming that the non-yielding viscosity is not strain rate dependent
+                      effective_viscosity = drucker_prager_plasticity.compute_viscosity(current_cohesion,
+                                                                                        current_friction,
+                                                                                        pressure_for_plasticity,
+                                                                                        effective_edot_ii,
+                                                                                        drucker_prager_parameters.max_yield_stress,
+                                                                                        non_yielding_viscosity);
                       output_parameters.composition_yielding[j] = true;
                     }
                   break;
@@ -337,19 +372,19 @@ namespace aspect
             // Step 6: limit the viscosity with specified minimum and maximum bounds
             const double maximum_viscosity_for_composition = MaterialModel::MaterialUtilities::phase_average_value(
                                                                phase_function_values,
-                                                               n_phases_per_composition,
+                                                               n_phase_transitions_per_composition,
                                                                maximum_viscosity,
                                                                j,
                                                                MaterialModel::MaterialUtilities::PhaseUtilities::logarithmic
                                                              );
             const double minimum_viscosity_for_composition = MaterialModel::MaterialUtilities::phase_average_value(
                                                                phase_function_values,
-                                                               n_phases_per_composition,
+                                                               n_phase_transitions_per_composition,
                                                                minimum_viscosity,
                                                                j,
                                                                MaterialModel::MaterialUtilities::PhaseUtilities::logarithmic
                                                              );
-            output_parameters.composition_viscosities[j] = std::min(std::max(viscosity_yield, minimum_viscosity_for_composition), maximum_viscosity_for_composition);
+            output_parameters.composition_viscosities[j] = std::min(std::max(effective_viscosity, minimum_viscosity_for_composition), maximum_viscosity_for_composition);
           }
         return output_parameters;
       }
@@ -365,7 +400,7 @@ namespace aspect
                                     const MaterialModel::MaterialModelInputs<dim> &in,
                                     MaterialModel::MaterialModelOutputs<dim> &out,
                                     const std::vector<double> &phase_function_values,
-                                    const std::vector<unsigned int> &n_phases_per_composition) const
+                                    const std::vector<unsigned int> &n_phase_transitions_per_composition) const
       {
         MaterialModel::MaterialModelDerivatives<dim> *derivatives =
           out.template get_additional_output<MaterialModel::MaterialModelDerivatives<dim>>();
@@ -385,17 +420,15 @@ namespace aspect
                    ExcMessage("Invalid strain_rate in the MaterialModelInputs. This is likely because it was "
                               "not filled by the caller."));
 
+            const SymmetricTensor<2,dim> deviatoric_strain_rate = deviator(in.strain_rate[i]);
+
             // For each independent component, compute the derivative.
             for (unsigned int component = 0; component < SymmetricTensor<2,dim>::n_independent_components; ++component)
               {
                 const TableIndices<2> strain_rate_indices = SymmetricTensor<2,dim>::unrolled_to_component_indices (component);
 
-                // components that are not on the diagonal are multiplied by 0.5, because the symmetric tensor
-                // is modified by 0.5 in both symmetric directions (xy/yx) simultaneously and we compute the combined
-                // derivative
-                const SymmetricTensor<2,dim> strain_rate_difference = in.strain_rate[i]
-                                                                      + std::max(std::fabs(in.strain_rate[i][strain_rate_indices]), min_strain_rate)
-                                                                      * (component > dim-1 ? 0.5 : 1 )
+                const SymmetricTensor<2,dim> strain_rate_difference = deviatoric_strain_rate
+                                                                      + std::max(std::fabs(deviatoric_strain_rate[strain_rate_indices]), min_strain_rate)
                                                                       * finite_difference_accuracy
                                                                       * Utilities::nth_basis_for_symmetric_tensors<dim>(component);
 
@@ -403,7 +436,7 @@ namespace aspect
 
                 std::vector<double> eta_component =
                   calculate_isostrain_viscosities(in_derivatives, i, volume_fractions,
-                                                  phase_function_values, n_phases_per_composition).composition_viscosities;
+                                                  phase_function_values, n_phase_transitions_per_composition).composition_viscosities;
 
                 // For each composition of the independent component, compute the derivative.
                 for (unsigned int composition_index = 0; composition_index < eta_component.size(); ++composition_index)
@@ -430,7 +463,7 @@ namespace aspect
 
             const std::vector<double> viscosity_difference =
               calculate_isostrain_viscosities(in_derivatives, i, volume_fractions,
-                                              phase_function_values, n_phases_per_composition).composition_viscosities;
+                                              phase_function_values, n_phase_transitions_per_composition).composition_viscosities;
 
             for (unsigned int composition_index = 0; composition_index < viscosity_difference.size(); ++composition_index)
               {
@@ -482,7 +515,7 @@ namespace aspect
         // Store which components to exclude during the volume fraction computation.
         ComponentMask composition_mask = strain_rheology.get_strain_composition_mask();
 
-        if (use_elasticity)
+        if (this->get_parameters().enable_elasticity)
           {
             for (unsigned int i = 0; i < SymmetricTensor<2,dim>::n_independent_components ; ++i)
               composition_mask.set(i,false);
@@ -546,11 +579,19 @@ namespace aspect
         prm.declare_entry ("Use adiabatic pressure in creep viscosity", "false",
                            Patterns::Bool (),
                            "Whether to use the adiabatic pressure instead of the full "
-                           "pressure (default) when calculating creep (diffusion, dislocation, "
-                           "and peierls) viscosity. This may be helpful in models where the "
+                           "pressure (default) when calculating viscous creep. "
+                           "This may be helpful in models where the "
                            "full pressure has an unusually large negative value arising from "
                            "large negative dynamic pressure, resulting in solver convergence "
                            "issue and in some cases a viscosity of zero.");
+        prm.declare_entry ("Use adiabatic pressure in plasticity", "false",
+                           Patterns::Bool (),
+                           "Whether to use the adiabatic pressure instead of the full "
+                           "pressure when calculating plastic yield stress. "
+                           "This may be helpful in models where the "
+                           "full pressure has unusually large variations, resulting "
+                           "in solver convergence issues. Be aware that this setting "
+                           "will change the plastic shear band angle.");
 
         // Diffusion creep parameters
         Rheology::DiffusionCreep<dim>::declare_parameters(prm);
@@ -571,6 +612,9 @@ namespace aspect
         // Constant viscosity prefactor parameters
         Rheology::ConstantViscosityPrefactors<dim>::declare_parameters(prm);
 
+        // Variable viscosity prefactor parameters
+        Rheology::CompositionalViscosityPrefactors<dim>::declare_parameters(prm);
+
         // Drucker Prager plasticity parameters
         Rheology::DruckerPrager<dim>::declare_parameters(prm);
 
@@ -579,8 +623,8 @@ namespace aspect
                            Patterns::List(Patterns::Double (0.)),
                            "List of stress limiter exponents, $n_{\\text{lim}}$, "
                            "for background material and compositional fields, "
-                           "for a total of N+1 values, where N is the number of compositional fields. "
-                           "Units: none.");
+                           "for a total of N+1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. Units: none.");
 
         // Temperature gradient in viscosity laws to include an adiabat (note units of K/Pa)
         prm.declare_entry ("Adiabat temperature gradient for viscosity", "0.0", Patterns::Double (0.),
@@ -592,10 +636,6 @@ namespace aspect
                            "Using a pressure gradient of 32436 Pa/m, then a value of "
                            "0.3 K/km = 0.0003 K/m = 9.24e-09 K/Pa gives an earth-like adiabat."
                            "Units: \\si{\\kelvin\\per\\pascal}.");
-
-        prm.declare_entry ("Include viscoelasticity", "false",
-                           Patterns::Bool (),
-                           "Whether to include elastic effects in the rheological formulation.");
       }
 
 
@@ -605,24 +645,13 @@ namespace aspect
       ViscoPlastic<dim>::parse_parameters (ParameterHandler &prm,
                                            const std::unique_ptr<std::vector<unsigned int>> &expected_n_phases_per_composition)
       {
-        // Establish that a background field is required here
-        const bool has_background_field = true;
-
-        // Retrieve the list of composition names
-        const std::vector<std::string> list_of_composition_names = this->introspection().get_composition_names();
-
-        // increment by one for background:
-        const unsigned int n_fields = this->n_compositional_fields() + 1;
-
         strain_rheology.initialize_simulator (this->get_simulator());
         strain_rheology.parse_parameters(prm);
 
         friction_models.initialize_simulator (this->get_simulator());
         friction_models.parse_parameters(prm);
 
-        use_elasticity = prm.get_bool ("Include viscoelasticity");
-
-        if (use_elasticity)
+        if (this->get_parameters().enable_elasticity)
           {
             elastic_rheology.initialize_simulator (this->get_simulator());
             elastic_rheology.parse_parameters(prm);
@@ -631,19 +660,38 @@ namespace aspect
         // Reference and minimum/maximum values
         min_strain_rate = prm.get_double("Minimum strain rate");
         ref_strain_rate = prm.get_double("Reference strain rate");
-        minimum_viscosity = Utilities::parse_map_to_double_array (prm.get("Minimum viscosity"),
-                                                                  list_of_composition_names,
-                                                                  has_background_field,
-                                                                  "Minimum viscosity",
-                                                                  true,
-                                                                  expected_n_phases_per_composition);
+        AssertThrow(ref_strain_rate >= min_strain_rate,
+                    ExcMessage("The reference strain rate for the viscoplastic material model should be larger than the minimum strain rate."));
 
-        maximum_viscosity = Utilities::parse_map_to_double_array (prm.get("Maximum viscosity"),
-                                                                  list_of_composition_names,
-                                                                  has_background_field,
-                                                                  "Maximum viscosity",
-                                                                  true,
-                                                                  expected_n_phases_per_composition);
+        // Retrieve the list of composition names
+        std::vector<std::string> compositional_field_names = this->introspection().get_composition_names();
+
+        // Retrieve the list of names of fields that represent chemical compositions, and not, e.g.,
+        // plastic strain
+        std::vector<std::string> chemical_field_names = this->introspection().chemical_composition_field_names();
+
+        // Establish that a background field is required here
+        compositional_field_names.insert(compositional_field_names.begin(), "background");
+        chemical_field_names.insert(chemical_field_names.begin(), "background");
+
+        Utilities::MapParsing::Options options(chemical_field_names, "Minimum viscosity");
+        options.list_of_allowed_keys = compositional_field_names;
+        options.allow_multiple_values_per_key = true;
+        if (expected_n_phases_per_composition)
+          {
+            options.n_values_per_key = *expected_n_phases_per_composition;
+
+            // check_values_per_key is required to be true to duplicate single values
+            // if they are to be used for all phases associated with a given key.
+            options.check_values_per_key = true;
+          }
+
+        minimum_viscosity = Utilities::MapParsing::parse_map_to_double_array (prm.get("Minimum viscosity"),
+                                                                              options);
+
+        options.property_name = "Maximum viscosity";
+        maximum_viscosity = Utilities::MapParsing::parse_map_to_double_array (prm.get("Maximum viscosity"),
+                                                                              options);
 
         Assert(maximum_viscosity.size() == minimum_viscosity.size(),
                ExcMessage("The input parameters 'Maximum viscosity' and 'Minimum viscosity' should have the same number of entries."));
@@ -673,11 +721,12 @@ namespace aspect
         else
           AssertThrow(false, ExcMessage("Not a valid yield mechanism."));
 
-        AssertThrow(use_elasticity == false || yield_mechanism == drucker_prager,
+        AssertThrow(this->get_parameters().enable_elasticity == false || yield_mechanism == drucker_prager,
                     ExcMessage("Elastic behavior is only tested with the "
                                "'drucker prager' plasticity option."));
 
         allow_negative_pressures_in_plasticity = prm.get_bool ("Allow negative pressures in plasticity");
+        use_adiabatic_pressure_in_plasticity = prm.get_bool("Use adiabatic pressure in plasticity");
         use_adiabatic_pressure_in_creep = prm.get_bool("Use adiabatic pressure in creep viscosity");
 
         // Diffusion creep parameters
@@ -709,14 +758,20 @@ namespace aspect
         constant_viscosity_prefactors.initialize_simulator (this->get_simulator());
         constant_viscosity_prefactors.parse_parameters(prm);
 
+        compositional_viscosity_prefactors.initialize_simulator (this->get_simulator());
+        compositional_viscosity_prefactors.parse_parameters(prm);
+
         // Plasticity parameters
         drucker_prager_plasticity.initialize_simulator (this->get_simulator());
         drucker_prager_plasticity.parse_parameters(prm, expected_n_phases_per_composition);
 
-        // Stress limiter parameter
-        exponents_stress_limiter  = Utilities::possibly_extend_from_1_to_N (Utilities::string_to_double(Utilities::split_string_list(prm.get("Stress limiter exponents"))),
-                                                                            n_fields,
-                                                                            "Stress limiter exponents");
+        // Stress limiter parameter (does not allow for phases per composition)
+        options.property_name = "Stress limiter exponents";
+        options.allow_multiple_values_per_key = false;
+        options.check_values_per_key = false;
+
+        exponents_stress_limiter = Utilities::MapParsing::parse_map_to_double_array (prm.get("Stress limiter exponents"),
+                                                                                     options);
 
         // Include an adiabat temperature gradient in flow laws
         adiabatic_temperature_gradient_for_viscosity = prm.get_double("Adiabat temperature gradient for viscosity");
@@ -771,15 +826,19 @@ namespace aspect
             const double max_yield_stress = drucker_prager_plasticity.compute_drucker_prager_parameters(0).max_yield_stress;
 
             double pressure_for_plasticity = in.pressure[i];
+
+            if (use_adiabatic_pressure_in_plasticity)
+              pressure_for_plasticity = this->get_adiabatic_conditions().pressure(in.position[i]);
+
             if (allow_negative_pressures_in_plasticity == false)
-              pressure_for_plasticity = std::max(in.pressure[i], 0.0);
+              pressure_for_plasticity = std::max(pressure_for_plasticity, 0.0);
 
             // average over the volume volume fractions
             for (unsigned int j = 0; j < volume_fractions.size(); ++j)
               {
                 plastic_out->cohesions[i]   += volume_fractions[j] * cohesions[j];
                 // Also convert radians to degrees
-                plastic_out->friction_angles[i] += 180.0/numbers::PI * volume_fractions[j] * friction_angles_RAD[j];
+                plastic_out->friction_angles[i] += constants::radians_to_degree * volume_fractions[j] * friction_angles_RAD[j];
                 plastic_out->yield_stresses[i] += volume_fractions[j] * drucker_prager_plasticity.compute_yield_stress(cohesions[j],
                                                   friction_angles_RAD[j],
                                                   pressure_for_plasticity,
@@ -799,6 +858,8 @@ namespace aspect
   namespace MaterialModel
   {
 #define INSTANTIATE(dim) \
+  template class PlasticAdditionalOutputs<dim>; \
+  \
   namespace Rheology \
   { \
     template class ViscoPlastic<dim>; \

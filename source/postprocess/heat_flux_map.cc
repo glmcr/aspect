@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -130,7 +130,7 @@ namespace aspect
           if (cell->is_locally_owned() && cell->at_boundary())
             {
               fe_volume_values.reinit (cell);
-              in.reinit(fe_volume_values, cell, simulator_access.introspection(), simulator_access.get_solution(), true);
+              in.reinit(fe_volume_values, cell, simulator_access.introspection(), simulator_access.get_solution());
               simulator_access.get_material_model().evaluate(in, out);
 
               if (simulator_access.get_parameters().formulation_temperature_equation ==
@@ -146,6 +146,7 @@ namespace aspect
                                                          cell,
                                                          fe_volume_values.get_quadrature(),
                                                          fe_volume_values.get_mapping(),
+                                                         in.requested_properties,
                                                          out);
 
               simulator_access.get_heating_model_manager().evaluate(in, out, heating_out);
@@ -251,7 +252,7 @@ namespace aspect
                   // Compute heat flux through Neumann boundary by integrating the heat flux
                   else if (fixed_heat_flux_boundaries.find(boundary_id) != fixed_heat_flux_boundaries.end())
                     {
-                      face_in.reinit(fe_face_values, cell, simulator_access.introspection(), simulator_access.get_solution(), true);
+                      face_in.reinit(fe_face_values, cell, simulator_access.introspection(), simulator_access.get_solution());
                       simulator_access.get_material_model().evaluate(face_in, face_out);
 
                       if (simulator_access.get_parameters().formulation_temperature_equation ==
@@ -402,7 +403,7 @@ namespace aspect
                     // if necessary, compute material properties for this face
                     if (prescribed_heat_flux || non_tangential_velocity)
                       {
-                        face_in.reinit(fe_face_values, cell, simulator_access.introspection(), simulator_access.get_solution(), true);
+                        face_in.reinit(fe_face_values, cell, simulator_access.introspection(), simulator_access.get_solution());
                         simulator_access.get_material_model().evaluate(face_in, face_out);
 
                         if (simulator_access.get_parameters().formulation_temperature_equation ==
@@ -451,6 +452,13 @@ namespace aspect
       }
     }
 
+    template <int dim>
+    void
+    HeatFluxMap<dim>::initialize ()
+    {
+      CitationInfo::add("cbfheatflux");
+    }
+
 
 
     template <int dim>
@@ -460,21 +468,46 @@ namespace aspect
       std::vector<std::vector<std::pair<double, double>>> heat_flux_and_area =
         internal::compute_heat_flux_through_boundary_faces (*this);
 
-      // have a stream into which we write the data. the text stream is then
-      // later sent to processor 0
-      std::ostringstream output;
-      std::vector<std::pair<Point<dim>,double>> stored_values;
+      const auto boundary_ids = this->get_geometry_model().get_used_boundary_indicators();
+      for (const auto &boundary_id: boundary_ids)
+        if (this->get_geometry_model().translate_id_to_symbol_name(boundary_id) == "top" ||
+            this->get_geometry_model().translate_id_to_symbol_name(boundary_id) == "bottom")
+          output_to_file(boundary_id, heat_flux_and_area);
 
-      // loop over all of the surface cells and evaluate the heat flux
-      const types::boundary_id top_boundary_id = this->get_geometry_model().translate_symbolic_boundary_name_to_id("top");
-      const types::boundary_id bottom_boundary_id = this->get_geometry_model().translate_symbolic_boundary_name_to_id("bottom");
+      std::string placeholder_name = this->get_output_directory() + "heat_flux." + Utilities::int_to_string(this->get_timestep_number(), 5);
+      if (this->get_parameters().run_postprocessors_on_nonlinear_iterations)
+        placeholder_name.append("." + Utilities::int_to_string (this->get_nonlinear_iteration(), 4));
+
+      return std::pair<std::string,std::string>("Writing heat flux map",
+                                                placeholder_name);
+    }
+
+
+
+    template <int dim>
+    void
+    HeatFluxMap<dim>::output_to_file(const types::boundary_id boundary_id,
+                                     const std::vector<std::vector<std::pair<double, double>>> &heat_flux_and_area)
+    {
+      // get boundary name and avoid spaces for file output
+      std::string boundary_name = this->get_geometry_model().translate_id_to_symbol_name(boundary_id);
+      std::replace(boundary_name.begin(), boundary_name.end(), ' ', '_');
+
+      std::ostringstream output;
+
+      // write the file header. note that we only do so on processor 0
+      if (Utilities::MPI::this_mpi_process(this->get_mpi_communicator()) == 0)
+        {
+          output << "# "
+                 << ((dim==2)? "x y" : "x y z")
+                 << " heat_flux_" << boundary_name << std::endl;
+        }
 
       for (const auto &cell : this->get_dof_handler().active_cell_iterators())
         if (cell->is_locally_owned())
-          for (const unsigned int f : cell->face_indices())
+          for (const unsigned int f: cell->face_indices())
             if (cell->at_boundary(f) &&
-                (cell->face(f)->boundary_id() == top_boundary_id ||
-                 cell->face(f)->boundary_id() == bottom_boundary_id))
+                (cell->face(f)->boundary_id() == boundary_id))
               {
                 // evaluate position of heat flow to write into output file
                 const bool respect_manifold = true;
@@ -483,47 +516,21 @@ namespace aspect
                 const double flux_density = heat_flux_and_area[cell->active_cell_index()][f].first /
                                             heat_flux_and_area[cell->active_cell_index()][f].second;
 
-                // store final position and heat flow
-                stored_values.emplace_back (midpoint_at_surface, flux_density);
+                output << std::setprecision(10)
+                       << midpoint_at_surface
+                       << ' '
+                       << std::setprecision(10)
+                       << flux_density
+                       << std::endl;
               }
 
-
-      // Write the solution to an output stream
-      for (unsigned int i=0; i<stored_values.size(); ++i)
-        {
-          output << stored_values[i].first
-                 << ' '
-                 << stored_values[i].second
-                 << std::endl;
-        }
-
-
-
       std::string filename = this->get_output_directory() +
-                             "heat_flux." +
+                             "heat_flux_" + boundary_name + "." +
                              Utilities::int_to_string(this->get_timestep_number(), 5);
       if (this->get_parameters().run_postprocessors_on_nonlinear_iterations)
         filename.append("." + Utilities::int_to_string (this->get_nonlinear_iteration(), 4));
 
-
-      const std::vector<std::string> data = Utilities::MPI::gather(this->get_mpi_communicator(), output.str());
-
-      // On processor 0, collect all of the data the individual processors sent
-      // and concatenate them into one file:
-      if (Utilities::MPI::this_mpi_process(this->get_mpi_communicator()) == 0)
-        {
-          std::ofstream file (filename.c_str());
-
-          file << "# "
-               << ((dim==2)? "x y" : "x y z")
-               << " heat flux" << std::endl;
-
-          for (const auto &str : data)
-            file << str;
-        }
-
-      return std::pair<std::string,std::string>("Writing heat flux map:",
-                                                filename);
+      Utilities::collect_and_write_file_content(filename, output.str(), this->get_mpi_communicator());
     }
   }
 }

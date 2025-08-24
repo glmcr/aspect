@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2013 - 2019 by the authors of the ASPECT code.
+  Copyright (C) 2013 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -34,8 +34,8 @@ namespace aspect
     /**
      * A class that implements a composition boundary condition for a
      * spherical shell geometry in which the composition at the inner and
-     * outer surfaces (i.e. at the core-mantle and the mantle-
-     * lithosphere/atmosphere boundaries) are constant.
+     * outer surfaces (i.e. at the core-mantle and the
+     * mantle-lithosphere/atmosphere boundaries) are constant.
      *
      * @ingroup BoundaryCompositions
      */

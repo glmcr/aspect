@@ -1,5 +1,5 @@
 
-Loading shared library <./libcoordinate_transformation.so>
+Loading shared library <./libcoordinate_transformation.debug.so>
 
 Point 1: 0 0 
 Point 2: 0 0 
@@ -54,8 +54,7 @@ Number of degrees of freedom: 268 (162+25+81)
 
 *** Timestep 0:  t=0 seconds, dt=0 seconds
    Solving temperature system... 0 iterations.
-   Rebuilding Stokes preconditioner...
-   Solving Stokes system... 13+0 iterations.
+   Solving Stokes system (GMG)... 8+0 iterations.
 
    Postprocessing:
 

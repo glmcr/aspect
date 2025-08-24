@@ -17,14 +17,16 @@ then \
 fi; \
 make_lib() { \
 cd $$1; \
-if [[ -e CMakeLists.txt ]]; \
-then \
-  echo "building plugin in `pwd` using ${BUILD}..."; \
+base_path=`pwd`; \
+for file in `find . -name CMakeLists.txt`; do \
+  echo "building plugin in `dirname $${file}` using ${BUILD}..."; \
+  cd `dirname $${file}`; \
   rm -rf CMakeCache.txt CMakeFiles; \
   cmake -D Aspect_DIR=${BUILD} -G "Unix Makefiles" -D CMAKE_CXX_FLAGS='-Werror' . >/dev/null || { echo "cmake in `pwd` failed!"; return 1; }; \
   make >/dev/null || { echo "make in `pwd` failed!"; return 2; }; \
   echo "done building plugin in `pwd`"; \
-fi; \
+  cd $${base_path}; \
+done; \
 };\
 run_prm() { \
 cd $$1; \
@@ -40,9 +42,11 @@ rm -f $$prm.tmp; \
 run_all_prms() { \
 cd $$1; \
 echo "  running all prms in `pwd` ..."; \
-for prm in *.prm; \
+for file in *.prm; \
   do \
-    run_prm . $$prm || return 4; \
+    if [[ "$${file}" != *.part.prm ]]; then \
+      run_prm . $${file} || return 4; \
+    fi \
   done; \
 echo "  running all prms in `pwd` done"; \
 }
@@ -74,9 +78,10 @@ main: dummy
 # example/: dummy
 #	@$(def); run_prm $@ test.prm
 
-blankenbach/: dummy
+annulus/: dummy
 	+@$(def); make_lib $@/plugin
-	@$(def); run_all_prms $@
+	@$(def); run_all_prms $@/instantaneous
+	@$(def); run_all_prms $@/transient
 
 crameri_et_al/:  dummy
 	+@$(def); make_lib $@/case_1
@@ -86,10 +91,6 @@ crameri_et_al/:  dummy
 davies_et_al/: dummy
 	+@$(def); make_lib $@/case-2.3-plugin
 	@$(def); run_prm $@ case-2.1.prm
-	@$(def); run_all_prms $@
-
-entropy_adiabat/: dummy
-	+@$(def); make_lib $@/plugins
 	@$(def); run_all_prms $@
 
 free_surface_tractions/: dummy
@@ -132,7 +133,8 @@ rayleigh_taylor_instability/: dummy
 rigid_shear/: dummy
 	+@$(def); make_lib $@/plugin
 	@$(def); run_all_prms $@/instantaneous
-	@$(def); run_all_prms $@/time-dependent
+	@$(def); run_all_prms $@/steady-state
+	@$(def); run_all_prms $@/transient
 
 sinking_block/: dummy
 	+@$(def); make_lib $@
@@ -150,15 +152,15 @@ solkz/: dummy
 	+@$(def); make_lib $@/compositional_fields
 	@$(def); run_all_prms $@/compositional_fields
 
+solubility/: dummy
+	+@$(def); make_lib $@/plugin
+	@$(def); run_prm $@ solubility.prm
+
 tangurnis/: dummy
 	+@$(def); make_lib $@/code
 	@$(def); run_prm $@ ba/tan.prm
 	@$(def); run_prm $@ tala/tan.prm
 	@$(def); run_prm $@ tala_c/tan.prm
-
-time_dependent_annulus/: dummy
-	+@$(def); make_lib $@/plugin
-	@$(def); run_all_prms $@
 
 compressibility_formulations/: dummy
 	+@$(def); make_lib $@/plugins

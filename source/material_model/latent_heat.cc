@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -73,8 +73,8 @@ namespace aspect
             if ((composition_viscosity_prefactor != 1.0) && (composition.size() > 0))
               {
                 // geometric interpolation
-                out.viscosities[i] = (pow(10, ((1-composition[0]) * log10(eta*visc_temperature_dependence)
-                                               + composition[0] * log10(eta*composition_viscosity_prefactor*visc_temperature_dependence))));
+                out.viscosities[i] = (std::pow(10, ((1-composition[0]) * std::log10(eta*visc_temperature_dependence)
+                                                    + composition[0] * std::log10(eta*composition_viscosity_prefactor*visc_temperature_dependence))));
               }
             else
               out.viscosities[i] = visc_composition_dependence * visc_temperature_dependence * eta;
@@ -408,9 +408,9 @@ namespace aspect
                                    "phase transitions of up to two different materials "
                                    "(compositional fields). "
                                    "This model implements a standard approximation "
-                                   "of the latent heat terms following Christensen \\& Yuen, 1985. "
+                                   "of the latent heat terms following Christensen \\& Yuen, 1985 \\cite{christensen:yuen:1985}. "
                                    "The change of entropy is calculated as "
-                                   "$Delta S = \\gamma \\frac{\\Delta\\rho}{\\rho^2}$ with the "
+                                   "$\\Delta S = \\gamma \\frac{\\Delta\\rho}{\\rho^2}$ with the "
                                    "Clapeyron slope $\\gamma$ and the density change $\\Delta\\rho$ "
                                    "of the phase transition being input parameters. "
                                    "The model employs an analytic phase function in the form "

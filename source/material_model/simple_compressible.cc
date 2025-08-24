@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -158,11 +158,7 @@ namespace aspect
                                    "Section~\\ref{parameters:Material_20model/Simple_20compressible_20model}."
                                    "\n\n"
                                    "This model uses the following equations for the density: "
-                                   "\\begin{align}"
-                                   "  \\rho(p,T) = \\rho_0"
-                                   "              \\left(1-\\alpha (T-T_a)\\right) "
-                                   "              \\exp{\\beta (P-P_0))}"
-                                   "\\end{align}"
+                                   "$ \\rho(p,T) = \\rho_0 \\left(1-\\alpha (T-T_a)\\right) \\exp{\\beta (P-P_0))}$ "
                                    "This formulation for the density assumes that the compressibility "
                                    "provided by the user is the adiabatic compressibility ($\\beta_S$). "
                                    "The thermal expansivity and isentropic compressibility implied by "

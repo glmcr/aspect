@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2018 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2018 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -70,8 +70,8 @@ namespace aspect
     class TosiMaterial : public MaterialModel::Interface<dim>, public ::aspect::SimulatorAccess<dim>
     {
       public:
-        virtual void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-                              MaterialModel::MaterialModelOutputs<dim> &out) const
+        void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+                      MaterialModel::MaterialModelOutputs<dim> &out) const override
         {
           /**
            * As described in Tosi et al (2015), the viscosity \eta is computed as the
@@ -116,7 +116,7 @@ namespace aspect
 
               // If requested compute viscosity derivatives. This is only important
               // if using the Newton solver.
-              if (derivatives != NULL && in.requests_property(MaterialModel::MaterialProperties::viscosity))
+              if (derivatives != nullptr && in.requests_property(MaterialModel::MaterialProperties::viscosity))
                 {
                   if (use_analytical_derivative)
                     {
@@ -203,7 +203,7 @@ namespace aspect
          * (compressible Stokes) or as $\nabla \cdot \mathbf{u}=0$
          * (incompressible Stokes).
          */
-        virtual bool is_compressible () const;
+        bool is_compressible () const override;
         /**
          * @}
          */
@@ -217,9 +217,8 @@ namespace aspect
         /**
          * Read the parameters this class declares from the parameter file.
          */
-        virtual
         void
-        parse_parameters (ParameterHandler &prm);
+        parse_parameters (ParameterHandler &prm) override;
 
       private:
 
@@ -453,7 +452,7 @@ namespace aspect
                              "as used in equation (8) of the paper.");
           prm.declare_entry ("Use analytical derivative", "false",
                              Patterns::Bool (),
-                             "Wether to use the analytical or the finite difference derivative for the Newton method.");
+                             "Whether to use the analytical or the finite difference derivative for the Newton method.");
         }
         prm.leave_subsection();
       }
@@ -514,9 +513,8 @@ namespace aspect
          * Evaluate the solution for statistics on the rate of viscous dissipation,
          * rate of work and the error between the two.
          */
-        virtual
         std::pair<std::string,std::string>
-        execute (TableHandler &statistics);
+        execute (TableHandler &statistics) override;
     };
 
     template <int dim>
@@ -563,10 +561,7 @@ namespace aspect
 
       // loop over active, locally owned cells and
       // extract material model input and compute integrals
-      typename DoFHandler<dim>::active_cell_iterator
-      cell = this->get_dof_handler().begin_active(),
-      endc = this->get_dof_handler().end();
-      for (; cell!=endc; ++cell)
+      for (const auto &cell : this->get_dof_handler().active_cell_iterators())
         if (cell->is_locally_owned())
           {
             fe_values.reinit (cell);

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -269,9 +269,7 @@ namespace aspect
                                    "\n"
                                    "\n"
                                    "The viscosity $\\eta$ is computed as "
-                                   "\\begin{equation}"
-                                   "\\eta(z,T) = \\eta_r(z) \\eta_0 \\exp\\left(-A \\frac{T - T_{\\text{adi}}}{T_{\\text{adi}}}\\right),"
-                                   "\\end{equation}"
+                                   "$\\eta(z,T) = \\eta_r(z) \\eta_0 \\exp\\left(-A \\frac{T - T_{\\text{adi}}}{T_{\\text{adi}}}\\right)$, "
                                    "where $\\eta_r(z)$ is the depth-dependence, which is a "
                                    "piecewise constant function computed according to the "
                                    "list of ``Viscosity prefactors'' and ``Transition depths'', "

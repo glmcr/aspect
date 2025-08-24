@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2020 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -31,6 +31,7 @@
 #include <aspect/material_model/rheology/frank_kamenetskii.h>
 #include <aspect/material_model/rheology/peierls_creep.h>
 #include <aspect/material_model/rheology/constant_viscosity_prefactors.h>
+#include <aspect/material_model/rheology/compositional_viscosity_prefactors.h>
 #include <aspect/material_model/rheology/drucker_prager.h>
 #include <aspect/material_model/rheology/elasticity.h>
 #include <aspect/simulator_access.h>
@@ -124,19 +125,27 @@ namespace aspect
           /**
            * This function calculates viscosities assuming that all the compositional fields
            * experience the same strain rate (isostrain).
+           * If @p n_phase_transitions_per_composition points to a vector of
+           * unsigned integers this is considered the number of phase transitions
+           * for each compositional field and viscosity will be first computed on
+           * each phase and then averaged for each compositional field.
            */
           IsostrainViscosities
           calculate_isostrain_viscosities ( const MaterialModel::MaterialModelInputs<dim> &in,
                                             const unsigned int i,
                                             const std::vector<double> &volume_fractions,
                                             const std::vector<double> &phase_function_values = std::vector<double>(),
-                                            const std::vector<unsigned int> &n_phases_per_composition =
+                                            const std::vector<unsigned int> &n_phase_transitions_per_composition =
                                               std::vector<unsigned int>()) const;
 
           /**
            * A function that fills the viscosity derivatives in the
            * MaterialModelOutputs object that is handed over, if they exist.
            * Does nothing otherwise.
+           * If @p n_phase_transitions_per_composition points to a vector of
+           * unsigned integers this is considered the number of phase transitions
+           * for each compositional field and viscosity will be first computed on
+           * each phase and then averaged for each compositional field.
            */
           void compute_viscosity_derivatives(const unsigned int point_index,
                                              const std::vector<double> &volume_fractions,
@@ -144,7 +153,7 @@ namespace aspect
                                              const MaterialModel::MaterialModelInputs<dim> &in,
                                              MaterialModel::MaterialModelOutputs<dim> &out,
                                              const std::vector<double> &phase_function_values = std::vector<double>(),
-                                             const std::vector<unsigned int> &n_phases_per_composition =
+                                             const std::vector<unsigned int> &n_phase_transitions_per_composition =
                                                std::vector<unsigned int>()) const;
 
           /**
@@ -165,7 +174,7 @@ namespace aspect
           /**
            * Read the parameters this class declares from the parameter file.
            * If @p expected_n_phases_per_composition points to a vector of
-           * unsigned integers this is considered the number of phase transitions
+           * unsigned integers this is considered the number of phases
            * for each compositional field and will be checked against the parsed
            * parameters.
            */
@@ -216,11 +225,6 @@ namespace aspect
            * Object for computing viscoelastic viscosities and stresses.
            */
           Rheology::Elasticity<dim> elastic_rheology;
-
-          /**
-           * Whether to include viscoelasticity in the constitutive formulation.
-           */
-          bool use_elasticity;
 
 
         private:
@@ -279,7 +283,16 @@ namespace aspect
           bool use_adiabatic_pressure_in_creep;
 
           /**
-           * List of exponents controlling the behaviour of the stress limiter
+           * Whether to use the adiabatic pressure instead of the full pressure
+           * when calculating the plastic yield stress.
+           * This may be helpful in models where the full pressure has
+           * large variations resulting in solver convergence issues.
+           * Be aware that this setting will change the plastic shear band angle.
+           */
+          bool use_adiabatic_pressure_in_plasticity;
+
+          /**
+           * List of exponents controlling the behavior of the stress limiter
            * yielding mechanism.
            */
           std::vector<double> exponents_stress_limiter;
@@ -312,6 +325,11 @@ namespace aspect
            * viscoelastic viscosity or plastic viscosity.
            */
           Rheology::ConstantViscosityPrefactors<dim> constant_viscosity_prefactors;
+
+          /**
+           * Object for computing the viscosity multiplied by a given prefactor term.
+           */
+          Rheology::CompositionalViscosityPrefactors<dim> compositional_viscosity_prefactors;
 
           /*
            * Object for computing plastic stresses, viscosities, and additional outputs

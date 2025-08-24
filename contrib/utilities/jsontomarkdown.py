@@ -79,8 +79,10 @@ def escape_doc_string(text) :
     tmp = (text
            .replace("``", "&ldquo;")
            .replace("''", "&rdquo;")
+           .replace("\\`", "[[[backtick]]]") # temporarily replace escaped backticks by a placeholder
            .replace("`", "&lsquo;")
            .replace("'", "&rsquo;")
+           .replace("[[[backtick]]]", "`") # and now change them to actual backticks
            .replace("\\aspect{}", "ASPECT")
            .replace("\\dealii{}", "deal.II")
     )
@@ -94,6 +96,17 @@ def escape_doc_string(text) :
                  tmp)
     tmp = re.sub(r'\\texttt\{(.*?)\}',
                  r'`\1`',
+                 tmp)
+    tmp = re.sub(r'\\cite\{(.*?)\}',
+                 r'{cite}`\1`',
+                 tmp)
+    tmp = re.sub(r'Section~\\ref\{(.*?)\}',
+                 r'{ref}`\1`',
+                 tmp)
+
+    # Finally escape some characters that have special meaning in markdown:
+    tmp = re.sub(r'\[(.*)\]\(',
+                 r'\[\1\](',
                  tmp)
 
     return tmp;
@@ -148,14 +161,8 @@ def handle_subsection(data, cur_path, output_file):
 
 def handle_parameters(data):
     global_output_file = open("doc/sphinx/parameters/index.md", "w")
-    global_output_file.write("(sec:parameter-documentation-home)=\n"
+    global_output_file.write("(parameters)=\n"
                              "# Parameter Documentation\n"
-                             ":::{admonition} Under construction\n"
-                             ":class: warning\n"
-                             "\n"
-                             "Migrating the ASPECT manual from LaTeX to Sphinx/MyST is not complete.\n"
-                             "If what you are looking for is not here, please see the PDF version.\n"
-                             ":::\n"
                              "\n"
                              ":::{toctree}\n"
                              "---\n"
@@ -165,6 +172,7 @@ def handle_parameters(data):
     global_parameters = open("doc/sphinx/parameters/global.md", "w")
     print("(parameters:global)=", file=global_parameters)
     print("# Global parameters\n\n", file=global_parameters)
+    print("## **Subsection:** No subsection\n\n", file=global_parameters)
 
     cur_path = []
     keys = list(data.keys())

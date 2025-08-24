@@ -1,4 +1,4 @@
-# Copyright (C) 2011 - 2021 by the authors of the ASPECT code.
+# Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 #
 # This file is part of ASPECT.
 #
@@ -16,7 +16,7 @@
 # along with ASPECT; see the file LICENSE.  If not see
 # <http://www.gnu.org/licenses/>.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.13.4)
 
 FIND_PACKAGE(Aspect 2.4.0 QUIET HINTS ${Aspect_DIR} ../ ../../ $ENV{ASPECT_DIR})
 
@@ -32,7 +32,7 @@ ENDIF ()
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-SET(TARGET "finite_strain")
+SET(TARGET "finite_strain_cookbook")
 PROJECT(${TARGET})
 
 ADD_LIBRARY(${TARGET} SHARED finite_strain.cc)

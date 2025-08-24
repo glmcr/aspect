@@ -1,7 +1,7 @@
 (sec:cookbooks:burnman)=
 # 2D compressible convection with a reference profile and material properties from BurnMan
 
-*This section was contributed by Juliane Dannberg and Ren&eacute; Gassm&ouml;ller*
+*This section was contributed by Juliane Dannberg and Ren&eacute; Gassm&ouml;ller.*
 
 In this cookbook we will set up a compressible mantle convection model that uses the (truncated) anelastic liquid approximation (see {ref}`sec:methods:approximate-equations:ala` and {ref}`sec:methods:approximate-equations:tala`), together with a reference profile read in from an ASCII data file.
 The data we use here is generated with the open source mineral physics toolkit BurnMan (<https://geodynamics.github.io/burnman/>) using the python example program `simple_adiabat.py`.
@@ -21,7 +21,7 @@ The reference profile is shown in {numref}`fig:burnman-reference-profile`, and t
 ## Setting up the ASPECT model
 
 In order to use this profile, we have to import and use the data in the adiabatic conditions model, in the gravity model and in the material model, which is done using the corresponding ASCII data plugins.
-The input file is provided in `cookbooks/burnman/burnman.prm`, and it uses the 2d shell geometry previously discussed in {ref}`sec:cookbooks:shell_simple_2d` and surface velocities imported from GPlates as explained in {ref}`sec:cookbooks:gplates`.
+The input file is provided in [cookbooks/burnman/burnman.prm](https://github.com/geodynamics/aspect/blob/main/cookbooks/burnman/burnman.prm), and it uses the 2d shell geometry previously discussed in {ref}`sec:cookbooks:shell_simple_2d` and surface velocities imported from GPlates as explained in {ref}`sec:cookbooks:gplates`.
 
 To use the BurnMan data in the material model, we have to specify that we want to use the `ascii reference profile` model.
 This material model makes use of the functionality provided by the `AsciiData` classes in ASPECT, which allow plugins such as material models, boundary or initial conditions models to read in ASCII data files (see for example {ref}`sec:cookbooks:geomio`).
@@ -57,7 +57,7 @@ To make use of the reference state we just imported from BurnMan, we choose a fo
 ```
 
 This means that the reference profiles are used for all material properties in the model, except for the density in the buoyancy term (on the right-hand side of the force balance equation {math:numref}`eq:stokes-1`, which in the limit of the anelastic liquid approximation becomes Equation {math:numref}`eq:stokes-ALA-1`).
-In addition, the density derivative in the mass conservation equation (see {ref}`sec:mass-conservation-approximation`) is taken from the adiabatic conditions, where it is computed as the depth derivative of the provided reference density profile (see also {ref}`sec:combined_formulations`).
+In addition, the density derivative in the mass conservation equation (see {ref}`sec:methods:choosing-a-formulation:mass-conservation-approx`) is taken from the adiabatic conditions, where it is computed as the depth derivative of the provided reference density profile (see also {ref}`sec:methods:combined-formulations`).
 
 ## Visualizing the model output
 
@@ -67,9 +67,9 @@ Visualizing material properties such as density, thermal expansivity or specific
 We can also visualize the gravity and the adiabatic profile, to ensure that the data we provided in the `data/adiabatic-conditions/ascii-data/isentrope_properties.txt` file is used in our model.
 
 ```{figure-md} fig:burnman-convection
-<img src="temperature.png" style="width:48.0%" alt="Compressible convection in a 2d spherical shell, using a reference profile exported form BurnMan, which is based on the Birch-Murnaghan equation of state. The figure shows the state at the end of the model evolution over 260&#x2006;Ma." />
+<img src="temperature.png" style="width:48.0%" alt="Compressible convection in a 2d spherical shell, using a reference profile exported from BurnMan, which is based on the Birch-Murnaghan equation of state. The figure shows the state at the end of the model evolution over 260 Ma." />
 
-Compressible convection in a 2d spherical shell, using a reference profile exported form BurnMan, which is based on the Birch-Murnaghan equation of state. The figure shows the state at the end of the model evolution over 260&#x2006;Ma.
+Compressible convection in a 2d spherical shell, using a reference profile exported from BurnMan, which is based on the Birch-Murnaghan equation of state. The figure shows the state at the end of the model evolution over 260 Ma.
 ```
 
 
@@ -99,7 +99,7 @@ They demonstrate that upwellings and downwellings may occur in slightly differen
 ```{figure-md} fig:burnman-comparison
 <img src="comparison.*" style="width:95.0%" />
 
-Comparison between the anelastic liquid approximation, the truncated anelastic liquid approximation and the isothermal compression approximation, showing the temperature distribution for the different models at the end of the model evolution at 260&#x2006;Ma.
+Comparison between the anelastic liquid approximation, the truncated anelastic liquid approximation and the isothermal compression approximation, showing the temperature distribution for the different models at the end of the model evolution at 260 Ma.
 ```
 
 ```{figure-md} fig:burnman-vrms

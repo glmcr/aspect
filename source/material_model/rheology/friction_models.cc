@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2019 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -90,11 +90,20 @@ namespace aspect
                 friction_function->set_time (this->get_time());
 
               // determine the friction angle based on position and composition
+              // The volume_fraction_index is based on the number of chemical compositional fields.
+              // However, this plugin reads a function for every compositional field, regardless of
+              // its type. Therefore we have to get the correct index.
+              // If no fields or no chemical fields are present, but only background material, the index is zero.
+              // If chemical fields are present, volume_fractions will be of size 1+n_chemical_composition_fields.
+              // The size of chemical_composition_field_indices will be one less.
+              unsigned int index = 0;
+              if (this->introspection().composition_type_exists(CompositionalFieldDescription::chemical_composition))
+                index = this->introspection().chemical_composition_field_indices()[volume_fraction_index-1];
               double friction_from_function =
-                friction_function->value(Utilities::convert_array_to_point<dim>(point.get_coordinates()),volume_fraction_index);
+                friction_function->value(Utilities::convert_array_to_point<dim>(point.get_coordinates()),index);
 
               // Convert angles from degrees to radians
-              friction_from_function *= numbers::PI/180.0;
+              friction_from_function *= constants::degree_to_radians;
 
               return friction_from_function;
             }
@@ -145,7 +154,7 @@ namespace aspect
                            "\\item ``function'': Specify the friction angle as a function of space and time "
                            "for each compositional field.");
 
-        // Dynamic friction paramters
+        // Dynamic friction parameters
         prm.declare_entry ("Dynamic characteristic strain rate", "1e-12",
                            Patterns::Double (0),
                            "The characteristic strain rate value at which the angle of friction is "
@@ -159,7 +168,8 @@ namespace aspect
         prm.declare_entry ("Dynamic angles of internal friction", "2",
                            Patterns::List(Patterns::Double(0)),
                            "List of dynamic angles of internal friction, $\\phi$, for background material and compositional "
-                           "fields, for a total of N$+$1 values, where N is the number of compositional fields. "
+                           "fields, for a total of N$+$1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. "
                            "Dynamic angles of friction are used as the current friction angle when the effective "
                            "strain rate is well above the 'dynamic characteristic strain rate'. "
                            "Units: \\si{\\degree}.");
@@ -189,7 +199,7 @@ namespace aspect
                              "A selection that determines the assumed coordinate "
                              "system for the function variables. Allowed values "
                              "are `cartesian', `spherical', and `depth'. `spherical' coordinates "
-                             "are interpreted as r,phi or r,phi,theta in 2D/3D "
+                             "are interpreted as r,phi or r,phi,theta in 2d/3d "
                              "respectively with theta being the polar angle. `depth' "
                              "will create a function, in which only the first "
                              "parameter is non-zero, which is interpreted to "
@@ -206,10 +216,6 @@ namespace aspect
       void
       FrictionModels<dim>::parse_parameters (ParameterHandler &prm)
       {
-        // Get the number of fields for composition-dependent material properties
-        // including the background field.
-        const unsigned int n_fields = this->n_compositional_fields() + 1;
-
         // Friction dependence parameters
         if (prm.get ("Friction mechanism") == "none")
           friction_mechanism = static_friction;
@@ -223,18 +229,39 @@ namespace aspect
         // Dynamic friction parameters
         dynamic_characteristic_strain_rate = prm.get_double("Dynamic characteristic strain rate");
 
-        dynamic_angles_of_internal_friction = Utilities::possibly_extend_from_1_to_N (Utilities::string_to_double(Utilities::split_string_list(prm.get("Dynamic angles of internal friction"))),
-                                                                                      n_fields,
-                                                                                      "Dynamic angles of internal friction");
+        // Retrieve the list of composition names
+        std::vector<std::string> compositional_field_names = this->introspection().get_composition_names();
+
+        // Retrieve the list of names of fields that represent chemical compositions, and not, e.g.,
+        // plastic strain
+        std::vector<std::string> chemical_field_names = this->introspection().chemical_composition_field_names();
+
+        // Establish that a background field is required here
+        compositional_field_names.insert(compositional_field_names.begin(), "background");
+        chemical_field_names.insert(chemical_field_names.begin(), "background");
+
+        Utilities::MapParsing::Options options(chemical_field_names, "Dynamic angles of internal friction");
+        options.list_of_allowed_keys = compositional_field_names;
+
+        dynamic_angles_of_internal_friction = Utilities::MapParsing::parse_map_to_double_array (prm.get("Dynamic angles of internal friction"),
+                                              options);
+
         // Convert angles from degrees to radians
         for (double &angle : dynamic_angles_of_internal_friction)
           {
             AssertThrow(angle <= 90,
                         ExcMessage("Dynamic angles of friction must be <= 90 degrees"));
-            angle *= numbers::PI/180.0;
+            angle *= constants::degree_to_radians;
           }
 
         dynamic_friction_smoothness_exponent = prm.get_double("Dynamic friction smoothness exponent");
+
+
+        // Get the number of fields for composition-dependent material properties
+        // including the background field.
+        // TODO Make sure functions only have to be specified per chemical composition,
+        // but can still be specified for all fields for backwards compatibility.
+        const unsigned int n_fields = this->n_compositional_fields() + 1;
 
         // if friction is specified as a function
         if (friction_mechanism == function)

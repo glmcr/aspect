@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -134,14 +134,14 @@ namespace aspect
                   // then check the sign of f''(alpha) to determine
                   // which of the two stationary points is the maximum
                   const double f_double_prime_1 = 2*(b-a)*std::cos(2*alpha_1)
-                                                  - 2*c*sin(2*alpha_1);
+                                                  - 2*c*std::sin(2*alpha_1);
                   double alpha;
                   if (f_double_prime_1 < 0)
                     alpha = alpha_1;
                   else
                     {
                       Assert (/* f_double_prime_2 = */
-                        2*(b-a)*std::cos(2*alpha_2) - 2*c*sin(2*alpha_2) <= 0,
+                        2*(b-a)*std::cos(2*alpha_2) - 2*c*std::sin(2*alpha_2) <= 0,
                         ExcInternalError());
                       alpha = alpha_2;
                     }
@@ -265,7 +265,7 @@ namespace aspect
                                                   "    +(\\mathbf v^T \\sigma_c \\mathbf v)(\\sin\\alpha)^2."
                                                   "\\end{align*}"
                                                   "\n\n"
-                                                  "The maximum of $f(\\alpha)$ is attained where $f'(\\alpha)=0$. "
+                                                  "The maximum of $f(\\alpha)$ is attained where $f^\\prime(\\alpha)=0$. "
                                                   "Evaluating the derivative and using trigonometric identities, "
                                                   "one finds that $\\alpha$ has to satisfy the equation "
                                                   "\\begin{align*}"
@@ -283,7 +283,7 @@ namespace aspect
                                                   "$\\alpha_2=\\alpha_1+\\frac{\\pi}{2}$, one of which will "
                                                   "correspond to a minimum and the other to a maximum of "
                                                   "$f(\\alpha)$. One checks the sign of "
-                                                  "$f''(\\alpha)=-2(\\mathbf u^T \\sigma_c \\mathbf u - "
+                                                  "$f^{\\prime\\prime}(\\alpha)=-2(\\mathbf u^T \\sigma_c \\mathbf u - "
                                                   "\\mathbf v^T \\sigma_c \\mathbf v)\\cos(2\\alpha) "
                                                   "- 2 (\\mathbf u^T \\sigma_c \\mathbf v) \\sin(2\\alpha)$ for "
                                                   "each of these to determine the $\\alpha$ that maximizes "

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -143,7 +143,8 @@ namespace aspect
          */
         void
         adjust_positions_for_periodicity (Point<dim> &position,
-                                          const ArrayView<Point<dim>> &connected_positions = {}) const override;
+                                          const ArrayView<Point<dim>> &connected_positions = {},
+                                          const ArrayView<Tensor<1, dim>> &connected_velocities = {}) const override;
 
         /**
          * @copydoc Interface::has_curved_elements()
@@ -196,6 +197,15 @@ namespace aspect
 
       private:
         /**
+         * Whether to make the grid by gluing together two boxes, or just
+         * use one chunk to make the grid. Using two grids glued together
+         * is a safer option, since it forces the boundary conditions
+         * to be always applied to the same depth, but one unified grid allows
+         * for a more flexible usage of the adaptive refinement.
+         */
+        bool use_merged_grids;
+
+        /**
          * Extent of the whole model domain in x-, y-, and z-direction (in 3d).
          */
         Point<dim> extents;
@@ -229,12 +239,12 @@ namespace aspect
         /**
          * The number of cells in each coordinate direction for the lower box.
          */
-        unsigned int lower_repetitions[dim];
+        std::array<unsigned int, dim> lower_repetitions;
 
         /**
          * The number of cells in each coordinate direction for the upper box.
          */
-        unsigned int upper_repetitions[dim];
+        std::array<unsigned int, dim> upper_repetitions;
 
         /**
          * The height where the lithospheric part of the vertical boundary begins
@@ -245,10 +255,8 @@ namespace aspect
         /**
          * Bind boundary indicators to child cells after each mesh refinement round.
          */
-        virtual
         void
         set_boundary_indicators (parallel::distributed::Triangulation<dim> &triangulation) const;
-
     };
   }
 }

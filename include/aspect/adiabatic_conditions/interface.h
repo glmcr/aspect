@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2013 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2013 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -42,33 +42,19 @@ namespace aspect
     using namespace dealii;
 
     /**
-     * Base class for classes that describe adiabatic conditions, i.e. that
-     * starts at the top of the domain and integrate pressure and temperature
-     * as we go down into depth. There are several ways to do this (time-
-     * dependent or constant, using laterally averaged values or a reference
-     * profile), therefore we allow for user written plugins.
+     * Base class for classes that describe adiabatic conditions,
+     * i.e. that starts at the top of the domain and integrate
+     * pressure and temperature as we go down into depth. There are
+     * several ways to do this (time-dependent or constant, using
+     * laterally averaged values or a reference profile), therefore we
+     * allow for user written plugins.
      *
      * @ingroup AdiabaticConditions
      */
     template <int dim>
-    class Interface: public SimulatorAccess<dim>
+    class Interface: public SimulatorAccess<dim>, public Plugins::InterfaceBase
     {
       public:
-        /**
-         * Destructor. Made virtual to enforce that derived classes also have
-         * virtual destructors.
-         */
-        ~Interface() override;
-
-        /**
-         * Initialization function. This function is called once at the
-         * beginning of the program after parse_parameters is run and after
-         * the SimulatorAccess (if applicable) is initialized.
-         */
-        virtual
-        void
-        initialize ();
-
         /**
          * Some plugins need to know whether the adiabatic conditions are
          * already calculated. Namely all plugins that are needed to create
@@ -79,14 +65,6 @@ namespace aspect
         virtual
         bool
         is_initialized () const = 0;
-
-        /**
-         * Compute the adiabatic conditions along a vertical transect of the
-         * geometry based on the given material model and other quantities.
-         * This function is called at every new timestep.
-         */
-        virtual
-        void update ();
 
         /**
          * Return the adiabatic temperature at a given point of the domain.
@@ -120,49 +98,43 @@ namespace aspect
          * @param values The output vector of depth averaged values. The
          * function takes the pre-existing size of this vector as the number
          * of depth slices.
+         *
+         * @deprecated: This function is deprecated.
+         * Use the function temperature() for specific positions instead.
          */
+        DEAL_II_DEPRECATED
         virtual
         void get_adiabatic_temperature_profile(std::vector<double> &values) const;
 
         /**
          * Like get_adiabatic_temperature_profile() but for the pressure.
+         *
+         * @deprecated: This function is deprecated.
+         * Use the function pressure() for specific positions instead.
          */
+        DEAL_II_DEPRECATED
         virtual
         void get_adiabatic_pressure_profile(std::vector<double> &values) const;
 
         /**
          * Like get_adiabatic_temperature_profile() but for the density.
+         *
+         * @deprecated: This function is deprecated.
+         * Use the function density() for specific positions instead.
          */
+        DEAL_II_DEPRECATED
         virtual
         void get_adiabatic_density_profile(std::vector<double> &values) const;
 
         /**
          * Like get_adiabatic_temperature_profile() but for the density derivative.
+         *
+         * @deprecated: This function is deprecated.
+         * Use the function density_derivative() for specific positions instead.
          */
+        DEAL_II_DEPRECATED
         virtual
         void get_adiabatic_density_derivative_profile(std::vector<double> &values) const;
-
-
-        /**
-         * Declare the parameters this class takes through input files. The
-         * default implementation of this function does not describe any
-         * parameters. Consequently, derived classes do not have to overload
-         * this function if they do not take any runtime parameters.
-         */
-        static
-        void
-        declare_parameters (ParameterHandler &prm);
-
-        /**
-         * Read the parameters this class declares from the parameter file.
-         * The default implementation of this function does not read any
-         * parameters. Consequently, derived classes do not have to overload
-         * this function if they do not take any runtime parameters.
-         */
-        virtual
-        void
-        parse_parameters (ParameterHandler &prm);
-
     };
 
 

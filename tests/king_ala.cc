@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 by the authors of the ASPECT code.
+  Copyright (C) 2022 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -18,4 +18,5 @@
   <http://www.gnu.org/licenses/>.
 */
 
-#include "../benchmarks/king2dcompressible/code.cc"
+#include "../benchmarks/king2dcompressible/plugin/code.cc"
+#include "../benchmarks/blankenbach/plugin/heat_flux_statistics_gradient.cc"

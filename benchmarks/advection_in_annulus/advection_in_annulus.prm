@@ -81,18 +81,17 @@ end
 
 ############### Parameters describing the temperature field
 # Since we are interested in the flow of heat through
-# the top of the model, we set the temperture to 1
+# the top of the model, we set the temperature to 1
 # everywhere within the model except for the top
 # boundary, which is set to 0.
 
 subsection Boundary temperature model
   set List of model names = function
+  set Fixed temperature boundary indicators = top
 
   subsection Function
     set Function expression = 0
   end
-
-  set Fixed temperature boundary indicators = top
 end
 
 subsection Initial temperature model

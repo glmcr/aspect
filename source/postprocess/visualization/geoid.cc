@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -23,7 +23,6 @@
 #include <aspect/utilities.h>
 #include <aspect/geometry_model/spherical_shell.h>
 #include <aspect/postprocess/visualization/geoid.h>
-#include <aspect/citation_info.h>
 
 
 
@@ -68,7 +67,7 @@ namespace aspect
           quantity(0) = 0;
 
         const Postprocess::Geoid<dim> &geoid =
-          this->get_postprocess_manager().template get_matching_postprocessor<Postprocess::Geoid<dim>>();
+          this->get_postprocess_manager().template get_matching_active_plugin<Postprocess::Geoid<dim>>();
 
         auto cell = input_data.template get_cell<dim>();
 
@@ -87,7 +86,7 @@ namespace aspect
       std::list<std::string>
       Geoid<dim>::required_other_postprocessors() const
       {
-        return std::list<std::string> (1, "geoid");
+        return {"geoid"};
       }
 
     }

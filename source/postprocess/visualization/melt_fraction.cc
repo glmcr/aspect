@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -54,7 +54,7 @@ namespace aspect
         Assert (input_data.solution_values[0].size() == this->introspection().n_components,           ExcInternalError());
 
         // in case the material model computes the melt fraction itself, we use that output
-        if (Plugins::plugin_type_matches<const MaterialModel::MeltFractionModel<dim>> (this->get_material_model()))
+        if (MaterialModel::MeltFractionModel<dim>::is_melt_fraction_model(this->get_material_model()))
           {
             MaterialModel::MaterialModelInputs<dim> in(input_data,
                                                        this->introspection());
@@ -64,11 +64,9 @@ namespace aspect
             // Compute the melt fraction...
             this->get_material_model().evaluate(in, out);
 
-            const MaterialModel::MeltFractionModel<dim> &melt_material_model =
-              Plugins::get_plugin_as_type<const MaterialModel::MeltFractionModel<dim>> (this->get_material_model());
-
             std::vector<double> melt_fractions(n_quadrature_points);
-            melt_material_model.melt_fractions(in, melt_fractions);
+            MaterialModel::MeltFractionModel<dim>::as_melt_fraction_model(this->get_material_model())
+            .melt_fractions(in, melt_fractions);
 
             for (unsigned int q=0; q<n_quadrature_points; ++q)
               computed_quantities[q](0) = melt_fractions[q];
@@ -110,7 +108,7 @@ namespace aspect
               if (peridotite_melt_fraction > F_max && temperature < T_liquidus)
                 {
                   const double T_max = std::pow(F_max,1/beta) * (T_lherz_liquidus - T_solidus) + T_solidus;
-                  peridotite_melt_fraction = F_max + (1 - F_max) * pow((temperature - T_max) / (T_liquidus - T_max),beta);
+                  peridotite_melt_fraction = F_max + (1 - F_max) * std::pow((temperature - T_max) / (T_liquidus - T_max),beta);
                 }
 
               // melting of pyroxenite after Sobolev et al., 2011

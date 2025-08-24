@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -134,6 +134,13 @@ namespace aspect
     {
       return base_model->is_compressible();
     }
+
+    template <int dim>
+    void
+    ReplaceLithosphereViscosity<dim>::create_additional_named_outputs (MaterialModel::MaterialModelOutputs<dim> &out) const
+    {
+      base_model->create_additional_named_outputs(out);
+    }
   }
 }
 
@@ -157,7 +164,7 @@ namespace aspect
                                    "\n"
                                    "Note the required format of the input data file: The first lines may "
                                    "contain any number of comments if they begin with ‘#’, but one of these lines "
-                                   "needs to contain the number of grid points in each dimension as for example"
+                                   "needs to contain the number of grid points in each dimension as for example "
                                    "‘# POINTS: 3 3’. For a spherical model, the order of the data columns has to be"
                                    "'phi', 'theta','depth (m)', where phi is the  azimuth angle and theta is the "
                                    "polar angle measured positive from the north pole.")

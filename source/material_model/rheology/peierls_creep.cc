@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2020 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -32,6 +32,20 @@ namespace aspect
   {
     namespace Rheology
     {
+      PeierlsCreepParameters::PeierlsCreepParameters()
+        : prefactor (numbers::signaling_nan<double>()),
+          stress_exponent (numbers::signaling_nan<double>()),
+          activation_energy (numbers::signaling_nan<double>()),
+          activation_volume (numbers::signaling_nan<double>()),
+          peierls_stress (numbers::signaling_nan<double>()),
+          glide_parameter_p (numbers::signaling_nan<double>()),
+          glide_parameter_q (numbers::signaling_nan<double>()),
+          fitting_parameter (numbers::signaling_nan<double>()),
+          stress_cutoff (numbers::signaling_nan<double>())
+      {}
+
+
+
       template <int dim>
       PeierlsCreep<dim>::PeierlsCreep ()
         = default;
@@ -45,7 +59,7 @@ namespace aspect
       const PeierlsCreepParameters
       PeierlsCreep<dim>::compute_creep_parameters (const unsigned int composition,
                                                    const std::vector<double> &phase_function_values,
-                                                   const std::vector<unsigned int> &n_phases_per_composition) const
+                                                   const std::vector<unsigned int> &n_phase_transitions_per_composition) const
       {
         PeierlsCreepParameters creep_parameters;
         if (phase_function_values == std::vector<double>())
@@ -65,23 +79,23 @@ namespace aspect
           {
             // Average among phases. This averaging is not strictly correct, but
             // it will not matter much if the parameters are similar across transitions.
-            creep_parameters.prefactor = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.prefactor = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                          prefactors, composition,  MaterialModel::MaterialUtilities::PhaseUtilities::logarithmic);
-            creep_parameters.stress_exponent = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.stress_exponent = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                                stress_exponents, composition);
-            creep_parameters.activation_energy = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.activation_energy = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                                  activation_energies, composition);
-            creep_parameters.activation_volume = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.activation_volume = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                                  activation_volumes, composition);
-            creep_parameters.peierls_stress = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.peierls_stress = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                               peierls_stresses, composition);
-            creep_parameters.glide_parameter_p = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.glide_parameter_p = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                                  glide_parameters_p, composition);
-            creep_parameters.glide_parameter_q = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.glide_parameter_q = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                                  glide_parameters_q, composition);
-            creep_parameters.fitting_parameter = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.fitting_parameter = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                                  fitting_parameters, composition);
-            creep_parameters.stress_cutoff = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phases_per_composition,
+            creep_parameters.stress_cutoff = MaterialModel::MaterialUtilities::phase_average_value(phase_function_values, n_phase_transitions_per_composition,
                                              stress_cutoffs, composition);
           }
         return creep_parameters;
@@ -96,7 +110,7 @@ namespace aspect
                                                         const double temperature,
                                                         const unsigned int composition,
                                                         const std::vector<double> &phase_function_values,
-                                                        const std::vector<unsigned int> &n_phases_per_composition) const
+                                                        const std::vector<unsigned int> &n_phase_transitions_per_composition) const
       {
         /**
          * An approximation of the Peierls creep formulation, where stress is replaced with strain rate
@@ -124,7 +138,7 @@ namespace aspect
          * R is the gas constant
          */
 
-        const PeierlsCreepParameters p = compute_creep_parameters(composition, phase_function_values, n_phases_per_composition);
+        const PeierlsCreepParameters p = compute_creep_parameters(composition, phase_function_values, n_phase_transitions_per_composition);
 
         const double s = ( (p.activation_energy + pressure * p.activation_volume) / (constants::gas_constant * temperature)) *
                          p.glide_parameter_p * p.glide_parameter_q *
@@ -166,10 +180,10 @@ namespace aspect
                                                   const double temperature,
                                                   const unsigned int composition,
                                                   const std::vector<double> &phase_function_values,
-                                                  const std::vector<unsigned int> &n_phases_per_composition) const
+                                                  const std::vector<unsigned int> &n_phase_transitions_per_composition) const
       {
         /**
-         * A generalised Peierls creep formulation. The Peierls creep expression
+         * A generalized Peierls creep formulation. The Peierls creep expression
          * for the strain rate has multiple stress-dependent terms, and cannot be
          * directly inverted to find an expression for viscosity in terms of
          * strain rate. For this reason, a Newton-Raphson iteration is required,
@@ -177,32 +191,51 @@ namespace aspect
          * The equation for the strain rate is given in
          * compute_exact_strain_rate_and_derivative.
          */
-        const PeierlsCreepParameters p = compute_creep_parameters(composition, phase_function_values, n_phases_per_composition);
+        const PeierlsCreepParameters p = compute_creep_parameters(composition, phase_function_values, n_phase_transitions_per_composition);
 
         // The generalized Peierls creep flow law cannot be expressed as viscosity in
         // terms of strain rate, because there are two stress-dependent terms
         // in the strain rate expression.
         // We use Newton's method to find the second invariant of the stress tensor.
 
+        // Apply a strict cutoff if this option is chosen by user. A strain rate cutoff
+        // will be first computed and then compared to the input strain rate. A cutoff
+        // on stress will be triggered if the input strain rate is smaller.
+        const double log_strain_rate = std::log(strain_rate);
+
+        if (apply_strict_cutoff)
+          {
+            const std::pair<double, double> log_edot_and_deriv = compute_exact_log_strain_rate_and_derivative(std::log(p.stress_cutoff), pressure, temperature, p);
+            if (log_strain_rate < log_edot_and_deriv.first)
+              {
+                double viscosity = 0.5 * p.stress_cutoff / strain_rate;
+                return viscosity;
+              }
+          }
+
         // Create a starting guess for the stress using
         // the approximate form of the viscosity expression
         double viscosity = compute_approximate_viscosity(strain_rate, pressure, temperature, composition);
-        double stress_ii = 2.*viscosity*strain_rate;
-        double strain_rate_residual = 2.*strain_rate_residual_threshold;
+        double log_stress_ii = std::log(2.*viscosity*strain_rate);
 
-        double strain_rate_deriv = 0;
+        // Before the first iteration, compute the residual
+        // of the initial guess and the derivative
         unsigned int stress_iteration = 0;
+        const std::pair<double, double> log_edot_and_deriv = compute_exact_log_strain_rate_and_derivative(log_stress_ii, pressure, temperature, p);
+        double strain_rate_residual = log_edot_and_deriv.first - log_strain_rate;
+        double log_strain_rate_deriv = log_edot_and_deriv.second;
+
         while (std::abs(strain_rate_residual) > strain_rate_residual_threshold
                && stress_iteration < stress_max_iteration_number)
           {
-            const std::pair<double, double> edot_and_deriv = compute_exact_strain_rate_and_derivative(stress_ii, pressure, temperature, p);
-
-            strain_rate_residual = edot_and_deriv.first - strain_rate;
-            strain_rate_deriv = edot_and_deriv.second;
-
             // If the strain rate derivative is zero, we catch it below.
-            if (strain_rate_deriv>std::numeric_limits<double>::min())
-              stress_ii -= strain_rate_residual/strain_rate_deriv;
+            if (log_strain_rate_deriv>std::numeric_limits<double>::min())
+              log_stress_ii -= strain_rate_residual/log_strain_rate_deriv;
+
+            const std::pair<double, double> log_edot_and_deriv = compute_exact_log_strain_rate_and_derivative(log_stress_ii, pressure, temperature, p);
+
+            strain_rate_residual = log_edot_and_deriv.first - log_strain_rate;
+            log_strain_rate_deriv = log_edot_and_deriv.second;
 
             stress_iteration += 1;
 
@@ -212,11 +245,10 @@ namespace aspect
             // Currently, we still throw an exception, but if this exception is thrown,
             // another more robust iterative scheme should be implemented
             // (similar to that seen in the diffusion-dislocation material model).
-            const bool abort_newton_iteration = !numbers::is_finite(stress_ii)
+            const bool abort_newton_iteration = !numbers::is_finite(log_stress_ii)
                                                 || !numbers::is_finite(strain_rate_residual)
-                                                || !numbers::is_finite(strain_rate_deriv)
-                                                || strain_rate_deriv < std::numeric_limits<double>::min()
-                                                || !numbers::is_finite(std::pow(stress_ii, p.stress_exponent))
+                                                || !numbers::is_finite(log_strain_rate_deriv)
+                                                || log_strain_rate_deriv < std::numeric_limits<double>::min()
                                                 || stress_iteration == stress_max_iteration_number;
             AssertThrow(!abort_newton_iteration,
                         ExcMessage("No convergence has been reached in the loop that determines "
@@ -227,7 +259,7 @@ namespace aspect
                                    "parameter 'Maximum Peierls strain rate iterations'."));
           }
 
-        viscosity = 0.5*stress_ii/strain_rate;
+        viscosity = 0.5*std::exp(log_stress_ii)/strain_rate;
 
         return viscosity;
       }
@@ -241,7 +273,7 @@ namespace aspect
                                             const double temperature,
                                             const unsigned int composition,
                                             const std::vector<double> &phase_function_values,
-                                            const std::vector<unsigned int> &n_phases_per_composition) const
+                                            const std::vector<unsigned int> &n_phase_transitions_per_composition) const
       {
         double viscosity = 0.0;
 
@@ -249,12 +281,12 @@ namespace aspect
           {
             case viscosity_approximation:
             {
-              viscosity = compute_approximate_viscosity(strain_rate, pressure, temperature, composition, phase_function_values, n_phases_per_composition);
+              viscosity = compute_approximate_viscosity(strain_rate, pressure, temperature, composition, phase_function_values, n_phase_transitions_per_composition);
               break;
             }
             case exact:
             {
-              viscosity = compute_exact_viscosity(strain_rate, pressure, temperature, composition, phase_function_values, n_phases_per_composition);
+              viscosity = compute_exact_viscosity(strain_rate, pressure, temperature, composition, phase_function_values, n_phase_transitions_per_composition);
               break;
             }
             default:
@@ -304,6 +336,39 @@ namespace aspect
 
       template <int dim>
       std::pair<double, double>
+      PeierlsCreep<dim>::compute_approximate_log_strain_rate_and_derivative (const double log_stress,
+                                                                             const double pressure,
+                                                                             const double temperature,
+                                                                             const PeierlsCreepParameters creep_parameters) const
+      {
+        /**
+        * b = (E+P*V)/(R*T)
+        * c = std::pow(gamma, p)
+        * d = std::pow(1. - c, q)
+        * s = b*p*q*c*d/(1. - c)
+        * log_arrhenius = -b*d
+        *
+        * log_strain_rate = log_A + (s + n) * std::log(stress) - s * std::log(gamma*peierls_stress) + log_arrhenius
+        * total_stress_exponent = (s + n)
+        */
+        const PeierlsCreepParameters p = creep_parameters;
+
+        const double b = (p.activation_energy + pressure*p.activation_volume)/(constants::gas_constant * temperature);
+        const double c = std::pow(p.fitting_parameter, p.glide_parameter_p);
+        const double d = std::pow(1. - c, p.glide_parameter_q);
+        const double s = b*p.glide_parameter_p*p.glide_parameter_q*c*d/(1. - c);
+        const double log_arrhenius = -b*d;
+
+        const double total_stress_exponent = s + p.stress_exponent;
+        const double log_strain_rate = std::log(p.prefactor) + total_stress_exponent * log_stress - s * std::log(p.fitting_parameter*p.peierls_stress) + log_arrhenius;
+
+        return std::make_pair(log_strain_rate, total_stress_exponent);
+      }
+
+
+
+      template <int dim>
+      std::pair<double, double>
       PeierlsCreep<dim>::compute_exact_strain_rate_and_derivative (const double stress,
                                                                    const double pressure,
                                                                    const double temperature,
@@ -344,7 +409,7 @@ namespace aspect
 
             const double b = (p.activation_energy + pressure*p.activation_volume)/(constants::gas_constant * temperature);
             const double arrhenius = std::exp(-b*d_cutoff);
-            const double edot_ii = (quadratic_term*std::pow(stress, 2.) + linear_term*stress) * arrhenius;
+            const double edot_ii = (quadratic_term*Utilities::fixed_power<2>(stress) + linear_term*stress) * arrhenius;
             const double deriv = (2*quadratic_term*stress + linear_term) * arrhenius;
 
             return std::make_pair(edot_ii, deriv);
@@ -362,6 +427,68 @@ namespace aspect
             const double deriv = edot_ii / stress * (s + p.stress_exponent);
 
             return std::make_pair(edot_ii, deriv);
+          }
+      }
+
+
+
+      template <int dim>
+      std::pair<double, double>
+      PeierlsCreep<dim>::compute_exact_log_strain_rate_and_derivative (const double log_stress,
+                                                                       const double pressure,
+                                                                       const double temperature,
+                                                                       const PeierlsCreepParameters creep_parameters) const
+      {
+        /**
+        * b = (E+P*V)/(R*T)
+        * c = std::pow(stress/peierls_stress, p)
+        * d = std::pow(1 - c, q)
+        *
+        * log_edot_ii = std::log(A) + n * std::log(stress) - b*d
+        * deriv_log = n + p * q * b * std::(1-c, p.q - 1)
+        * The deriv_log is the derivative of log(edot_ii) to log(stress).
+        */
+        const PeierlsCreepParameters p = creep_parameters;
+        const double stress = std::exp(log_stress);
+        if (stress < p.stress_cutoff)
+          {
+
+            /**
+            * For Peierls creep flow laws that have a stress exponent equal to zero the strain rate does not approach zero as
+            * stress approaches zero. To ensure convergence in the solver, the strain rate is modelled as a quadratic function
+            * of stress;
+            * edot_ii = quadratic_term*stress^2 + linear_term*stress
+            * Where the quadratic and linear terms are defined at a constant cutoff temperature and pressure.
+            * T_cutoff = (E/R), P_cutoff = 0
+            * s_cutoff = p*q*c_cutoff*d_cutoff / (1 - c_cutoff)
+            * arrhenius_cutoff = std::exp(-d_cutoff)
+            */
+            const double c_cutoff = std::pow(p.stress_cutoff/p.peierls_stress, p.glide_parameter_p);
+            const double d_cutoff = std::pow(1. - c_cutoff, p.glide_parameter_q);
+            const double s_cutoff = p.glide_parameter_p*p.glide_parameter_q*c_cutoff*d_cutoff/(1. - c_cutoff);
+            const double arrhenius_cutoff = std::exp(-d_cutoff);
+            const double edot_ii_cutoff = p.prefactor * std::pow(p.stress_cutoff, p.stress_exponent) * arrhenius_cutoff;
+            const double deriv_cutoff = edot_ii_cutoff / p.stress_cutoff * (s_cutoff + p.stress_exponent);
+            const double quadratic_term = (deriv_cutoff - edot_ii_cutoff / p.stress_cutoff) / p.stress_cutoff / arrhenius_cutoff;
+            const double linear_term = (2*(edot_ii_cutoff / p.stress_cutoff) - deriv_cutoff) / arrhenius_cutoff;
+
+            const double b = (p.activation_energy + pressure*p.activation_volume)/(constants::gas_constant * temperature);
+            const double arrhenius = std::exp(-b*d_cutoff);
+            const double edot_ii = (quadratic_term*Utilities::fixed_power<2>(stress) + linear_term*stress) * arrhenius;
+            const double deriv_log = 2 - linear_term / (quadratic_term * stress + linear_term);
+
+            return std::make_pair(std::log(edot_ii), deriv_log);
+          }
+        else
+          {
+            const double b = (p.activation_energy + pressure*p.activation_volume)/(constants::gas_constant * temperature);
+            const double c = std::pow(stress/p.peierls_stress, p.glide_parameter_p);
+            const double d = std::pow(1. - c, p.glide_parameter_q);
+
+            const double log_edot_ii = std::log(p.prefactor) + p.stress_exponent * log_stress - b*d ;
+            const double deriv_log = p.stress_exponent + p.glide_parameter_p * p.glide_parameter_q * b * c * std::pow(1-c, p.glide_parameter_q - 1);
+
+            return std::make_pair(log_edot_ii, deriv_log);
           }
       }
 
@@ -412,8 +539,10 @@ namespace aspect
                            "rather than stress. ");
 
         // Viscosity iteration parameters
-        prm.declare_entry ("Peierls strain rate residual tolerance", "1e-22", Patterns::Double(0.),
-                           "Tolerance for the iterative solve to find the correct Peierls creep strain rate.");
+        prm.declare_entry ("Peierls strain rate residual tolerance", "1e-10", Patterns::Double(0.),
+                           "Tolerance for the iterative solve to find the correct Peierls creep strain rate. "
+                           "The tolerance is expressed as the difference between the natural logarithm of the "
+                           "input strain rate and the strain rate at the current iteration.");
         prm.declare_entry ("Maximum Peierls strain rate iterations", "40", Patterns::Integer(0),
                            "Maximum number of iterations to find the correct "
                            "Peierls strain rate.");
@@ -422,51 +551,62 @@ namespace aspect
         prm.declare_entry ("Prefactors for Peierls creep", "1.4e-19",
                            Patterns::Anything(),
                            "List of viscosity prefactors, $A$, for background material and compositional fields, "
-                           "for a total of N+1 values, where N is the number of compositional fields. "
+                           "for a total of N+1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. "
                            "If only one value is given, then all use the same value. "
                            "Units: \\si{\\pascal}$^{-n_{\\text{peierls}}}$ \\si{\\per\\second}");
         prm.declare_entry ("Stress exponents for Peierls creep", "2.0",
                            Patterns::Anything(),
                            "List of stress exponents, $n_{\\text{peierls}}$, for background material and compositional "
-                           "fields, for a total of N+1 values, where N is the number of compositional fields. "
+                           "fields, for a total of N+1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. "
                            "If only one value is given, then all use the same value.  Units: None.");
         prm.declare_entry ("Activation energies for Peierls creep", "320e3",
                            Patterns::Anything(),
                            "List of activation energies, $E$, for background material and compositional fields, "
-                           "for a total of N+1 values, where N is the number of compositional fields. "
+                           "for a total of N+1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. "
                            "If only one value is given, then all use the same value. Units: \\si{\\joule\\per\\mole}.");
         prm.declare_entry ("Activation volumes for Peierls creep", "1.4e-5",
                            Patterns::Anything(),
                            "List of activation volumes, $V$, for background material and compositional fields, "
-                           "for a total of N+1 values, where N is the number of compositional fields. "
+                           "for a total of N+1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. "
                            "If only one value is given, then all use the same value. "
                            "Units: \\si{\\meter\\cubed\\per\\mole}.");
         prm.declare_entry ("Peierls stresses", "5.e9",
                            Patterns::Anything(),
                            "List of stress limits for Peierls creep $\\sigma_{\\text{peierls}}$ for background "
                            "material and compositional fields, for a total of N+1 values, where N is the number "
-                           "of compositional fields. If only one value is given, then all use the same value. "
+                           "of all compositional fields or only those corresponding to chemical compositions. "
+                           "If only one value is given, then all use the same value. "
                            "Units: \\si{\\pascal}");
         prm.declare_entry ("Peierls fitting parameters", "0.17",
                            Patterns::Anything(),
                            "List of fitting parameters $\\gamma$ between stress $\\sigma$ and the Peierls "
                            "stress $\\sigma_{\\text{peierls}}$ for background material and compositional fields, "
-                           "for a total of N+1 values, where N is the number of compositional fields. If only one "
-                           "value is given, then all use the same value. Units: none");
+                           "for a total of N+1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. If only one value is given, "
+                           "then all use the same value. Units: none");
         prm.declare_entry ("Peierls glide parameters p", "0.5",
                            Patterns::Anything(),
                            "List of the first Peierls creep glide parameters, $p$, for background and compositional "
-                           "fields for a total of N+1 values, where N is the number of compositional fields. "
+                           "fields for a total of N+1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. "
                            "If only one value is given, then all use the same value. Units: none");
         prm.declare_entry ("Peierls glide parameters q", "1.0",
                            Patterns::Anything(),
                            "List of the second Peierls creep glide parameters, $q$, for background and compositional "
-                           "fields for a total of N+1 values, where N is the number of compositional fields. "
+                           "fields for a total of N+1 values, where N is the number of all compositional fields or only "
+                           "those corresponding to chemical compositions. "
                            "If only one value is given, then all use the same value. Units: none");
         prm.declare_entry ("Cutoff stresses for Peierls creep", "0.0",
                            Patterns::Anything(),
                            "List of the Stress thresholds below which the strain rate is solved for as a quadratic "
                            "function of stress to aid with convergence when stress exponent n=0. Units: \\si{\\pascal}");
+        prm.declare_entry ("Apply strict stress cutoff for Peierls creep", "false", Patterns::Bool(),
+                           "Whether the cutoff stresses for Peierls creep are used as the minimum "
+                           "stresses in the Peierls rheology");
 
       }
 
@@ -478,10 +618,15 @@ namespace aspect
                                            const std::unique_ptr<std::vector<unsigned int>> &expected_n_phases_per_composition)
       {
         // Retrieve the list of composition names
-        const std::vector<std::string> list_of_composition_names = this->introspection().get_composition_names();
+        std::vector<std::string> compositional_field_names = this->introspection().get_composition_names();
+
+        // Retrieve the list of names of fields that represent chemical compositions, and not, e.g.,
+        // plastic strain
+        std::vector<std::string> chemical_field_names = this->introspection().chemical_composition_field_names();
 
         // Establish that a background field is required here
-        const bool has_background_field = true;
+        compositional_field_names.insert(compositional_field_names.begin(), "background");
+        chemical_field_names.insert(chemical_field_names.begin(),"background");
 
         if (prm.get ("Peierls creep flow law") == "viscosity approximation")
           peierls_creep_flow_law = viscosity_approximation;
@@ -495,67 +640,55 @@ namespace aspect
         stress_max_iteration_number = prm.get_integer ("Maximum Peierls strain rate iterations");
 
         // Rheological parameters
-        prefactors = Utilities::parse_map_to_double_array(prm.get("Prefactors for Peierls creep"),
-                                                          list_of_composition_names,
-                                                          has_background_field,
-                                                          "Prefactors for Peierls creep",
-                                                          true,
-                                                          expected_n_phases_per_composition);
+        // Make options file for parsing maps to double arrays
+        Utilities::MapParsing::Options options(chemical_field_names, "Prefactors for Peierls creep");
+        options.list_of_allowed_keys = compositional_field_names;
+        options.allow_multiple_values_per_key = true;
+        if (expected_n_phases_per_composition)
+          {
+            options.n_values_per_key = *expected_n_phases_per_composition;
 
-        stress_exponents = Utilities::parse_map_to_double_array(prm.get("Stress exponents for Peierls creep"),
-                                                                list_of_composition_names,
-                                                                has_background_field,
-                                                                "Stress exponents for Peierls creep",
-                                                                true,
-                                                                expected_n_phases_per_composition);
+            // check_values_per_key is required to be true to duplicate single values
+            // if they are to be used for all phases associated with a given key.
+            options.check_values_per_key = true;
+          }
 
-        activation_energies = Utilities::parse_map_to_double_array(prm.get("Activation energies for Peierls creep"),
-                                                                   list_of_composition_names,
-                                                                   has_background_field,
-                                                                   "Activation energies for Peierls creep",
-                                                                   true,
-                                                                   expected_n_phases_per_composition);
+        prefactors = Utilities::MapParsing::parse_map_to_double_array(prm.get("Prefactors for Peierls creep"),
+                                                                      options);
 
-        activation_volumes = Utilities::parse_map_to_double_array(prm.get("Activation volumes for Peierls creep"),
-                                                                  list_of_composition_names,
-                                                                  has_background_field,
-                                                                  "Activation volumes for Peierls creep",
-                                                                  true,
-                                                                  expected_n_phases_per_composition);
+        options.property_name = "Stress exponents for Peierls creep";
+        stress_exponents = Utilities::MapParsing::parse_map_to_double_array(prm.get("Stress exponents for Peierls creep"),
+                                                                            options);
 
-        peierls_stresses = Utilities::parse_map_to_double_array(prm.get("Peierls stresses"),
-                                                                list_of_composition_names,
-                                                                has_background_field,
-                                                                "Peierls stresses",
-                                                                true,
-                                                                expected_n_phases_per_composition);
+        options.property_name = "Activation energies for Peierls creep";
+        activation_energies = Utilities::MapParsing::parse_map_to_double_array(prm.get("Activation energies for Peierls creep"),
+                                                                               options);
 
-        fitting_parameters = Utilities::parse_map_to_double_array(prm.get("Peierls fitting parameters"),
-                                                                  list_of_composition_names,
-                                                                  has_background_field,
-                                                                  "Peierls fitting parameters",
-                                                                  true,
-                                                                  expected_n_phases_per_composition);
+        options.property_name = "Activation volumes for Peierls creep";
+        activation_volumes = Utilities::MapParsing::parse_map_to_double_array(prm.get("Activation volumes for Peierls creep"),
+                                                                              options);
 
-        glide_parameters_p = Utilities::parse_map_to_double_array(prm.get("Peierls glide parameters p"),
-                                                                  list_of_composition_names,
-                                                                  has_background_field,
-                                                                  "Peierls glide parameters p",
-                                                                  true,
-                                                                  expected_n_phases_per_composition);
+        options.property_name = "Peierls stresses";
+        peierls_stresses = Utilities::MapParsing::parse_map_to_double_array(prm.get("Peierls stresses"),
+                                                                            options);
 
-        glide_parameters_q = Utilities::parse_map_to_double_array(prm.get("Peierls glide parameters q"),
-                                                                  list_of_composition_names,
-                                                                  has_background_field,
-                                                                  "Peierls glide parameters q",
-                                                                  true,
-                                                                  expected_n_phases_per_composition);
-        stress_cutoffs = Utilities::parse_map_to_double_array(prm.get("Cutoff stresses for Peierls creep"),
-                                                              list_of_composition_names,
-                                                              has_background_field,
-                                                              "Cutoff stresses for Peierls creep",
-                                                              true,
-                                                              expected_n_phases_per_composition);
+        options.property_name = "Peierls fitting parameters";
+        fitting_parameters = Utilities::MapParsing::parse_map_to_double_array(prm.get("Peierls fitting parameters"),
+                                                                              options);
+
+        options.property_name = "Peierls glide parameters p";
+        glide_parameters_p = Utilities::MapParsing::parse_map_to_double_array(prm.get("Peierls glide parameters p"),
+                                                                              options);
+
+        options.property_name = "Peierls glide parameters q";
+        glide_parameters_q = Utilities::MapParsing::parse_map_to_double_array(prm.get("Peierls glide parameters q"),
+                                                                              options);
+
+        options.property_name = "Cutoff stresses for Peierls creep";
+        stress_cutoffs = Utilities::MapParsing::parse_map_to_double_array(prm.get("Cutoff stresses for Peierls creep"),
+                                                                          options);
+
+        apply_strict_cutoff = prm.get_bool("Apply strict stress cutoff for Peierls creep");
       }
     }
   }

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -22,7 +22,6 @@
 #include <aspect/melt.h>
 #include <aspect/simulator.h>
 #include <aspect/utilities.h>
-#include <aspect/citation_info.h>
 #include <aspect/mesh_deformation/interface.h>
 #include <aspect/simulator/assemblers/advection.h>
 #include <deal.II/base/signaling_nan.h>
@@ -31,7 +30,6 @@
 #include <deal.II/lac/sparsity_tools.h>
 
 #include <deal.II/fe/fe_q.h>
-#include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_dgp.h>
 #include <deal.II/fe/fe_values.h>
 
@@ -69,6 +67,19 @@ namespace aspect
       const FEValuesExtractors::Scalar ex_p_c = introspection.variable("compaction pressure").extractor_scalar();
       fe_values[ex_p_c].get_function_values (solution, compaction_pressures);
     }
+
+
+
+    template <int dim>
+    MeltOutputs<dim>::MeltOutputs  (const unsigned int n_points,
+                                    const unsigned int /*n_comp*/)
+      :
+      compaction_viscosities(n_points, numbers::signaling_nan<double>()),
+      fluid_viscosities(n_points, numbers::signaling_nan<double>()),
+      permeabilities(n_points, numbers::signaling_nan<double>()),
+      fluid_densities(n_points, numbers::signaling_nan<double>()),
+      fluid_density_gradients(n_points, numbers::signaling_nan<Tensor<1,dim>>())
+    {}
 
 
 
@@ -173,19 +184,17 @@ namespace aspect
     {
       MeltHandler<dim>::create_material_model_outputs(outputs);
 
-      const unsigned int n_points = outputs.viscosities.size();
-
       if (this->get_parameters().enable_additional_stokes_rhs
           && outputs.template get_additional_output<MaterialModel::AdditionalMaterialOutputsStokesRHS<dim>>() == nullptr)
         {
           outputs.additional_outputs.push_back(
-            std::make_unique<MaterialModel::AdditionalMaterialOutputsStokesRHS<dim>>(n_points));
+            std::make_unique<MaterialModel::AdditionalMaterialOutputsStokesRHS<dim>>(outputs.n_evaluation_points()));
         }
 
       Assert(!this->get_parameters().enable_additional_stokes_rhs
              ||
              outputs.template get_additional_output<MaterialModel::AdditionalMaterialOutputsStokesRHS<dim>>()->rhs_u.size()
-             == n_points, ExcInternalError());
+             == outputs.n_evaluation_points(), ExcInternalError());
     }
 
 
@@ -1025,22 +1034,20 @@ namespace aspect
 
       const typename DoFHandler<dim>::face_iterator face = cell->face(face_no);
 
-      if (this->get_boundary_traction()
+      if (this->get_boundary_traction_manager().get_active_boundary_traction_names()
           .find (face->boundary_id())
           !=
-          this->get_boundary_traction().end())
+          this->get_boundary_traction_manager().get_active_boundary_traction_names().end())
         {
           scratch.face_finite_element_values.reinit (cell, face_no);
 
           for (unsigned int q=0; q<scratch.face_finite_element_values.n_quadrature_points; ++q)
             {
               const Tensor<1,dim> traction
-                = this->get_boundary_traction().find(
-                    face->boundary_id()
-                  )->second
-                  ->boundary_traction (face->boundary_id(),
-                                       scratch.face_finite_element_values.quadrature_point(q),
-                                       scratch.face_finite_element_values.normal_vector(q));
+                = this->get_boundary_traction_manager().
+                  boundary_traction (face->boundary_id(),
+                                     scratch.face_finite_element_values.quadrature_point(q),
+                                     scratch.face_finite_element_values.normal_vector(q));
 
               for (unsigned int i=0, i_stokes=0; i_stokes<stokes_dofs_per_cell; /*increment at end of loop*/)
                 {
@@ -1066,7 +1073,7 @@ namespace aspect
   MeltHandler<dim>::
   compute_melt_variables(LinearAlgebra::BlockSparseMatrix &system_matrix,
                          LinearAlgebra::BlockVector &solution,
-                         LinearAlgebra::BlockVector &system_rhs)
+                         LinearAlgebra::BlockVector &system_rhs) const
   {
     if (!this->include_melt_transport())
       return;
@@ -1297,8 +1304,7 @@ namespace aspect
             in.reinit(fe_values,
                       cell,
                       this->introspection(),
-                      solution,
-                      false);
+                      solution);
 
             this->get_material_model().evaluate(in, out);
 
@@ -1508,8 +1514,8 @@ namespace aspect
             material_model_inputs.reinit(finite_element_values,
                                          cell,
                                          this->introspection(),
-                                         this->get_current_linearization_point(),
-                                         false);
+                                         this->get_current_linearization_point());
+
             // We only need access to the MeltOutputs in p_c_scale().
             material_model_inputs.requested_properties = MaterialModel::MaterialProperties::additional_outputs;
 
@@ -1575,7 +1581,12 @@ namespace aspect
     for_constraints.subtract_set(nonzero_pc_dofs);
 
     // and constrain the remaining dofs (that are not in melt cells).
+#if DEAL_II_VERSION_GTE(9,6,0)
+    for (const auto index : for_constraints)
+      constraints.constrain_dof_to_zero(index);
+#else
     constraints.add_lines(for_constraints);
+#endif
   }
 
 
@@ -1678,7 +1689,7 @@ namespace aspect
       std::make_unique<aspect::Assemblers::MeltStokesSystemBoundary<dim>>());
 
     // add the terms for traction boundary conditions
-    if (!this->get_boundary_traction().empty())
+    if (!this->get_boundary_traction_manager().get_active_boundary_traction_names().empty())
       {
         assemblers.stokes_system_on_boundary_face.push_back(
           std::make_unique<Assemblers::MeltBoundaryTraction<dim>> ());
@@ -1691,15 +1702,23 @@ namespace aspect
           std::make_unique<Assemblers::MeltPressureRHSCompatibilityModification<dim>> ());
       }
 
-    assemblers.advection_system.push_back(
-      std::make_unique<Assemblers::MeltAdvectionSystem<dim>> ());
-
-    if (this->get_parameters().fixed_heat_flux_boundary_indicators.size() != 0)
+    for (unsigned int i=0; i<1+this->introspection().n_compositional_fields; ++i)
       {
-        assemblers.advection_system_on_boundary_face.push_back(
-          std::make_unique<aspect::Assemblers::AdvectionSystemBoundaryHeatFlux<dim>>());
-        assemblers.advection_system_assembler_on_face_properties[0].need_face_material_model_data = true;
-        assemblers.advection_system_assembler_on_face_properties[0].need_face_finite_element_evaluation = true;
+        if ((i==0 && this->get_parameters().temperature_method == Parameters<dim>::AdvectionFieldMethod::fem_field)
+            ||
+            (i>0 && this->get_parameters().compositional_field_methods[i-1] == Parameters<dim>::AdvectionFieldMethod::fem_field)
+            ||
+            (i>0 && this->get_parameters().compositional_field_methods[i-1] == Parameters<dim>::AdvectionFieldMethod::fem_melt_field))
+          assemblers.advection_system[i].push_back(
+            std::make_unique<Assemblers::MeltAdvectionSystem<dim>> ());
+
+        if (this->get_parameters().fixed_heat_flux_boundary_indicators.size() != 0)
+          {
+            assemblers.advection_system_on_boundary_face[i].push_back(
+              std::make_unique<aspect::Assemblers::AdvectionSystemBoundaryHeatFlux<dim>>());
+            assemblers.advection_system_assembler_on_face_properties[0].need_face_material_model_data = true;
+            assemblers.advection_system_assembler_on_face_properties[0].need_face_finite_element_evaluation = true;
+          }
       }
   }
 
@@ -1791,7 +1810,7 @@ namespace aspect
     // The additional terms in the temperature systems have not been ported
     // to the DG formulation:
     AssertThrow(!this->get_parameters().use_discontinuous_temperature_discretization &&
-                !this->get_parameters().use_discontinuous_composition_discretization,
+                !this->get_parameters().have_discontinuous_composition_discretization,
                 ExcMessage("Using discontinuous elements for temperature "
                            "or composition in models with melt transport is currently not implemented.") );
     if (melt_parameters.use_discontinuous_p_c)
@@ -1824,10 +1843,9 @@ namespace aspect
     if (output.template get_additional_output<MaterialModel::MeltOutputs<dim>>() != nullptr)
       return;
 
-    const unsigned int n_points = output.viscosities.size();
     const unsigned int n_comp = output.reaction_terms[0].size();
     output.additional_outputs.push_back(
-      std::make_unique<MaterialModel::MeltOutputs<dim>> (n_points, n_comp));
+      std::make_unique<MaterialModel::MeltOutputs<dim>> (output.n_evaluation_points(), n_comp));
   }
 
 
@@ -1862,8 +1880,7 @@ namespace aspect
             scratch.face_material_model_inputs.reinit  (scratch.face_finite_element_values,
                                                         cell,
                                                         this->introspection(),
-                                                        this->get_solution(),
-                                                        true);
+                                                        this->get_solution());
 
             this->get_material_model().evaluate(scratch.face_material_model_inputs, scratch.face_material_model_outputs);
 

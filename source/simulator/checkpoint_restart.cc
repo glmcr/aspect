@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -43,7 +43,7 @@ namespace aspect
     void move_file (const std::string &old_name,
                     const std::string &new_name)
     {
-      int error = system (("mv " + old_name + " " + new_name).c_str());
+      int error = std::system (("mv " + old_name + " " + new_name).c_str());
 
       // If the above call failed, e.g. because there is no command-line
       // available, try with internal functions.
@@ -91,12 +91,13 @@ namespace aspect
       oa << parameters.use_discontinuous_temperature_discretization;
       oa << parameters.use_discontinuous_composition_discretization;
       oa << parameters.temperature_degree;
-      oa << parameters.composition_degree;
+      oa << parameters.composition_degrees;
       oa << parameters.pressure_normalization;
       oa << parameters.n_compositional_fields;
       oa << parameters.names_of_compositional_fields;
       oa << parameters.normalized_fields;
       oa << parameters.mesh_deformation_enabled;
+      oa << parameters.n_particle_managers;
     }
 
 
@@ -178,7 +179,7 @@ namespace aspect
                                "These need to be the same during restarting "
                                "from a checkpoint."));
 
-      bool use_discontinuous_composition_discretization;
+      std::vector<bool> use_discontinuous_composition_discretization;
       ia >> use_discontinuous_composition_discretization;
       AssertThrow (use_discontinuous_composition_discretization == parameters.use_discontinuous_composition_discretization,
                    ExcMessage ("The value provided for `Use discontinuous composition discretization' that was stored "
@@ -196,9 +197,9 @@ namespace aspect
                                "These need to be the same during restarting "
                                "from a checkpoint."));
 
-      unsigned int composition_degree;
-      ia >> composition_degree;
-      AssertThrow (composition_degree == parameters.composition_degree,
+      std::vector<unsigned int> composition_degrees;
+      ia >> composition_degrees;
+      AssertThrow (composition_degrees == parameters.composition_degrees,
                    ExcMessage ("The composition polynomial degree that was stored "
                                "in the checkpoint file is not the same as the one "
                                "you currently set in your input file. "
@@ -260,6 +261,14 @@ namespace aspect
                                "These need to be the same during restarting "
                                "from a checkpoint."));
 
+      unsigned int n_particle_managers;
+      ia >> n_particle_managers;
+      AssertThrow (n_particle_managers == parameters.n_particle_managers,
+                   ExcMessage ("The number of particle systems that were stored "
+                               "in the checkpoint file is not the same as the one "
+                               "you currently set in your input file. "
+                               "These need to be the same during restarting "
+                               "from a checkpoint."));
     }
   }
 
@@ -277,10 +286,8 @@ namespace aspect
 
     // save Triangulation and Solution vectors:
     {
-      std::vector<const LinearAlgebra::BlockVector *> x_system (3);
-      x_system[0] = &solution;
-      x_system[1] = &old_solution;
-      x_system[2] = &old_old_solution;
+      std::vector<const LinearAlgebra::BlockVector *> x_system
+        = { &solution, &old_solution, &old_old_solution };
 
       // If we are using a deforming mesh, include the mesh velocity, which uses the system dof handler
       if (parameters.mesh_deformation_enabled)
@@ -294,25 +301,23 @@ namespace aspect
 
       // If we are deforming the mesh, also serialize the mesh vertices vector, which
       // uses its own dof handler
-      std::vector<const LinearAlgebra::Vector *> x_fs_system (2);
+      std::vector<const LinearAlgebra::Vector *> x_fs_system;
       std::unique_ptr<parallel::distributed::SolutionTransfer<dim,LinearAlgebra::Vector>> mesh_deformation_trans;
       if (parameters.mesh_deformation_enabled)
         {
+          x_fs_system.push_back (&mesh_deformation->mesh_displacements);
+          x_fs_system.push_back (&mesh_deformation->initial_topography);
+
           mesh_deformation_trans
             = std::make_unique<parallel::distributed::SolutionTransfer<dim,LinearAlgebra::Vector>>
               (mesh_deformation->mesh_deformation_dof_handler);
 
-          x_fs_system[0] = &mesh_deformation->mesh_displacements;
-          x_fs_system[1] = &mesh_deformation->initial_topography;
-
-
           mesh_deformation_trans->prepare_for_serialization(x_fs_system);
-
         }
 
       signals.pre_checkpoint_store_user_data(triangulation);
 
-      triangulation.save ((parameters.output_directory + "restart.mesh.new").c_str());
+      triangulation.save (parameters.output_directory + "restart.mesh.new");
     }
 
     // save general information This calls the serialization functions on all
@@ -321,10 +326,15 @@ namespace aspect
     {
       std::ostringstream oss;
 
-      // serialize into a stringstream
-      aspect::oarchive oa (oss);
-      save_critical_parameters (this->parameters, oa);
-      oa << (*this);
+      // Serialize into a stringstream. Put the following into a code
+      // block of its own to ensure the destruction of the 'oa'
+      // archive triggers a flush() on the stringstream so we can
+      // query its properties below.
+      {
+        aspect::oarchive oa (oss);
+        save_critical_parameters (this->parameters, oa);
+        oa << (*this);
+      }
 
       // compress with zlib and write to file on the root processor
 #ifdef DEAL_II_WITH_ZLIB
@@ -348,7 +358,7 @@ namespace aspect
                 static_cast<uint32_t>(compressed_data_length)
               }; /* list of compressed sizes of blocks */
 
-          std::ofstream f ((parameters.output_directory + "restart.resume.z.new").c_str());
+          std::ofstream f ((parameters.output_directory + "restart.resume.z.new"));
           f.write(reinterpret_cast<const char *>(compression_header), 4 * sizeof(compression_header[0]));
           f.write(reinterpret_cast<char *>(&compressed_data[0]), compressed_data_length);
           f.close();
@@ -455,7 +465,7 @@ namespace aspect
 
     // Then start with the actual deserialization.
     // First check existence of the two restart files
-    AssertThrow (Utilities::fexists(parameters.output_directory + "restart.mesh"),
+    AssertThrow (Utilities::fexists(parameters.output_directory + "restart.mesh", mpi_communicator),
                  ExcMessage ("You are trying to restart a previous computation, "
                              "but the restart file <"
                              +
@@ -463,7 +473,7 @@ namespace aspect
                              +
                              "> does not appear to exist!"));
 
-    AssertThrow (Utilities::fexists(parameters.output_directory + "restart.resume.z"),
+    AssertThrow (Utilities::fexists(parameters.output_directory + "restart.resume.z", mpi_communicator),
                  ExcMessage ("You are trying to restart a previous computation, "
                              "but the restart file <"
                              +
@@ -527,7 +537,7 @@ namespace aspect
     // now that we have resumed from the snapshot load the mesh and solution vectors
     try
       {
-        triangulation.load ((parameters.output_directory + "restart.mesh").c_str());
+        triangulation.load (parameters.output_directory + "restart.mesh");
       }
     catch (...)
       {
@@ -541,19 +551,13 @@ namespace aspect
     setup_dofs();
     global_volume = GridTools::volume (triangulation, *mapping);
 
-    LinearAlgebra::BlockVector
-    distributed_system (system_rhs);
-    LinearAlgebra::BlockVector
-    old_distributed_system (system_rhs);
-    LinearAlgebra::BlockVector
-    old_old_distributed_system (system_rhs);
-    LinearAlgebra::BlockVector
-    distributed_mesh_velocity (system_rhs);
+    LinearAlgebra::BlockVector distributed_system (system_rhs);
+    LinearAlgebra::BlockVector old_distributed_system (system_rhs);
+    LinearAlgebra::BlockVector old_old_distributed_system (system_rhs);
+    LinearAlgebra::BlockVector distributed_mesh_velocity (system_rhs);
 
-    std::vector<LinearAlgebra::BlockVector *> x_system (3);
-    x_system[0] = & (distributed_system);
-    x_system[1] = & (old_distributed_system);
-    x_system[2] = & (old_old_distributed_system);
+    std::vector<LinearAlgebra::BlockVector *> x_system
+      = { &distributed_system, &old_distributed_system, &old_old_distributed_system };
 
     // If necessary, also include the mesh velocity for deserialization
     // with the system dof handler
@@ -580,9 +584,10 @@ namespace aspect
                                                               mpi_communicator );
         LinearAlgebra::Vector distributed_initial_topography( mesh_deformation->mesh_locally_owned,
                                                               mpi_communicator );
-        std::vector<LinearAlgebra::Vector *> fs_system(2);
-        fs_system[0] = &distributed_mesh_displacements;
-        fs_system[1] = &distributed_initial_topography;
+        std::vector<LinearAlgebra::Vector *> fs_system
+        = { &distributed_mesh_displacements,
+            &distributed_initial_topography
+          };
 
         mesh_deformation_trans.deserialize (fs_system);
         mesh_deformation->mesh_displacements = distributed_mesh_displacements;

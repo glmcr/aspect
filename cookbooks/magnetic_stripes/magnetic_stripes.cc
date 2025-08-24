@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 by the authors of the ASPECT code.
+  Copyright (C) 2022 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -34,11 +34,11 @@ namespace aspect
     {
       public:
 
-        virtual void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-                              MaterialModel::MaterialModelOutputs<dim> &out) const;
+        void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+                      MaterialModel::MaterialModelOutputs<dim> &out) const override;
 
         static void declare_parameters (ParameterHandler &prm);
-        virtual void parse_parameters (ParameterHandler &prm);
+        void parse_parameters (ParameterHandler &prm) override;
 
       private:
         std::vector<double> reversal_times;
@@ -63,7 +63,7 @@ namespace aspect
               break;
             }
 
-      for (unsigned int i=0; i < in.position.size(); ++i)
+      for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
         {
           const double depth = this->get_geometry_model().depth(in.position[i]);
           const double reaction_depth = 7000.0;

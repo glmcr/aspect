@@ -9,7 +9,7 @@
 ### __Parameter name:__ List of model names
 **Default value:**
 
-**Pattern:** [MultipleSelection S40RTS perturbation|SAVANI perturbation|adiabatic|adiabatic boundary|ascii data|ascii data layered|ascii profile|continental geotherm|function|harmonic perturbation|inclusion shape perturbation|lithosphere mask|mandelbox|patch on S40RTS|perturbed box|polar box|spherical gaussian perturbation|spherical hexagonal perturbation|world builder ]
+**Pattern:** [MultipleSelection S40RTS perturbation|SAVANI perturbation|adiabatic|adiabatic boundary|ascii data|ascii data layered|ascii profile|continental geotherm|function|harmonic perturbation|inclusion shape perturbation|lithosphere mask|mandelbox|patch on S40RTS|perturbed box|polar box|prescribed temperature|random Gaussian perturbation|spherical gaussian perturbation|spherical hexagonal perturbation|world builder ]
 
 **Documentation:** A comma-separated list of initial temperature models that will be used to initialize the temperature. These plugins are loaded in the order given, and modify the existing temperature field via the operators listed in &rsquo;List of model operators&rsquo;.
 
@@ -17,7 +17,7 @@ The following initial temperature models are available:
 
 &lsquo;S40RTS perturbation&rsquo;: An initial temperature field in which the temperature is perturbed following the S20RTS or S40RTS shear wave velocity model by Ritsema and others, which can be downloaded here \url{http://www.earth.lsa.umich.edu/~jritsema/research.html}. Information on the vs model can be found in Ritsema, J., Deuss, A., van Heijst, H.J. \& Woodhouse, J.H., 2011. S40RTS: a degree-40 shear-velocity model for the mantle from new Rayleigh wave dispersion, teleseismic traveltime and normal-mode splitting function measurements, Geophys. J. Int. 184, 1223-1236. The scaling between the shear wave perturbation and the density perturbation can be constant and set by the user with the &rsquo;Vs to density scaling&rsquo; parameter or depth-dependent and read in from a file. To convert density the user can specify the &rsquo;Thermal expansion coefficient in initial temperature scaling&rsquo; parameter. The scaling is as follows: $\delta \ln \rho (r,\theta,\phi) = \xi \cdot \delta \ln v_s(r,\theta, \phi)$ and $\delta T(r,\theta,\phi) = - \frac{1}{\alpha} \delta \ln \rho(r,\theta,\phi)$. $\xi$ is the &lsquo;vs to density scaling&rsquo; parameter and $\alpha$ is the &rsquo;Thermal expansion coefficient in initial temperature scaling&rsquo; parameter. The temperature perturbation is added to an otherwise constant temperature (incompressible model) or adiabatic reference profile (compressible model). If a depth is specified in &rsquo;Remove temperature heterogeneity down to specified depth&rsquo;, there is no temperature perturbation prescribed down to that depth.
 Note the required file format if the vs to density scaling is read in from a file: The first lines may contain any number of comments if they begin with &rsquo;#&rsquo;, but one of these lines needs to contain the number of points in the reference state as for example &rsquo;# POINTS: 3&rsquo;. Following the comment lines there has to be a single line containing the names of all data columns, separated by arbitrarily many spaces. Column names are not allowed to contain spaces. The file can contain unnecessary columns, but for this plugin it needs to at least provide the columns named &lsquo;depth&rsquo; and &lsquo;vs\_to\_density&rsquo;. Note that the data lines in the file need to be sorted in order of increasing depth from 0 to the maximal depth in the model domain. Points in the model that are outside of the provided depth range will be assigned the maximum or minimum depth values, respectively. Points do not need to be equidistant, but the computation of properties is optimized in speed if they are.
-If the plugin is used in 2D it will use an equatorial slice of the seismic tomography model.
+If the plugin is used in 2d it will use an equatorial slice of the seismic tomography model.
 
 &lsquo;SAVANI perturbation&rsquo;: An initial temperature field in which the temperature is perturbed following the SAVANI shear wave velocity model by Auer and others, which can be downloaded here \url{http://n.ethz.ch/~auerl/savani.tar.bz2}. Information on the vs model can be found in Auer, L., Boschi, L., Becker, T.W., Nissen-Meyer, T. \& Giardini, D., 2014. Savani: A variable resolution whole-mantle model of anisotropic shear velocity variations based on multiple data sets. Journal of Geophysical Research: Solid Earth 119.4 (2014): 3006-3034. The scaling between the shear wave perturbation and the density perturbation can be constant and set by the user with the &rsquo;Vs to density scaling&rsquo; parameter or depth-dependent and read in from a file. To convert density the user can specify the &rsquo;Thermal expansion coefficient in initial temperature scaling&rsquo; parameter. The scaling is as follows: $\delta \ln \rho (r,\theta,\phi) = \xi \cdot \delta \ln v_s(r,\theta, \phi)$ and $\delta T(r,\theta,\phi) = - \frac{1}{\alpha} \delta \ln \rho(r,\theta,\phi)$. $\xi$ is the &lsquo;vs to density scaling&rsquo; parameter and $\alpha$ is the &rsquo;Thermal expansion coefficient in initial temperature scaling&rsquo; parameter. The temperature perturbation is added to an otherwise constant temperature (incompressible model) or adiabatic reference profile (compressible model).If a depth is specified in &rsquo;Remove temperature heterogeneity down to specified depth&rsquo;, there is no temperature perturbation prescribed down to that depth.
 Note the required file format if the vs to density scaling is read in from a file: The first lines may contain any number of comments if they begin with &rsquo;#&rsquo;, but one of these lines needs to contain the number of points in the reference state as for example &rsquo;# POINTS: 3&rsquo;. Following the comment lines there has to be a single line containing the names of all data columns, separated by arbitrarily many spaces. Column names are not allowed to contain spaces. The file can contain unnecessary columns, but for this plugin it needs to at least provide the columns named &lsquo;depth&rsquo; and &lsquo;vs\_to\_density&rsquo;. Note that the data lines in the file need to be sorted in order of increasing depth from 0 to the maximal depth in the model domain. Points in the model that are outside of the provided depth range will be assigned the maximum or minimum depth values, respectively. Points do not need to be equidistant, but the computation of properties is optimized in speed if they are.
@@ -28,7 +28,7 @@ Note the required file format if the vs to density scaling is read in from a fil
 
 &lsquo;ascii data&rsquo;: Implementation of a model in which the initial temperature is derived from files containing data in ascii format. Note the required format of the input data: The first lines may contain any number of comments if they begin with &lsquo;#&rsquo;, but one of these lines needs to contain the number of grid points in each dimension as for example &lsquo;# POINTS: 3 3&rsquo;. The order of the data columns has to be &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;Temperature [K]&rsquo; in a 2d model and  &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;z&rsquo;, &lsquo;Temperature [K]&rsquo; in a 3d model, which means that there has to be a single column containing the temperature. Note that the data in the input files need to be sorted in a specific order: the first coordinate needs to ascend first, followed by the second and the third at last in order to assign the correct data to the prescribed coordinates. If you use a spherical model, then the assumed grid changes. &lsquo;x&rsquo; will be replaced by the radial distance of the point to the bottom of the model, &lsquo;y&rsquo; by the azimuth angle and &lsquo;z&rsquo; by the polar angle measured positive from the north pole. The grid will be assumed to be a latitude-longitude grid. Note that the order of spherical coordinates is &lsquo;r&rsquo;, &lsquo;phi&rsquo;, &lsquo;theta&rsquo; and not &lsquo;r&rsquo;, &lsquo;theta&rsquo;, &lsquo;phi&rsquo;, since this allows for dimension independent expressions.
 
-&lsquo;ascii data layered&rsquo;: Implementation of a model in which the initial temperature is derived from files containing data in ascii format. Each file defines a surface on which temperature is defined. Between the surfaces, the temperatures can be chosen to be constant (with a value defined by the nearest shallower surface), or linearly interpolated between surfaces. Note the required format of the input ascii data file: The first lines may contain any number of comments if they begin with &lsquo;#&rsquo;, but one of these lines needs to contain the number of grid points in each dimension as for example &lsquo;# POINTS: 3 3&rsquo;. The order of the data columns has to be &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;Temperature [K]&rsquo; in a 2d model and &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;z&rsquo;, &lsquo;Temperature [K]&rsquo; in a 3d model; i.e. the last two columns always contain the position of the isotherm along the vertical direction, and the temperature at that point. The first column needs to ascend first, followed by the second in order to assign the correct data to the prescribed coordinates. If you use a spherical model, then the assumed grid changes. &lsquo;x&rsquo; will be replaced by the azimuth angle and &lsquo;y&rsquo; (if 3D) by the polar angle measured positive from the north pole. The last column will be the distance of the point from the origin (i.e. radial position). The grid in this case will be a latitude-longitude grid. Note that the order of spherical coordinates in 3D is &lsquo;phi&rsquo;, &lsquo;theta&rsquo;, &lsquo;r&rsquo;, &lsquo;T&rsquo;and not &lsquo;theta&rsquo;, &lsquo;phi&rsquo;, &lsquo;r&rsquo;, &lsquo;T&rsquo; as this is more consistent with other ASPECT plugins. Outside of the region defined by the grid, the plugin will use the value at the edge of the region.
+&lsquo;ascii data layered&rsquo;: Implementation of a model in which the initial temperature is derived from files containing data in ascii format. Each file defines a surface on which temperature is defined. Between the surfaces, the temperatures can be chosen to be constant (with a value defined by the nearest shallower surface), or linearly interpolated between surfaces. Note the required format of the input ascii data file: The first lines may contain any number of comments if they begin with &lsquo;#&rsquo;, but one of these lines needs to contain the number of grid points in each dimension as for example &lsquo;# POINTS: 3 3&rsquo;. The order of the data columns has to be &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;Temperature [K]&rsquo; in a 2d model and &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;z&rsquo;, &lsquo;Temperature [K]&rsquo; in a 3d model; i.e. the last two columns always contain the position of the isotherm along the vertical direction, and the temperature at that point. The first column needs to ascend first, followed by the second in order to assign the correct data to the prescribed coordinates. If you use a spherical model, then the assumed grid changes. &lsquo;x&rsquo; will be replaced by the azimuth angle and &lsquo;y&rsquo; (if 3d) by the polar angle measured positive from the north pole. The last column will be the distance of the point from the origin (i.e. radial position). The grid in this case will be a latitude-longitude grid. Note that the order of spherical coordinates in 3d is &lsquo;phi&rsquo;, &lsquo;theta&rsquo;, &lsquo;r&rsquo;, &lsquo;T&rsquo;and not &lsquo;theta&rsquo;, &lsquo;phi&rsquo;, &lsquo;r&rsquo;, &lsquo;T&rsquo; as this is more consistent with other ASPECT plugins. Outside of the region defined by the grid, the plugin will use the value at the edge of the region.
 
 &lsquo;ascii profile&rsquo;: Implementation of a model in which the initial temperature is read from a file that provides these values as a function of depth. Note the required format of the input data: The first lines may contain any number of comments if they begin with &lsquo;#&rsquo;, but one of these lines needs to contain the number of points in the temperature profile, for example &lsquo;# POINTS: 10&rsquo;. Following the comment lines, there has to be a single line containing the names of all data columns, separated by arbitrarily many spaces. Column names are not allowed to contain spaces. The file can contain unnecessary columns, but for this plugin it needs to at least provide columns named &lsquo;depth&rsquo; and&lsquo;temperature&rsquo;.Note that the data lines in the file need to be sorted in order of increasing depth from 0 to the maximal depth in the model domain. Points in the model that are outside of the provided depth range will be assigned the maximum or minimum depth values, respectively. Points do not need to be equidistant, but the computation of properties is optimized in speed if they are.
 
@@ -38,7 +38,7 @@ For any depths below the depth of the LAB, a unrealistically high temperature is
 Note that the current implementation only works for a 3-layer lithosphere, even though in principle the heat conduction equation can be solved for any number of layers. The naming of the compositional fields that represent the layers is also very specific, namely &lsquo;upper\_crust&rsquo;, &lsquo;lower\_crust&rsquo;, and &lsquo;lithospheric\_mantle&rsquo;.
 Make sure the top and bottom temperatures of the lithosphere agree with temperatures set in for example the temperature boundary conditions.
 
-&lsquo;function&rsquo;: Specify the initial temperature in terms of an explicit formula. The format of these functions follows the syntax understood by the muparser library, see Section~\ref{sec:muparser-format}.
+&lsquo;function&rsquo;: Specify the initial temperature in terms of an explicit formula. The format of these functions follows the syntax understood by the muparser library, see {ref}`sec:run-aspect:parameters-overview:muparser-format`.
 
 &lsquo;harmonic perturbation&rsquo;: An initial temperature field in which the temperature is perturbed following a harmonic function (spherical harmonic or sine depending on geometry and dimension) in lateral and radial direction from an otherwise constant temperature (incompressible model) or adiabatic reference profile (compressible model).
 
@@ -53,6 +53,10 @@ Make sure the top and bottom temperatures of the lithosphere agree with temperat
 &lsquo;perturbed box&rsquo;: An initial temperature field in which the temperature is perturbed slightly from an otherwise constant value equal to one. The perturbation is chosen in such a way that the initial temperature is constant to one along the entire boundary.
 
 &lsquo;polar box&rsquo;: An initial temperature field in which the temperature is perturbed slightly from an otherwise constant value equal to one. The perturbation is such that there are two poles on opposing corners of the box.
+
+&lsquo;prescribed temperature&rsquo;: This model fixes the initial temperature to the prescribed temperature outputs computed by the material model. This only works if the material model implements prescribed temperature outputs.
+
+&lsquo;random Gaussian perturbation&rsquo;: An initial temperature field in which the temperature is perturbed from a temperature of zero following a given number of Gaussian perturbations placed randomly throughout the model domain. The number, width, and maximum magnitude of the perturbations can be chosen as model parameters. This plugin is meant to be used in combination with another initial temperature model that determines the background temperature (such as the &rsquo;function&rsquo; or the &rsquo;adiabatic&rsquo; plugin) using the &rsquo;add&rsquo; operator to combine them.
 
 &lsquo;spherical gaussian perturbation&rsquo;: An initial temperature field in which the temperature is perturbed by a single Gaussian added to an otherwise spherically symmetric state. Additional parameters are read from the parameter file in subsection &rsquo;Spherical gaussian perturbation&rsquo;.
 
@@ -72,13 +76,13 @@ Make sure the top and bottom temperatures of the lithosphere agree with temperat
 ### __Parameter name:__ Model name
 **Default value:** unspecified
 
-**Pattern:** [Selection S40RTS perturbation|SAVANI perturbation|adiabatic|adiabatic boundary|ascii data|ascii data layered|ascii profile|continental geotherm|function|harmonic perturbation|inclusion shape perturbation|lithosphere mask|mandelbox|patch on S40RTS|perturbed box|polar box|spherical gaussian perturbation|spherical hexagonal perturbation|world builder|unspecified ]
+**Pattern:** [Selection S40RTS perturbation|SAVANI perturbation|adiabatic|adiabatic boundary|ascii data|ascii data layered|ascii profile|continental geotherm|function|harmonic perturbation|inclusion shape perturbation|lithosphere mask|mandelbox|patch on S40RTS|perturbed box|polar box|prescribed temperature|random Gaussian perturbation|spherical gaussian perturbation|spherical hexagonal perturbation|world builder|unspecified ]
 
 **Documentation:** Select one of the following models:
 
 &lsquo;S40RTS perturbation&rsquo;: An initial temperature field in which the temperature is perturbed following the S20RTS or S40RTS shear wave velocity model by Ritsema and others, which can be downloaded here \url{http://www.earth.lsa.umich.edu/~jritsema/research.html}. Information on the vs model can be found in Ritsema, J., Deuss, A., van Heijst, H.J. \& Woodhouse, J.H., 2011. S40RTS: a degree-40 shear-velocity model for the mantle from new Rayleigh wave dispersion, teleseismic traveltime and normal-mode splitting function measurements, Geophys. J. Int. 184, 1223-1236. The scaling between the shear wave perturbation and the density perturbation can be constant and set by the user with the &rsquo;Vs to density scaling&rsquo; parameter or depth-dependent and read in from a file. To convert density the user can specify the &rsquo;Thermal expansion coefficient in initial temperature scaling&rsquo; parameter. The scaling is as follows: $\delta \ln \rho (r,\theta,\phi) = \xi \cdot \delta \ln v_s(r,\theta, \phi)$ and $\delta T(r,\theta,\phi) = - \frac{1}{\alpha} \delta \ln \rho(r,\theta,\phi)$. $\xi$ is the &lsquo;vs to density scaling&rsquo; parameter and $\alpha$ is the &rsquo;Thermal expansion coefficient in initial temperature scaling&rsquo; parameter. The temperature perturbation is added to an otherwise constant temperature (incompressible model) or adiabatic reference profile (compressible model). If a depth is specified in &rsquo;Remove temperature heterogeneity down to specified depth&rsquo;, there is no temperature perturbation prescribed down to that depth.
 Note the required file format if the vs to density scaling is read in from a file: The first lines may contain any number of comments if they begin with &rsquo;#&rsquo;, but one of these lines needs to contain the number of points in the reference state as for example &rsquo;# POINTS: 3&rsquo;. Following the comment lines there has to be a single line containing the names of all data columns, separated by arbitrarily many spaces. Column names are not allowed to contain spaces. The file can contain unnecessary columns, but for this plugin it needs to at least provide the columns named &lsquo;depth&rsquo; and &lsquo;vs\_to\_density&rsquo;. Note that the data lines in the file need to be sorted in order of increasing depth from 0 to the maximal depth in the model domain. Points in the model that are outside of the provided depth range will be assigned the maximum or minimum depth values, respectively. Points do not need to be equidistant, but the computation of properties is optimized in speed if they are.
-If the plugin is used in 2D it will use an equatorial slice of the seismic tomography model.
+If the plugin is used in 2d it will use an equatorial slice of the seismic tomography model.
 
 &lsquo;SAVANI perturbation&rsquo;: An initial temperature field in which the temperature is perturbed following the SAVANI shear wave velocity model by Auer and others, which can be downloaded here \url{http://n.ethz.ch/~auerl/savani.tar.bz2}. Information on the vs model can be found in Auer, L., Boschi, L., Becker, T.W., Nissen-Meyer, T. \& Giardini, D., 2014. Savani: A variable resolution whole-mantle model of anisotropic shear velocity variations based on multiple data sets. Journal of Geophysical Research: Solid Earth 119.4 (2014): 3006-3034. The scaling between the shear wave perturbation and the density perturbation can be constant and set by the user with the &rsquo;Vs to density scaling&rsquo; parameter or depth-dependent and read in from a file. To convert density the user can specify the &rsquo;Thermal expansion coefficient in initial temperature scaling&rsquo; parameter. The scaling is as follows: $\delta \ln \rho (r,\theta,\phi) = \xi \cdot \delta \ln v_s(r,\theta, \phi)$ and $\delta T(r,\theta,\phi) = - \frac{1}{\alpha} \delta \ln \rho(r,\theta,\phi)$. $\xi$ is the &lsquo;vs to density scaling&rsquo; parameter and $\alpha$ is the &rsquo;Thermal expansion coefficient in initial temperature scaling&rsquo; parameter. The temperature perturbation is added to an otherwise constant temperature (incompressible model) or adiabatic reference profile (compressible model).If a depth is specified in &rsquo;Remove temperature heterogeneity down to specified depth&rsquo;, there is no temperature perturbation prescribed down to that depth.
 Note the required file format if the vs to density scaling is read in from a file: The first lines may contain any number of comments if they begin with &rsquo;#&rsquo;, but one of these lines needs to contain the number of points in the reference state as for example &rsquo;# POINTS: 3&rsquo;. Following the comment lines there has to be a single line containing the names of all data columns, separated by arbitrarily many spaces. Column names are not allowed to contain spaces. The file can contain unnecessary columns, but for this plugin it needs to at least provide the columns named &lsquo;depth&rsquo; and &lsquo;vs\_to\_density&rsquo;. Note that the data lines in the file need to be sorted in order of increasing depth from 0 to the maximal depth in the model domain. Points in the model that are outside of the provided depth range will be assigned the maximum or minimum depth values, respectively. Points do not need to be equidistant, but the computation of properties is optimized in speed if they are.
@@ -89,7 +93,7 @@ Note the required file format if the vs to density scaling is read in from a fil
 
 &lsquo;ascii data&rsquo;: Implementation of a model in which the initial temperature is derived from files containing data in ascii format. Note the required format of the input data: The first lines may contain any number of comments if they begin with &lsquo;#&rsquo;, but one of these lines needs to contain the number of grid points in each dimension as for example &lsquo;# POINTS: 3 3&rsquo;. The order of the data columns has to be &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;Temperature [K]&rsquo; in a 2d model and  &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;z&rsquo;, &lsquo;Temperature [K]&rsquo; in a 3d model, which means that there has to be a single column containing the temperature. Note that the data in the input files need to be sorted in a specific order: the first coordinate needs to ascend first, followed by the second and the third at last in order to assign the correct data to the prescribed coordinates. If you use a spherical model, then the assumed grid changes. &lsquo;x&rsquo; will be replaced by the radial distance of the point to the bottom of the model, &lsquo;y&rsquo; by the azimuth angle and &lsquo;z&rsquo; by the polar angle measured positive from the north pole. The grid will be assumed to be a latitude-longitude grid. Note that the order of spherical coordinates is &lsquo;r&rsquo;, &lsquo;phi&rsquo;, &lsquo;theta&rsquo; and not &lsquo;r&rsquo;, &lsquo;theta&rsquo;, &lsquo;phi&rsquo;, since this allows for dimension independent expressions.
 
-&lsquo;ascii data layered&rsquo;: Implementation of a model in which the initial temperature is derived from files containing data in ascii format. Each file defines a surface on which temperature is defined. Between the surfaces, the temperatures can be chosen to be constant (with a value defined by the nearest shallower surface), or linearly interpolated between surfaces. Note the required format of the input ascii data file: The first lines may contain any number of comments if they begin with &lsquo;#&rsquo;, but one of these lines needs to contain the number of grid points in each dimension as for example &lsquo;# POINTS: 3 3&rsquo;. The order of the data columns has to be &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;Temperature [K]&rsquo; in a 2d model and &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;z&rsquo;, &lsquo;Temperature [K]&rsquo; in a 3d model; i.e. the last two columns always contain the position of the isotherm along the vertical direction, and the temperature at that point. The first column needs to ascend first, followed by the second in order to assign the correct data to the prescribed coordinates. If you use a spherical model, then the assumed grid changes. &lsquo;x&rsquo; will be replaced by the azimuth angle and &lsquo;y&rsquo; (if 3D) by the polar angle measured positive from the north pole. The last column will be the distance of the point from the origin (i.e. radial position). The grid in this case will be a latitude-longitude grid. Note that the order of spherical coordinates in 3D is &lsquo;phi&rsquo;, &lsquo;theta&rsquo;, &lsquo;r&rsquo;, &lsquo;T&rsquo;and not &lsquo;theta&rsquo;, &lsquo;phi&rsquo;, &lsquo;r&rsquo;, &lsquo;T&rsquo; as this is more consistent with other ASPECT plugins. Outside of the region defined by the grid, the plugin will use the value at the edge of the region.
+&lsquo;ascii data layered&rsquo;: Implementation of a model in which the initial temperature is derived from files containing data in ascii format. Each file defines a surface on which temperature is defined. Between the surfaces, the temperatures can be chosen to be constant (with a value defined by the nearest shallower surface), or linearly interpolated between surfaces. Note the required format of the input ascii data file: The first lines may contain any number of comments if they begin with &lsquo;#&rsquo;, but one of these lines needs to contain the number of grid points in each dimension as for example &lsquo;# POINTS: 3 3&rsquo;. The order of the data columns has to be &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;Temperature [K]&rsquo; in a 2d model and &lsquo;x&rsquo;, &lsquo;y&rsquo;, &lsquo;z&rsquo;, &lsquo;Temperature [K]&rsquo; in a 3d model; i.e. the last two columns always contain the position of the isotherm along the vertical direction, and the temperature at that point. The first column needs to ascend first, followed by the second in order to assign the correct data to the prescribed coordinates. If you use a spherical model, then the assumed grid changes. &lsquo;x&rsquo; will be replaced by the azimuth angle and &lsquo;y&rsquo; (if 3d) by the polar angle measured positive from the north pole. The last column will be the distance of the point from the origin (i.e. radial position). The grid in this case will be a latitude-longitude grid. Note that the order of spherical coordinates in 3d is &lsquo;phi&rsquo;, &lsquo;theta&rsquo;, &lsquo;r&rsquo;, &lsquo;T&rsquo;and not &lsquo;theta&rsquo;, &lsquo;phi&rsquo;, &lsquo;r&rsquo;, &lsquo;T&rsquo; as this is more consistent with other ASPECT plugins. Outside of the region defined by the grid, the plugin will use the value at the edge of the region.
 
 &lsquo;ascii profile&rsquo;: Implementation of a model in which the initial temperature is read from a file that provides these values as a function of depth. Note the required format of the input data: The first lines may contain any number of comments if they begin with &lsquo;#&rsquo;, but one of these lines needs to contain the number of points in the temperature profile, for example &lsquo;# POINTS: 10&rsquo;. Following the comment lines, there has to be a single line containing the names of all data columns, separated by arbitrarily many spaces. Column names are not allowed to contain spaces. The file can contain unnecessary columns, but for this plugin it needs to at least provide columns named &lsquo;depth&rsquo; and&lsquo;temperature&rsquo;.Note that the data lines in the file need to be sorted in order of increasing depth from 0 to the maximal depth in the model domain. Points in the model that are outside of the provided depth range will be assigned the maximum or minimum depth values, respectively. Points do not need to be equidistant, but the computation of properties is optimized in speed if they are.
 
@@ -99,7 +103,7 @@ For any depths below the depth of the LAB, a unrealistically high temperature is
 Note that the current implementation only works for a 3-layer lithosphere, even though in principle the heat conduction equation can be solved for any number of layers. The naming of the compositional fields that represent the layers is also very specific, namely &lsquo;upper\_crust&rsquo;, &lsquo;lower\_crust&rsquo;, and &lsquo;lithospheric\_mantle&rsquo;.
 Make sure the top and bottom temperatures of the lithosphere agree with temperatures set in for example the temperature boundary conditions.
 
-&lsquo;function&rsquo;: Specify the initial temperature in terms of an explicit formula. The format of these functions follows the syntax understood by the muparser library, see Section~\ref{sec:muparser-format}.
+&lsquo;function&rsquo;: Specify the initial temperature in terms of an explicit formula. The format of these functions follows the syntax understood by the muparser library, see {ref}`sec:run-aspect:parameters-overview:muparser-format`.
 
 &lsquo;harmonic perturbation&rsquo;: An initial temperature field in which the temperature is perturbed following a harmonic function (spherical harmonic or sine depending on geometry and dimension) in lateral and radial direction from an otherwise constant temperature (incompressible model) or adiabatic reference profile (compressible model).
 
@@ -114,6 +118,10 @@ Make sure the top and bottom temperatures of the lithosphere agree with temperat
 &lsquo;perturbed box&rsquo;: An initial temperature field in which the temperature is perturbed slightly from an otherwise constant value equal to one. The perturbation is chosen in such a way that the initial temperature is constant to one along the entire boundary.
 
 &lsquo;polar box&rsquo;: An initial temperature field in which the temperature is perturbed slightly from an otherwise constant value equal to one. The perturbation is such that there are two poles on opposing corners of the box.
+
+&lsquo;prescribed temperature&rsquo;: This model fixes the initial temperature to the prescribed temperature outputs computed by the material model. This only works if the material model implements prescribed temperature outputs.
+
+&lsquo;random Gaussian perturbation&rsquo;: An initial temperature field in which the temperature is perturbed from a temperature of zero following a given number of Gaussian perturbations placed randomly throughout the model domain. The number, width, and maximum magnitude of the perturbations can be chosen as model parameters. This plugin is meant to be used in combination with another initial temperature model that determines the background temperature (such as the &rsquo;function&rsquo; or the &rsquo;adiabatic&rsquo; plugin) using the &rsquo;add&rsquo; operator to combine them.
 
 &lsquo;spherical gaussian perturbation&rsquo;: An initial temperature field in which the temperature is perturbed by a single Gaussian added to an otherwise spherically symmetric state. Additional parameters are read from the parameter file in subsection &rsquo;Spherical gaussian perturbation&rsquo;.
 
@@ -149,6 +157,38 @@ Make sure the top and bottom temperatures of the lithosphere agree with temperat
 
 **Documentation:** The amplitude (in K) of the initial spherical temperature perturbation at the bottom of the model domain. This perturbation will be added to the adiabatic temperature profile, but not to the bottom thermal boundary layer. Instead, the maximum of the perturbation and the bottom boundary layer temperature will be used.
 
+(parameters:Initial_20temperature_20model/Adiabatic/Cooling_20model)=
+### __Parameter name:__ Cooling model
+**Default value:** half-space cooling
+
+**Pattern:** [Selection half-space cooling|plate cooling ]
+
+**Documentation:** Whether to use the half space cooling model or the plate cooling model
+
+(parameters:Initial_20temperature_20model/Adiabatic/Data_20directory)=
+### __Parameter name:__ Data directory
+**Default value:** $ASPECT_SOURCE_DIR/data/initial-temperature/adiabatic/
+
+**Pattern:** [DirectoryName]
+
+**Documentation:** The name of a directory that contains the model data. This path may either be absolute (if starting with a &lsquo;/&rsquo;) or relative to the current directory. The path may also include the special text &lsquo;$ASPECT_SOURCE_DIR&rsquo; which will be interpreted as the path in which the ASPECT source files were located when ASPECT was compiled. This interpretation allows, for example, to reference files located in the &lsquo;data/&rsquo; subdirectory of ASPECT.
+
+(parameters:Initial_20temperature_20model/Adiabatic/Data_20file_20name)=
+### __Parameter name:__ Data file name
+**Default value:** adiabatic.txt
+
+**Pattern:** [Anything]
+
+**Documentation:** The file name of the model data.
+
+(parameters:Initial_20temperature_20model/Adiabatic/Lithosphere_20thickness)=
+### __Parameter name:__ Lithosphere thickness
+**Default value:** 125e3
+
+**Pattern:** [Double 0...MAX_DOUBLE (inclusive)]
+
+**Documentation:** Thickness of the lithosphere for plate cooling model. \si{\m}
+
 (parameters:Initial_20temperature_20model/Adiabatic/Position)=
 ### __Parameter name:__ Position
 **Default value:** center
@@ -165,6 +205,14 @@ Make sure the top and bottom temperatures of the lithosphere agree with temperat
 
 **Documentation:** The Radius (in m) of the initial spherical temperature perturbation at the bottom of the model domain.
 
+(parameters:Initial_20temperature_20model/Adiabatic/Scale_20factor)=
+### __Parameter name:__ Scale factor
+**Default value:** 1.
+
+**Pattern:** [Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]
+
+**Documentation:** Scalar factor, which is applied to the model data. You might want to use this to scale the input to a reference model. Another way to use this factor is to convert units of the input files. For instance, if you provide velocities in cm/yr set this factor to 0.01.
+
 (parameters:Initial_20temperature_20model/Adiabatic/Subadiabaticity)=
 ### __Parameter name:__ Subadiabaticity
 **Default value:** 0.
@@ -173,7 +221,53 @@ Make sure the top and bottom temperatures of the lithosphere agree with temperat
 
 **Documentation:** If this value is larger than 0, the initial temperature profile will not be adiabatic, but subadiabatic. This value gives the maximal deviation from adiabaticity. Set to 0 for an adiabatic temperature profile. Units: \si{\kelvin}.
 
-The function object in the Function subsection represents the compositional fields that will be used as a reference profile for calculating the thermal diffusivity. This function is one-dimensional and depends only on depth. The format of this functions follows the syntax understood by the muparser library, see Section~\ref{sec:muparser-format}.
+The function object in the Function subsection represents the compositional fields that will be used as a reference profile for calculating the thermal diffusivity. This function is one-dimensional and depends only on depth. The format of this functions follows the syntax understood by the muparser library, see {ref}`sec:run-aspect:parameters-overview:muparser-format`.
+
+(parameters:Initial_20temperature_20model/Adiabatic/Top_20boundary_20layer_20age_20model)=
+### __Parameter name:__ Top boundary layer age model
+**Default value:** constant
+
+**Pattern:** [Selection constant|function|ascii data ]
+
+**Documentation:** How to define the age of the top thermal boundary layer. Options are: &rsquo;constant&rsquo; for a constant age specified by the parameter &rsquo;Age top boundary layer&rsquo;; &rsquo;function&rsquo; for an analytical function describing the age as specified in the subsection &rsquo;Age function&rsquo;; and &rsquo;ascii data&rsquo; to use an &rsquo;ascii data&rsquo; file specified by the parameter &rsquo;Data file name&rsquo;.
+
+(parameters:Initial_20temperature_20model/Adiabatic/Age_20function)=
+## **Subsection:** Initial temperature model / Adiabatic / Age function
+(parameters:Initial_20temperature_20model/Adiabatic/Age_20function/Coordinate_20system)=
+### __Parameter name:__ Coordinate system
+**Default value:** cartesian
+
+**Pattern:** [Selection cartesian|spherical ]
+
+**Documentation:** A selection that determines the assumed coordinate system for the function variables. Allowed values are &lsquo;cartesian&rsquo;, &lsquo;spherical&rsquo;, and &lsquo;depth&rsquo;. &lsquo;spherical&rsquo; coordinates are interpreted as r,phi or r,phi,theta in 2d/3d respectively with theta being the polar angle. &lsquo;depth&rsquo; will create a function, in which only the first parameter is non-zero, which is interpreted to be the depth of the point.
+
+(parameters:Initial_20temperature_20model/Adiabatic/Age_20function/Function_20constants)=
+### __Parameter name:__ Function constants
+**Default value:**
+
+**Pattern:** [Anything]
+
+**Documentation:** Sometimes it is convenient to use symbolic constants in the expression that describes the function, rather than having to use its numeric value everywhere the constant appears. These values can be defined using this parameter, in the form &lsquo;var1=value1, var2=value2, ...&rsquo;.
+
+A typical example would be to set this runtime parameter to &lsquo;pi=3.1415926536&rsquo; and then use &lsquo;pi&rsquo; in the expression of the actual formula. (That said, for convenience this class actually defines both &lsquo;pi&rsquo; and &lsquo;Pi&rsquo; by default, but you get the idea.)
+
+(parameters:Initial_20temperature_20model/Adiabatic/Age_20function/Function_20expression)=
+### __Parameter name:__ Function expression
+**Default value:** 0
+
+**Pattern:** [Anything]
+
+**Documentation:** The formula that denotes the function you want to evaluate for particular values of the independent variables. This expression may contain any of the usual operations such as addition or multiplication, as well as all of the common functions such as &lsquo;sin&rsquo; or &lsquo;cos&rsquo;. In addition, it may contain expressions like &lsquo;if(x>0, 1, -1)&rsquo; where the expression evaluates to the second argument if the first argument is true, and to the third argument otherwise. For a full overview of possible expressions accepted see the documentation of the muparser library at http://muparser.beltoforion.de/.
+
+If the function you are describing represents a vector-valued function with multiple components, then separate the expressions for individual components by a semicolon.
+
+(parameters:Initial_20temperature_20model/Adiabatic/Age_20function/Variable_20names)=
+### __Parameter name:__ Variable names
+**Default value:** x,y,t
+
+**Pattern:** [Anything]
+
+**Documentation:** The names of the variables as they will be used in the function, separated by commas. By default, the names of variables at which the function will be evaluated are &lsquo;x&rsquo; (in 1d), &lsquo;x,y&rsquo; (in 2d) or &lsquo;x,y,z&rsquo; (in 3d) for spatial coordinates and &lsquo;t&rsquo; for time. You can then use these variable names in your function expression and they will be replaced by the values of these variables at which the function is currently evaluated. However, you can also choose a different set of names for the independent variables at which to evaluate your function expression. For example, if you work in spherical coordinates, you may wish to set this input parameter to &lsquo;r,phi,theta,t&rsquo; and then use these variable names in your function expression.
 
 (parameters:Initial_20temperature_20model/Adiabatic/Function)=
 ## **Subsection:** Initial temperature model / Adiabatic / Function
@@ -281,6 +375,14 @@ If the function you are describing represents a vector-valued function with mult
 
 **Documentation:** The file names of the model data (comma separated).
 
+(parameters:Initial_20temperature_20model/Ascii_20data_20model/First_20point_20on_20slice)=
+### __Parameter name:__ First point on slice
+**Default value:** 0.0,1.0,0.0
+
+**Pattern:** [Anything]
+
+**Documentation:** Point that determines the plane in which the 2d slice lies in. This variable is only used if &rsquo;Slice dataset in 2d plane&rsquo; is true. The slice will go through this point, the point defined by the parameter &rsquo;Second point on slice&rsquo;, and the center of the model domain. After the rotation, this first point will lie along the (0,1,0) axis of the coordinate system. The coordinates of the point have to be given in Cartesian coordinates.
+
 (parameters:Initial_20temperature_20model/Ascii_20data_20model/Interpolation_20scheme)=
 ### __Parameter name:__ Interpolation scheme
 **Default value:** linear
@@ -296,6 +398,22 @@ If the function you are describing represents a vector-valued function with mult
 **Pattern:** [Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]
 
 **Documentation:** Scalar factor, which is applied to the model data. You might want to use this to scale the input to a reference model. Another way to use this factor is to convert units of the input files. For instance, if you provide velocities in cm/yr set this factor to 0.01.
+
+(parameters:Initial_20temperature_20model/Ascii_20data_20model/Second_20point_20on_20slice)=
+### __Parameter name:__ Second point on slice
+**Default value:** 1.0,0.0,0.0
+
+**Pattern:** [Anything]
+
+**Documentation:** Second point that determines the plane in which the 2d slice lies in. This variable is only used if &rsquo;Slice dataset in 2d plane&rsquo; is true. The slice will go through this point, the point defined by the parameter &rsquo;First point on slice&rsquo;, and the center of the model domain. The coordinates of the point have to be given in Cartesian coordinates.
+
+(parameters:Initial_20temperature_20model/Ascii_20data_20model/Slice_20dataset_20in_202D_20plane)=
+### __Parameter name:__ Slice dataset in 2D plane
+**Default value:** false
+
+**Pattern:** [Bool]
+
+**Documentation:** Whether to use a 2d data slice of a 3d data file or the entire data file. Slicing a 3d dataset is only supported for 2d models.
 
 (parameters:Initial_20temperature_20model/Ascii_20profile)=
 ## **Subsection:** Initial temperature model / Ascii profile
@@ -357,7 +475,7 @@ If the function you are describing represents a vector-valued function with mult
 
 **Pattern:** [Selection cartesian|spherical|depth ]
 
-**Documentation:** A selection that determines the assumed coordinate system for the function variables. Allowed values are &lsquo;cartesian&rsquo;, &lsquo;spherical&rsquo;, and &lsquo;depth&rsquo;. &lsquo;spherical&rsquo; coordinates are interpreted as r,phi or r,phi,theta in 2D/3D respectively with theta being the polar angle. &lsquo;depth&rsquo; will create a function, in which only the first parameter is non-zero, which is interpreted to be the depth of the point.
+**Documentation:** A selection that determines the assumed coordinate system for the function variables. Allowed values are &lsquo;cartesian&rsquo;, &lsquo;spherical&rsquo;, and &lsquo;depth&rsquo;. &lsquo;spherical&rsquo; coordinates are interpreted as r,phi or r,phi,theta in 2d/3d respectively with theta being the polar angle. &lsquo;depth&rsquo; will create a function, in which only the first parameter is non-zero, which is interpreted to be the depth of the point.
 
 (parameters:Initial_20temperature_20model/Function/Function_20constants)=
 ### __Parameter name:__ Function constants
@@ -395,7 +513,7 @@ If the function you are describing represents a vector-valued function with mult
 
 **Pattern:** [Integer range -2147483648...2147483647 (inclusive)]
 
-**Documentation:** Doubled first lateral wave number of the harmonic perturbation. Equals the spherical harmonic degree in 3D spherical shells. In all other cases one equals half of a sine period over the model domain. This allows for single up-/downswings. Negative numbers reverse the sign of the perturbation but are not allowed for the spherical harmonic case.
+**Documentation:** Doubled first lateral wave number of the harmonic perturbation. Equals the spherical harmonic degree in 3d spherical shells. In all other cases one equals half of a sine period over the model domain. This allows for single up-/downswings. Negative numbers reverse the sign of the perturbation but are not allowed for the spherical harmonic case.
 
 (parameters:Initial_20temperature_20model/Harmonic_20perturbation/Lateral_20wave_20number_20two)=
 ### __Parameter name:__ Lateral wave number two
@@ -403,7 +521,7 @@ If the function you are describing represents a vector-valued function with mult
 
 **Pattern:** [Integer range -2147483648...2147483647 (inclusive)]
 
-**Documentation:** Doubled second lateral wave number of the harmonic perturbation. Equals the spherical harmonic order in 3D spherical shells. In all other cases one equals half of a sine period over the model domain. This allows for single up-/downswings. Negative numbers reverse the sign of the perturbation.
+**Documentation:** Doubled second lateral wave number of the harmonic perturbation. Equals the spherical harmonic order in 3d spherical shells. In all other cases one equals half of a sine period over the model domain. This allows for single up-/downswings. Negative numbers reverse the sign of the perturbation.
 
 (parameters:Initial_20temperature_20model/Harmonic_20perturbation/Magnitude)=
 ### __Parameter name:__ Magnitude
@@ -553,7 +671,7 @@ If the function you are describing represents a vector-valued function with mult
 
 **Pattern:** [Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]
 
-**Documentation:** This will set the heterogeneity prescribed by the Vs ascii grid and S40RTS to zero down to the specified depth (in meters). Note that your resolution has to be adequate to capture this cutoff. For example if you specify a depth of 660km, but your closest spherical depth layers are only at 500km and 750km (due to a coarse resolution) it will only zero out heterogeneities down to 500km. Similar caution has to be taken when using adaptive meshing.
+**Documentation:** This will set the heterogeneity prescribed by the Vs ascii grid and S40RTS to zero down to the specified depth (in meters). Note that your resolution has to be adequate to capture this cutoff. For example if you specify a depth of 660 km, but your closest spherical depth layers are only at 500 km and 750 km (due to a coarse resolution) it will only zero out heterogeneities down to 500 km. Similar caution has to be taken when using adaptive meshing.
 
 (parameters:Initial_20temperature_20model/Patch_20on_20S40RTS/Smoothing_20length_20scale)=
 ### __Parameter name:__ Smoothing length scale
@@ -589,6 +707,32 @@ If the function you are describing represents a vector-valued function with mult
 
 **Documentation:** Scalar factor, which is applied to the model data. You might want to use this to scale the input to a reference model. Another way to use this factor is to convert units of the input files. For instance, if you provide velocities in cm/yr set this factor to 0.01.
 
+(parameters:Initial_20temperature_20model/Random_20Gaussian_20perturbation)=
+## **Subsection:** Initial temperature model / Random Gaussian perturbation
+(parameters:Initial_20temperature_20model/Random_20Gaussian_20perturbation/Maximum_20magnitude)=
+### __Parameter name:__ Maximum magnitude
+**Default value:** 25.0
+
+**Pattern:** [Double 0...MAX_DOUBLE (inclusive)]
+
+**Documentation:** The maximum magnitude of the Gaussian perturbation. For each perturbation, a random magnitude between plus and minus the maximum magnitude will be chosen. Units: \si{\kelvin}.
+
+(parameters:Initial_20temperature_20model/Random_20Gaussian_20perturbation/Number_20of_20perturbations)=
+### __Parameter name:__ Number of perturbations
+**Default value:** 100
+
+**Pattern:** [Integer range -2147483648...2147483647 (inclusive)]
+
+**Documentation:** Total number of perturbations to be introduced into the model. Perturbations will be placed at random locations within the model domain.
+
+(parameters:Initial_20temperature_20model/Random_20Gaussian_20perturbation/Width)=
+### __Parameter name:__ Width
+**Default value:** 1000.0
+
+**Pattern:** [Double 0...MAX_DOUBLE (inclusive)]
+
+**Documentation:** The Gaussian RMS width of the perturbations. Units: \si{\meter}.
+
 (parameters:Initial_20temperature_20model/S40RTS_20perturbation)=
 ## **Subsection:** Initial temperature model / S40RTS perturbation
 (parameters:Initial_20temperature_20model/S40RTS_20perturbation/Data_20directory)=
@@ -607,13 +751,13 @@ If the function you are describing represents a vector-valued function with mult
 
 **Documentation:** The file name of the spherical harmonics coefficients from Ritsema et al.
 
-(parameters:Initial_20temperature_20model/S40RTS_20perturbation/Maximum_20order)=
-### __Parameter name:__ Maximum order
+(parameters:Initial_20temperature_20model/S40RTS_20perturbation/Maximum_20degree)=
+### __Parameter name:__ Maximum degree
 **Default value:** 20
 
 **Pattern:** [Integer range 0...2147483647 (inclusive)]
 
-**Documentation:** The maximum order the users specify when reading the data file of spherical harmonic coefficients, which must be smaller than the maximum order the data file stored. This parameter will be used only if &rsquo;Specify a lower maximum order&rsquo; is set to true.
+**Documentation:** The maximum degree the users specify when reading the data file of spherical harmonic coefficients, which must be smaller than the maximum degree the data file stored. This parameter will be used only if &rsquo;Specify a lower maximum degree&rsquo; is set to true.
 
 (parameters:Initial_20temperature_20model/S40RTS_20perturbation/Reference_20temperature)=
 ### __Parameter name:__ Reference temperature
@@ -637,15 +781,15 @@ If the function you are describing represents a vector-valued function with mult
 
 **Pattern:** [Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]
 
-**Documentation:** This will set the heterogeneity prescribed by S20RTS or S40RTS to zero down to the specified depth (in meters). Note that your resolution has to be adequate to capture this cutoff. For example if you specify a depth of 660km, but your closest spherical depth layers are only at 500km and 750km (due to a coarse resolution) it will only zero out heterogeneities down to 500km. Similar caution has to be taken when using adaptive meshing.
+**Documentation:** This will set the heterogeneity prescribed by S20RTS or S40RTS to zero down to the specified depth (in meters). Note that your resolution has to be adequate to capture this cutoff. For example if you specify a depth of 660 km, but your closest spherical depth layers are only at 500 km and 750 km (due to a coarse resolution) it will only zero out heterogeneities down to 500 km. Similar caution has to be taken when using adaptive meshing.
 
-(parameters:Initial_20temperature_20model/S40RTS_20perturbation/Specify_20a_20lower_20maximum_20order)=
-### __Parameter name:__ Specify a lower maximum order
+(parameters:Initial_20temperature_20model/S40RTS_20perturbation/Specify_20a_20lower_20maximum_20degree)=
+### __Parameter name:__ Specify a lower maximum degree
 **Default value:** false
 
 **Pattern:** [Bool]
 
-**Documentation:** Option to use a lower maximum order when reading the data file of spherical harmonic coefficients. This is probably used for the faster tests or when the users only want to see the spherical harmonic pattern up to a certain order.
+**Documentation:** Option to use a lower maximum degree when reading the data file of spherical harmonic coefficients. This is probably used for the faster tests or when the users only want to see the spherical harmonic pattern up to a certain degree.
 
 (parameters:Initial_20temperature_20model/S40RTS_20perturbation/Spline_20knots_20depth_20file_20name)=
 ### __Parameter name:__ Spline knots depth file name
@@ -731,13 +875,13 @@ If the function you are describing represents a vector-valued function with mult
 
 **Documentation:** The file name of the spherical harmonics coefficients from Auer et al.
 
-(parameters:Initial_20temperature_20model/SAVANI_20perturbation/Maximum_20order)=
-### __Parameter name:__ Maximum order
+(parameters:Initial_20temperature_20model/SAVANI_20perturbation/Maximum_20degree)=
+### __Parameter name:__ Maximum degree
 **Default value:** 20
 
 **Pattern:** [Integer range 0...2147483647 (inclusive)]
 
-**Documentation:** The maximum order the users specify when reading the data file of spherical harmonic coefficients, which must be smaller than the maximum order the data file stored. This parameter will be used only if &rsquo;Specify a lower maximum order&rsquo; is set to true.
+**Documentation:** The maximum degree the users specify when reading the data file of spherical harmonic coefficients, which must be smaller than the maximum degree the data file stored. This parameter will be used only if &rsquo;Specify a lower maximum degree&rsquo; is set to true.
 
 (parameters:Initial_20temperature_20model/SAVANI_20perturbation/Reference_20temperature)=
 ### __Parameter name:__ Reference temperature
@@ -761,15 +905,15 @@ If the function you are describing represents a vector-valued function with mult
 
 **Pattern:** [Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]
 
-**Documentation:** This will set the heterogeneity prescribed by SAVANI to zero down to the specified depth (in meters). Note that your resolution has to be adequate to capture this cutoff. For example if you specify a depth of 660km, but your closest spherical depth layers are only at 500km and 750km (due to a coarse resolution) it will only zero out heterogeneities down to 500km. Similar caution has to be taken when using adaptive meshing.
+**Documentation:** This will set the heterogeneity prescribed by SAVANI to zero down to the specified depth (in meters). Note that your resolution has to be adequate to capture this cutoff. For example if you specify a depth of 660 km, but your closest spherical depth layers are only at 500 km and 750 km (due to a coarse resolution) it will only zero out heterogeneities down to 500 km. Similar caution has to be taken when using adaptive meshing.
 
-(parameters:Initial_20temperature_20model/SAVANI_20perturbation/Specify_20a_20lower_20maximum_20order)=
-### __Parameter name:__ Specify a lower maximum order
+(parameters:Initial_20temperature_20model/SAVANI_20perturbation/Specify_20a_20lower_20maximum_20degree)=
+### __Parameter name:__ Specify a lower maximum degree
 **Default value:** false
 
 **Pattern:** [Bool]
 
-**Documentation:** Option to use a lower maximum order when reading the data file of spherical harmonic coefficients. This is probably used for the faster tests or when the users only want to see the spherical harmonic pattern up to a certain order.
+**Documentation:** Option to use a lower maximum degree when reading the data file of spherical harmonic coefficients. This is probably used for the faster tests or when the users only want to see the spherical harmonic pattern up to a certain degree.
 
 (parameters:Initial_20temperature_20model/SAVANI_20perturbation/Spline_20knots_20depth_20file_20name)=
 ### __Parameter name:__ Spline knots depth file name

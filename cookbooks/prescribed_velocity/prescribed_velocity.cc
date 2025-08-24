@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -24,6 +24,7 @@
 #include <aspect/global.h>
 #include <aspect/utilities.h>
 #include <aspect/simulator_signals.h>
+#include <aspect/parameters.h>
 
 namespace aspect
 {
@@ -177,16 +178,14 @@ namespace aspect
   {
     if (prescribe_internal_velocities)
       {
+        const Parameters<dim> &parameters = simulator_access.get_parameters();
         const std::vector<Point<dim>> points = aspect::Utilities::get_unit_support_points(simulator_access);
         const Quadrature<dim> quadrature (points);
         FEValues<dim> fe_values (simulator_access.get_fe(), quadrature, update_quadrature_points);
-        typename DoFHandler<dim>::active_cell_iterator cell;
 
         // Loop over all cells
-        for (cell = simulator_access.get_dof_handler().begin_active();
-             cell != simulator_access.get_dof_handler().end();
-             ++cell)
-          if (! cell->is_artificial())
+        for (const auto &cell : simulator_access.get_dof_handler().active_cell_iterators())
+          if (!cell->is_artificial())
             {
               fe_values.reinit (cell);
               std::vector<types::global_dof_index> local_dof_indices(simulator_access.get_fe().dofs_per_cell);
@@ -259,7 +258,19 @@ namespace aspect
                             // Add a constraint of the form dof[q] = u_i
                             // to the list of constraints.
                             current_constraints.add_line (local_dof_indices[q]);
-                            current_constraints.set_inhomogeneity (local_dof_indices[q], u_i);
+                            // When using a defect correction solver, the constraints should only be set on
+                            // nonlinear iteration 0.
+                            if (
+                              (parameters.nonlinear_solver!=Parameters<dim>::NonlinearSolver::no_Advection_iterated_defect_correction_Stokes &&
+                               parameters.nonlinear_solver!=Parameters<dim>::NonlinearSolver::single_Advection_iterated_defect_correction_Stokes &&
+                               parameters.nonlinear_solver!=Parameters<dim>::NonlinearSolver::iterated_Advection_and_defect_correction_Stokes &&
+                               parameters.nonlinear_solver!=Parameters<dim>::NonlinearSolver::iterated_Advection_and_Newton_Stokes &&
+                               parameters.nonlinear_solver!=Parameters<dim>::NonlinearSolver::single_Advection_iterated_Newton_Stokes ) ||
+                              simulator_access.get_nonlinear_iteration() == 0
+                            )
+                              {
+                                current_constraints.set_inhomogeneity (local_dof_indices[q], u_i);
+                              }
                           }
                       }
                   }

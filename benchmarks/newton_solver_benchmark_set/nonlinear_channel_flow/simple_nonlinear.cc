@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -54,22 +54,21 @@ namespace aspect
     class SimpleNonlinear : public MaterialModel::Interface<dim>, public ::aspect::SimulatorAccess<dim>
     {
       public:
-        virtual void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-                              MaterialModel::MaterialModelOutputs<dim> &out) const;
+        void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+                      MaterialModel::MaterialModelOutputs<dim> &out) const override;
 
         /**
          * This material model is incompressible.
          */
-        virtual bool is_compressible () const;
+        bool is_compressible () const override;
 
 
         static
         void
         declare_parameters (ParameterHandler &prm);
 
-        virtual
         void
-        parse_parameters (ParameterHandler &prm);
+        parse_parameters (ParameterHandler &prm) override;
 
       private:
         /**
@@ -186,7 +185,7 @@ namespace aspect
                   const double stress_exponent_inv = 1/stress_exponent[c];
                   composition_viscosities[c] = std::max(std::min(std::pow(viscosity_prefactor[c],-stress_exponent_inv) * std::pow(edot_ii,stress_exponent_inv-1), max_viscosity[c]), min_viscosity[c]);
                   Assert(dealii::numbers::is_finite(composition_viscosities[c]), ExcMessage ("Error: Viscosity is not finite."));
-                  if (derivatives != NULL)
+                  if (derivatives != nullptr)
                     {
                       if (edot_ii_strict > min_strain_rate[c] && composition_viscosities[c] < max_viscosity[c] && composition_viscosities[c] > min_viscosity[c])
                         {
@@ -205,7 +204,7 @@ namespace aspect
               out.viscosities[i] = Utilities::weighted_p_norm_average(volume_fractions, composition_viscosities, viscosity_averaging_p);
               Assert(dealii::numbers::is_finite(out.viscosities[i]), ExcMessage ("Error: Averaged viscosity is not finite."));
 
-              if (derivatives != NULL)
+              if (derivatives != nullptr)
                 {
                   derivatives->viscosity_derivative_wrt_strain_rate[i] = Utilities::derivative_of_weighted_p_norm_average(out.viscosities[i],volume_fractions, composition_viscosities, composition_viscosities_derivatives, viscosity_averaging_p);
 
@@ -317,7 +316,7 @@ namespace aspect
           // strain-rate deviator parameter
           prm.declare_entry ("Use deviator of strain-rate", "true",
                              Patterns::Bool(),
-                             "This value determines wheter to use the deviator of the strain-rate in computing the viscosity, "
+                             "This value determines whether to use the deviator of the strain-rate in computing the viscosity, "
                              "or simply the strain rate $\\varepsilon(\\mathbf u)$.");
         }
         prm.leave_subsection();

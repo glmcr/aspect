@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -21,6 +21,7 @@
 #include <aspect/lateral_averaging.h>
 #include <aspect/material_model/interface.h>
 #include <aspect/gravity_model/interface.h>
+#include <aspect/adiabatic_conditions/interface.h>
 #include <aspect/geometry_model/box.h>
 #include <aspect/geometry_model/chunk.h>
 #include <aspect/geometry_model/ellipsoidal_chunk.h>
@@ -63,6 +64,55 @@ namespace aspect
 
 
     template <int dim>
+    class FunctorDepthAverageAdiabat: public internal::FunctorBase<dim>
+    {
+      public:
+        enum Property
+        {
+          temperature,
+          pressure,
+          density,
+          density_derivative
+        } property;
+
+
+
+        FunctorDepthAverageAdiabat(const Property &property,
+                                   const AdiabaticConditions::Interface<dim> &adiabat)
+          : property(property),
+            adiabat(adiabat)
+        {}
+
+
+
+        void operator()(const MaterialModel::MaterialModelInputs<dim> &,
+                        const MaterialModel::MaterialModelOutputs<dim> &,
+                        const FEValues<dim> &fe_values,
+                        const LinearAlgebra::BlockVector &,
+                        std::vector<double> &output) override
+        {
+          const unsigned int n_quadrature_points = output.size();
+          for (unsigned int i=0; i<n_quadrature_points; ++i)
+            {
+              if (property == Property::temperature)
+                output[i] = adiabat.temperature(fe_values.quadrature_point(i));
+              else if (property == Property::pressure)
+                output[i] = adiabat.pressure(fe_values.quadrature_point(i));
+              else if (property == Property::density)
+                output[i] = adiabat.density(fe_values.quadrature_point(i));
+              else if (property == Property::density_derivative)
+                output[i] = adiabat.density_derivative(fe_values.quadrature_point(i));
+              else
+                AssertThrow(false, ExcNotImplemented());
+            }
+        }
+
+        const AdiabaticConditions::Interface<dim> &adiabat;
+    };
+
+
+
+    template <int dim>
     class FunctorDepthAverageViscosity: public internal::FunctorBase<dim>
     {
       public:
@@ -98,7 +148,8 @@ namespace aspect
                         const LinearAlgebra::BlockVector &,
                         std::vector<double> &output) override
         {
-          for (unsigned i = 0; i < out.viscosities.size(); i++)
+          const unsigned int n_points = out.n_evaluation_points();
+          for (unsigned i = 0; i < n_points; ++i)
             output[i] = std::log10 (out.viscosities[i]);
         }
     };
@@ -538,13 +589,9 @@ namespace aspect
     else
       geometry_unique_depth_direction = numbers::invalid_unsigned_int;
 
-    const unsigned int max_fe_degree = std::max(this->introspection().polynomial_degree.velocities,
-                                                std::max(this->introspection().polynomial_degree.temperature,
-                                                         this->introspection().polynomial_degree.compositional_fields));
-
     // We want to integrate over a polynomial of degree p = max_fe_degree, for which we
     // need a quadrature of at least q, with p <= 2q-1 --> q >= (p+1)/2
-    const unsigned int lateral_quadrature_degree = static_cast<unsigned int>(std::ceil((max_fe_degree+1.0)/2.0));
+    const unsigned int lateral_quadrature_degree = static_cast<unsigned int>(std::ceil((this->introspection().polynomial_degree.max_degree+1.0)/2.0));
 
     std::unique_ptr<Quadrature<dim>> quadrature_formula;
     if (geometry_unique_depth_direction != numbers::invalid_unsigned_int)
@@ -764,16 +811,6 @@ namespace aspect
 
   template <int dim>
   std::vector<std::vector<double>>
-  LateralAveraging<dim>::get_averages(const unsigned int n_slices,
-                                      const std::vector<std::string> &property_names) const
-  {
-    return compute_lateral_averages(n_slices, property_names);
-  }
-
-
-
-  template <int dim>
-  std::vector<std::vector<double>>
   LateralAveraging<dim>::compute_lateral_averages(const unsigned int n_slices,
                                                   const std::vector<std::string> &property_names) const
   {
@@ -867,6 +904,30 @@ namespace aspect
 
             functors.push_back(std::make_unique<FunctorDepthAverageFieldMass<dim>> (
                                  this->introspection().extractors.compositional_fields[c]));
+          }
+        else if (property_name == "adiabatic_temperature")
+          {
+            functors.push_back(std::make_unique<FunctorDepthAverageAdiabat<dim>>
+                               (FunctorDepthAverageAdiabat<dim>::temperature,
+                                this->get_adiabatic_conditions()));
+          }
+        else if (property_name == "adiabatic_pressure")
+          {
+            functors.push_back(std::make_unique<FunctorDepthAverageAdiabat<dim>>
+                               (FunctorDepthAverageAdiabat<dim>::pressure,
+                                this->get_adiabatic_conditions()));
+          }
+        else if (property_name == "adiabatic_density")
+          {
+            functors.push_back(std::make_unique<FunctorDepthAverageAdiabat<dim>>
+                               (FunctorDepthAverageAdiabat<dim>::density,
+                                this->get_adiabatic_conditions()));
+          }
+        else if (property_name == "adiabatic_density_derivative")
+          {
+            functors.push_back(std::make_unique<FunctorDepthAverageAdiabat<dim>>
+                               (FunctorDepthAverageAdiabat<dim>::density_derivative,
+                                this->get_adiabatic_conditions()));
           }
         else
           {

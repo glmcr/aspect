@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2018 - 2021 by the authors of the World Builder code.
+  Copyright (C) 2018-2024 by the authors of the World Builder code.
 
   This file is part of the World Builder.
 
@@ -17,21 +17,24 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _world_feature_types_double_h
-#define _world_feature_types_double_h
+#ifndef WORLD_BUILDER_TYPES_DOUBLE_H
+#define WORLD_BUILDER_TYPES_DOUBLE_H
 
-#include <world_builder/types/interface.h>
+
+#include "world_builder/types/interface.h"
 
 
 namespace WorldBuilder
 {
+  class Parameters;
+
   namespace Types
   {
 
     /**
      * This class represents a double value with documentation
      */
-    class Double : public Interface
+    class Double final: public Interface
     {
       public:
         /**
@@ -47,7 +50,7 @@ namespace WorldBuilder
         /**
          * Destructor
          */
-        ~Double();
+        ~Double() override final;
 
         /**
          * Todo
@@ -67,7 +70,7 @@ namespace WorldBuilder
       private:
 
     };
-  }
-}
+  } // namespace Types
+} // namespace WorldBuilder
 
 #endif

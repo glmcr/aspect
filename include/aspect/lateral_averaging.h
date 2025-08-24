@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -110,15 +110,6 @@ namespace aspect
   class LateralAveraging : public SimulatorAccess<dim>
   {
     public:
-      /**
-       * @deprecated: This function is deprecated and only maintained for backward compatibilty.
-       * Use the function compute_lateral_averages() with the same arguments instead.
-       */
-      DEAL_II_DEPRECATED
-      std::vector<std::vector<double>>
-      get_averages(const unsigned int n_slices,
-                   const std::vector<std::string> &property_names) const;
-
       /**
        * Return a depth profile of lateral averages of the selected
        * @p property_names. This function is a convenience interface for

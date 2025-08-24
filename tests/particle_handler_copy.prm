@@ -1,4 +1,4 @@
-# A test for the Particle::World::copy_particle_handler
+# A test for the Particle::Manager::copy_particle_handler
 # function that copies the particle handler (and all contained
 # particles), modifies one of them, and then resets the
 # the particles every time the composition system is solved.
@@ -9,6 +9,7 @@ set Use years in output instead of seconds = false
 
 subsection Geometry model
   set Model name = box
+
   subsection Box
     set X extent  = 0.9142
     set Y extent  = 1.0000
@@ -22,6 +23,7 @@ end
 
 subsection Material model
   set Model name = simple
+
   subsection Simple model
     set Reference density             = 1010
     set Viscosity                     = 1e2
@@ -32,6 +34,7 @@ end
 
 subsection Gravity model
   set Model name = vertical
+
   subsection Vertical
     set Magnitude = 10
   end
@@ -39,6 +42,7 @@ end
 
 subsection Initial temperature model
   set Model name = function
+
   subsection Function
     set Function expression = 0
   end
@@ -50,6 +54,7 @@ end
 
 subsection Initial composition model
   set Model name = function
+
   subsection Function
     set Variable names      = x,z
     set Function constants  = pi=3.1415926
@@ -70,20 +75,22 @@ subsection Postprocess
   set List of postprocessors = velocity statistics, composition statistics,particles
 
   subsection Particles
-    set Number of particles = 10
     set Time between data output = 70
     set Data output format = vtu
-    set List of particle properties = velocity
+  end
+end
 
-    set Particle generator name = uniform box
+subsection Particles
+  set List of particle properties = velocity
+  set Particle generator name = uniform box
 
-    subsection Generator
-      subsection Uniform box
-        set Minimum x = 0.3
-        set Maximum x = 0.5
-        set Minimum y = 0.1
-        set Maximum y = 0.3
-      end
+  subsection Generator
+    subsection Uniform box
+      set Minimum x = 0.3
+      set Maximum x = 0.5
+      set Minimum y = 0.1
+      set Maximum y = 0.3
+      set Number of particles = 10
     end
   end
 end

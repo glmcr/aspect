@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -43,12 +43,12 @@ namespace aspect
 
 
       template <int dim>
-      std::pair<std::string, Vector<float> *>
+      std::pair<std::string, std::unique_ptr<Vector<float>>>
       SeismicVsAnomaly<dim>::execute() const
       {
-        std::pair<std::string, Vector<float> *>
+        std::pair<std::string, std::unique_ptr<Vector<float>>>
         return_value ("Vs_anomaly",
-                      new Vector<float>(this->get_triangulation().n_active_cells()));
+                      std::make_unique<Vector<float>>(this->get_triangulation().n_active_cells()));
 
         // Calculate the maximum depth of the domain
         const double max_depth = this->get_geometry_model().maximal_depth();
@@ -85,7 +85,7 @@ namespace aspect
                     // Get the pressure, temperature and composition in the cell
                     fe_values.reinit (cell);
 
-                    in.reinit(fe_values, cell, this->introspection(), this->get_solution(), false);
+                    in.reinit(fe_values, cell, this->introspection(), this->get_solution());
 
                     out.additional_outputs.push_back(
                       std::make_unique<MaterialModel::SeismicAdditionalOutputs<dim>> (n_q_points));
@@ -144,7 +144,7 @@ namespace aspect
                     // Get the pressure, temperature and composition in the cell
                     fe_values.reinit (cell);
 
-                    in.reinit (fe_values, cell, this->introspection(), this->get_solution(), /* compute_strain_rate = */ false);
+                    in.reinit (fe_values, cell, this->introspection(), this->get_solution());
 
                     out.additional_outputs.push_back(
                       std::make_unique<MaterialModel::SeismicAdditionalOutputs<dim>> (n_q_points));
@@ -187,12 +187,12 @@ namespace aspect
 
 
       template <int dim>
-      std::pair<std::string, Vector<float> *>
+      std::pair<std::string, std::unique_ptr<Vector<float>>>
       SeismicVpAnomaly<dim>::execute() const
       {
-        std::pair<std::string, Vector<float> *>
+        std::pair<std::string, std::unique_ptr<Vector<float>>>
         return_value ("Vp_anomaly",
-                      new Vector<float>(this->get_triangulation().n_active_cells()));
+                      std::make_unique<Vector<float>>(this->get_triangulation().n_active_cells()));
 
         // Calculate the maximum depth of the domain
         const double max_depth = this->get_geometry_model().maximal_depth();
@@ -229,7 +229,7 @@ namespace aspect
                     // Get the pressure, temperature and composition in the cell
                     fe_values.reinit (cell);
 
-                    in.reinit(fe_values, cell, this->introspection(), this->get_solution(), false);
+                    in.reinit(fe_values, cell, this->introspection(), this->get_solution());
 
                     out.additional_outputs.push_back(
                       std::make_unique<MaterialModel::SeismicAdditionalOutputs<dim>>(n_q_points));

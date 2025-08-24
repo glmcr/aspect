@@ -3,9 +3,9 @@
 # ensure that a model with compositional fields that affect material
 # properties works. This test is identical to the test
 # tests/viscoelastic_bending_beam.prm, except that the GMG Stokes solver
-# and material averaging (required for GMG) is used here. Signficantly,
+# and material averaging (required for GMG) is used here. Significantly,
 # the use of material averaging will produce deviations between the
-# results of the two tests, as the calcualted and stresses are
+# results of the two tests, as the calculated and stresses are
 # influenced by averaging across the material interfaces.
 
 include $ASPECT_SOURCE_DIR/benchmarks/viscoelastic_bending_beam/viscoelastic_bending_beam.prm
@@ -22,6 +22,7 @@ end
 # Significantly reduce resolution
 subsection Geometry model
   set Model name = box
+
   subsection Box
     set X repetitions = 15
     set Y repetitions = 10
@@ -30,12 +31,13 @@ end
 
 # Use material averaging (required for GMG Stokes solver)
 subsection Material model
-  set Material averaging = project to Q1 only viscosity
+  set Material averaging = harmonic average only viscosity
 end
 
 # Post processing
 subsection Postprocess
   set List of postprocessors = velocity statistics, depth average
+
   subsection Depth average
     set Time between graphical output = 0
     set Number of zones = 5

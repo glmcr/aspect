@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -33,44 +33,15 @@ namespace aspect
   namespace AdiabaticConditions
   {
     template <int dim>
-    Interface<dim>::~Interface ()
-      = default;
-
-    template <int dim>
-    void
-    Interface<dim>::
-    initialize ()
-    {}
-
-    template <int dim>
-    void
-    Interface<dim>::
-    update ()
-    {}
-
-    template <int dim>
-    void
-    Interface<dim>::
-    declare_parameters (dealii::ParameterHandler &)
-    {}
-
-
-    template <int dim>
-    void
-    Interface<dim>::parse_parameters (dealii::ParameterHandler &)
-    {}
-
-
-    template <int dim>
     void Interface<dim>::get_adiabatic_temperature_profile(std::vector<double> &values) const
     {
       const unsigned int num_slices = values.size();
       const double max_depth = this->get_geometry_model().maximal_depth();
-      double depth = 0.0;
+      AssertThrow(num_slices > 1, ExcInternalError());
 
-      for (unsigned int n = 0 ; n < num_slices; n++)
+      for (unsigned int n = 0 ; n < num_slices; ++n)
         {
-          depth = n * max_depth / (num_slices-1);
+          const double depth = n * max_depth / (num_slices-1);
           const Point<dim> p = this->get_geometry_model().representative_point(depth);
           values[n] = temperature(p);
         }
@@ -82,11 +53,11 @@ namespace aspect
     {
       const unsigned int num_slices = values.size();
       const double max_depth = this->get_geometry_model().maximal_depth();
-      double depth = 0.0;
+      AssertThrow(num_slices > 1, ExcInternalError());
 
-      for (unsigned int n = 0 ; n < num_slices; n++)
+      for (unsigned int n = 0 ; n < num_slices; ++n)
         {
-          depth = n * max_depth / (num_slices-1);
+          const double depth = n * max_depth / (num_slices-1);
           const Point<dim> p = this->get_geometry_model().representative_point(depth);
           values[n] = pressure(p);
         }
@@ -97,11 +68,11 @@ namespace aspect
     {
       const unsigned int num_slices = values.size();
       const double max_depth = this->get_geometry_model().maximal_depth();
-      double depth = 0.0;
+      AssertThrow(num_slices > 1, ExcInternalError());
 
-      for (unsigned int n = 0 ; n < num_slices; n++)
+      for (unsigned int n = 0 ; n < num_slices; ++n)
         {
-          depth = n * max_depth / (num_slices-1);
+          const double depth = n * max_depth / (num_slices-1);
           const Point<dim> p = this->get_geometry_model().representative_point(depth);
           values[n] = density(p);
         }
@@ -112,11 +83,11 @@ namespace aspect
     {
       const unsigned int num_slices = values.size();
       const double max_depth = this->get_geometry_model().maximal_depth();
-      double depth = 0.0;
+      AssertThrow(num_slices > 1, ExcInternalError());
 
-      for (unsigned int n = 0 ; n < num_slices; n++)
+      for (unsigned int n = 0 ; n < num_slices; ++n)
         {
-          depth = n * max_depth / (num_slices-1);
+          const double depth = n * max_depth / (num_slices-1);
           const Point<dim> p = this->get_geometry_model().representative_point(depth);
           values[n] = density_derivative(p);
         }
@@ -129,8 +100,8 @@ namespace aspect
     namespace
     {
       std::tuple
-      <void *,
-      void *,
+      <aspect::internal::Plugins::UnusablePluginList,
+      aspect::internal::Plugins::UnusablePluginList,
       aspect::internal::Plugins::PluginList<Interface<2>>,
       aspect::internal::Plugins::PluginList<Interface<3>>> registered_plugins;
     }

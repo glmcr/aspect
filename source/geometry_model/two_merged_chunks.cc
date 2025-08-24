@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -39,23 +39,14 @@ namespace aspect
     void
     TwoMergedChunks<dim>::initialize ()
     {
-      AssertThrow(dynamic_cast<const InitialTopographyModel::ZeroTopography<dim>*>(&this->get_initial_topography_model()) != nullptr ||
-                  dynamic_cast<const InitialTopographyModel::AsciiData<dim>*>(&this->get_initial_topography_model()) != nullptr,
+      AssertThrow(Plugins::plugin_type_matches<const InitialTopographyModel::ZeroTopography<dim>>(this->get_initial_topography_model()) ||
+                  Plugins::plugin_type_matches<const InitialTopographyModel::AsciiData<dim>>(this->get_initial_topography_model()),
                   ExcMessage("At the moment, only the Zero or AsciiData initial topography model can be used with the TwoMergedChunks geometry model."));
 
-      manifold.initialize(&(this->get_initial_topography_model()));
-    }
-
-
-    template <int dim>
-    void
-    TwoMergedChunks<dim>::set_topography_model (const InitialTopographyModel::Interface<dim> *topo_pointer)
-    {
-      AssertThrow(dynamic_cast<const InitialTopographyModel::ZeroTopography<dim>*>(topo_pointer) != nullptr ||
-                  dynamic_cast<const InitialTopographyModel::AsciiData<dim>*>(topo_pointer) != nullptr,
-                  ExcMessage("At the moment, only the Zero or AsciiData initial topography model can be used with the TwoMergedChunks geometry model."));
-
-      manifold.initialize(topo_pointer);
+      manifold = std::make_unique<internal::ChunkGeometry<dim>>(this->get_initial_topography_model(),
+                                                                 point1[1],
+                                                                 point1[0],
+                                                                 point2[0]-point1[0]);
     }
 
 
@@ -65,43 +56,59 @@ namespace aspect
     TwoMergedChunks<dim>::
     create_coarse_mesh (parallel::distributed::Triangulation<dim> &coarse_grid) const
     {
-      // The two triangulations that will be merged into coarse_grid.
-      Triangulation<dim> lower_coarse_grid;
-      Triangulation<dim> upper_coarse_grid;
+      if (use_merged_grids)
+        {
+          // The two triangulations that will be merged into coarse_grid.
+          Triangulation<dim> lower_coarse_grid;
+          Triangulation<dim> upper_coarse_grid;
 
-      // Create the lower box.
-      GridGenerator::subdivided_hyper_rectangle (lower_coarse_grid,
-                                                 lower_repetitions,
-                                                 point1,
-                                                 point4,
-                                                 false);
+          const std::vector<unsigned int> lower_rep_vec(lower_repetitions.begin(), lower_repetitions.end());
+          const std::vector<unsigned int> upper_rep_vec(upper_repetitions.begin(), upper_repetitions.end());
 
-      // Create the upper box.
-      GridGenerator::subdivided_hyper_rectangle (upper_coarse_grid,
-                                                 upper_repetitions,
-                                                 point3,
-                                                 point2,
-                                                 false);
+          // Create the lower box.
+          GridGenerator::subdivided_hyper_rectangle (lower_coarse_grid,
+                                                     lower_rep_vec,
+                                                     point1,
+                                                     point4,
+                                                     false);
 
-      // Merge the lower and upper mesh into one coarse_grid.
-      // Now we have at least two cells.
-      GridGenerator::merge_triangulations(lower_coarse_grid,
-                                          upper_coarse_grid,
-                                          coarse_grid);
+          // Create the upper box.
+          GridGenerator::subdivided_hyper_rectangle (upper_coarse_grid,
+                                                     upper_rep_vec,
+                                                     point3,
+                                                     point2,
+                                                     false);
+
+          // Merge the lower and upper mesh into one coarse_grid.
+          // Now we have at least two cells.
+          GridGenerator::merge_triangulations(lower_coarse_grid,
+                                              upper_coarse_grid,
+                                              coarse_grid);
+        }
+      else
+        {
+          const std::vector<unsigned int> lower_rep_vec(lower_repetitions.begin(), lower_repetitions.end());
+          GridGenerator::subdivided_hyper_rectangle (coarse_grid,
+                                                     lower_rep_vec,
+                                                     point1,
+                                                     point2,
+                                                     false);
+
+        }
 
       // Transform box into spherical chunk
       GridTools::transform (
         [&](const Point<dim> &p) -> Point<dim>
       {
-        return manifold.push_forward(p);
+        return manifold->push_forward(p);
       },
       coarse_grid);
 
-      // Deal with a curved mesh
-      // Attach the real manifold to slot 15.
-      coarse_grid.set_manifold (15, manifold);
+      // Deal with a curved mesh by assigning a manifold. We arbitrarily
+      // choose manifold_id 15 for this.
+      coarse_grid.set_manifold (my_manifold_id, *manifold);
       for (const auto &cell : coarse_grid.active_cell_iterators())
-        cell->set_all_manifold_ids (15);
+        cell->set_all_manifold_ids (my_manifold_id);
 
       // Set the boundary indicators.
       set_boundary_indicators(coarse_grid);
@@ -187,41 +194,37 @@ namespace aspect
         {
           case 2:
           {
-            static const std::pair<std::string,types::boundary_id> mapping[]
-              = { std::pair<std::string,types::boundary_id>("bottom",    0),
-                  std::pair<std::string,types::boundary_id>("top",       1),
-                  std::pair<std::string,types::boundary_id>("lowerwest",  2),
-                  std::pair<std::string,types::boundary_id>("lowereast",  3),
-                  std::pair<std::string,types::boundary_id>("uppereast",  4),
-                  std::pair<std::string,types::boundary_id>("upperwest",  5)
-                };
-
-            return std::map<std::string,types::boundary_id> (std::begin(mapping),
-                                                             std::end(mapping));
+            return
+            {
+              {"bottom",     0},
+              {"top",        1},
+              {"lowerwest",  2},
+              {"lowereast",  3},
+              {"uppereast",  4},
+              {"upperwest",  5}
+            };
           }
 
           case 3:
           {
-            static const std::pair<std::string,types::boundary_id> mapping[]
-              = { std::pair<std::string,types::boundary_id>("bottom",     0),
-                  std::pair<std::string,types::boundary_id>("top",        1),
-                  std::pair<std::string,types::boundary_id>("lowerwest",  2),
-                  std::pair<std::string,types::boundary_id>("lowereast",  3),
-                  std::pair<std::string,types::boundary_id>("lowersouth", 4),
-                  std::pair<std::string,types::boundary_id>("lowernorth", 5),
-                  std::pair<std::string,types::boundary_id>("upperwest",  6),
-                  std::pair<std::string,types::boundary_id>("uppereast",  7),
-                  std::pair<std::string,types::boundary_id>("uppersouth", 8),
-                  std::pair<std::string,types::boundary_id>("uppernorth", 9)
-                };
-
-            return std::map<std::string,types::boundary_id> (std::begin(mapping),
-                                                             std::end(mapping));
+            return
+            {
+              {"bottom",     0},
+              {"top",        1},
+              {"lowerwest",  2},
+              {"lowereast",  3},
+              {"lowersouth", 4},
+              {"lowernorth", 5},
+              {"upperwest",  6},
+              {"uppereast",  7},
+              {"uppersouth", 8},
+              {"uppernorth", 9}
+            };
           }
         }
 
       Assert (false, ExcNotImplemented());
-      return std::map<std::string,types::boundary_id>();
+      return {};
     }
 
 
@@ -254,20 +257,6 @@ namespace aspect
 
     template <int dim>
     double
-    TwoMergedChunks<dim>::depth_wrt_topo(const Point<dim> &position) const
-    {
-      // depth is defined wrt the reference surface point2[0] + the topography
-      // depth is therefore always positive
-      const double outer_radius = manifold.get_radius(position);
-      const Point<dim> rtopo_phi_theta = manifold.pull_back_sphere(position);
-      Assert (rtopo_phi_theta[0] <= outer_radius, ExcMessage("The radius is bigger than the maximum radius."));
-      return std::max(0.0, outer_radius - rtopo_phi_theta[0]);
-    }
-
-
-
-    template <int dim>
-    double
     TwoMergedChunks<dim>::height_above_reference_surface(const Point<dim> &position) const
     {
       return position.norm()-point2[0];
@@ -290,7 +279,7 @@ namespace aspect
       p[0] = point2[0]-depth;
 
       // Now convert to Cartesian coordinates
-      return manifold.push_forward_sphere(p);
+      return manifold->push_forward_sphere(p);
     }
 
 
@@ -407,7 +396,7 @@ namespace aspect
       AssertThrow(Plugins::plugin_type_matches<const InitialTopographyModel::ZeroTopography<dim>>(this->get_initial_topography_model()),
                   ExcMessage("After adding topography, this function can no longer be used to determine whether a point lies in the domain or not."));
 
-      const Point<dim> spherical_point = manifold.pull_back(point);
+      const Point<dim> spherical_point = manifold->pull_back(point);
 
       for (unsigned int d = 0; d < dim; ++d)
         if (spherical_point[d] > point2[d]+std::numeric_limits<double>::epsilon()*std::abs(point2[d]) ||
@@ -427,9 +416,9 @@ namespace aspect
       // This is exactly what we need.
       // Ignore the topography to avoid a loop when calling the
       // AsciiDataBoundary for topography which uses this function....
-      const Point<dim> transformed_point = manifold.pull_back_sphere(position_point);
+      const Point<dim> transformed_point = manifold->pull_back_sphere(position_point);
       std::array<double,dim> position_array;
-      for (unsigned int i = 0; i < dim; i++)
+      for (unsigned int i = 0; i < dim; ++i)
         position_array[i] = transformed_point(i);
 
       return position_array;
@@ -457,9 +446,9 @@ namespace aspect
       // Ignore the topography to avoid a loop when calling the
       // AsciiDataBoundary for topography which uses this function....
       Point<dim> position_point;
-      for (unsigned int i = 0; i < dim; i++)
+      for (unsigned int i = 0; i < dim; ++i)
         position_point[i] = position_tensor[i];
-      const Point<dim> transformed_point = manifold.push_forward_sphere(position_point);
+      const Point<dim> transformed_point = manifold->push_forward_sphere(position_point);
 
       return transformed_point;
     }
@@ -516,6 +505,20 @@ namespace aspect
                              "Number of cells in latitude. This value is ignored "
                              "if the simulation is in 2d");
 
+          prm.declare_entry ("Use merged grids", "true",
+                             Patterns::Bool (),
+                             "Whether to make the grid by gluing together two boxes, or just "
+                             "use one chunk to make the grid. Using two grids glued together "
+                             "is a safer option, since it forces the boundary conditions "
+                             "to be always applied to the same depth, but using one grid allows "
+                             "for a more flexible usage of the adaptive refinement. Note that if "
+                             "there is no cell boundary exactly on the boundary between the lithosphere "
+                             "and the mantle, the velocity boundary will not be exactly at that depth. "
+                             "Therefore, using a merged "
+                             "grid is generally recommended over using one grid. "
+                             "When using one grid, the parameter for lower repetitions is used and the upper "
+                             "repetitions are ignored.");
+
         }
         prm.leave_subsection();
       }
@@ -532,23 +535,14 @@ namespace aspect
       {
         prm.enter_subsection("Chunk with lithosphere boundary indicators");
         {
-
-          const double degtorad = dealii::numbers::PI/180;
-
-          Assert (dim >= 2, ExcInternalError());
-          Assert (dim <= 3, ExcInternalError());
-
-          upper_repetitions.resize(dim);
-          lower_repetitions.resize(dim);
-
           point1[0] = prm.get_double("Chunk inner radius");
           point2[0] = prm.get_double("Chunk outer radius");
           point3[0] = prm.get_double("Chunk middle boundary radius");
           point4[0] = point3[0];
           lower_repetitions[0] = prm.get_integer("Inner chunk radius repetitions");
           upper_repetitions[0] = prm.get_integer("Outer chunk radius repetitions");
-          point1[1] = prm.get_double("Chunk minimum longitude") * degtorad;
-          point2[1] = prm.get_double("Chunk maximum longitude") * degtorad;
+          point1[1] = prm.get_double("Chunk minimum longitude") * constants::degree_to_radians;
+          point2[1] = prm.get_double("Chunk maximum longitude") * constants::degree_to_radians;
           point3[1] = point1[1];
           point4[1] = point2[1];
           lower_repetitions[1] = prm.get_integer("Longitude repetitions");
@@ -563,17 +557,10 @@ namespace aspect
           AssertThrow(point3[0] < point2[0],
                       ExcMessage("Middle boundary radius must be less than outer radius."));
 
-          // Inform the manifold about the minimum longitude
-          manifold.set_min_longitude(point1[1]);
-          // Inform the manifold about the minimum radius
-          manifold.set_min_radius(point1[0]);
-          // Inform the manifold about the maximum depth (without topo)
-          manifold.set_max_depth(point2[0]-point1[0]);
-
           if (dim == 3)
             {
-              point1[2] = prm.get_double ("Chunk minimum latitude") * degtorad;
-              point2[2] = prm.get_double ("Chunk maximum latitude") * degtorad;
+              point1[2] = prm.get_double ("Chunk minimum latitude") * constants::degree_to_radians;
+              point2[2] = prm.get_double ("Chunk maximum latitude") * constants::degree_to_radians;
               point3[2] = point1[2];
               point4[2] = point2[2];
               lower_repetitions[2] = prm.get_integer ("Latitude repetitions");
@@ -586,7 +573,7 @@ namespace aspect
               AssertThrow (point2[2] < 0.5*numbers::PI,
                            ExcMessage ("Maximum latitude needs to be less than 90 degrees."));
             }
-
+          use_merged_grids = prm.get_bool ("Use merged grids");
         }
         prm.leave_subsection();
       }
@@ -608,26 +595,26 @@ namespace aspect
                                    "can prescribe different boundary conditions on these boundaries. "
                                    "The minimum and maximum longitude, (latitude) and depth of the chunk "
                                    "are set in the parameter file. The chunk geometry labels its "
-                                   "2*dim+2*(dim-1) sides as follows: ``lower west'' and ``lower east'': "
+                                   "2*dim+2*(dim-1) sides as follows: ``lowerwest'' and ``lowereast'': "
                                    "minimum and maximum longitude of the lower part of the east and west "
-                                   "side boundaries, ``upper west and upper east'': "
+                                   "side boundaries, ``upperwest'' and ``uppereast'': "
                                    "minimum and maximum longitude of the upper part of the east and west "
-                                   "side boundaries, ``lower south'' and ``lower north'': "
+                                   "side boundaries, ``lowersouth'' and ``lowernorth'': "
                                    "minimum and maximum latitude of the lower part of the south and north "
-                                   "side boundaries, ``upper south'' and ``upper north'': "
+                                   "side boundaries, ``uppersouth'' and ``uppernorth'': "
                                    "minimum and maximum latitude of the upper part of the south and north "
                                    "side boundaries, "
                                    "\n\n"
                                    "The dimensions of the model are specified by parameters "
                                    "of the following form: "
-                                   "Chunk (minimum || maximum) (longitude || latitude): "
+                                   "Chunk (minimum | maximum) (longitude | latitude): "
                                    "edges of geographical quadrangle (in degrees). "
-                                   "Chunk (inner || outer || middle boundary) radius: Radii at bottom and top of chunk "
+                                   "Chunk (inner | outer | middle boundary) radius: Radii at bottom and top of chunk "
                                    "and the radius at which the lower boundary indicator along a side "
                                    "boundary transitions into the upper boundary indicator. "
-                                   "(Longitude || Latitude) repetitions: "
+                                   "(Longitude | Latitude) repetitions: "
                                    "number of cells in each coordinate direction."
-                                   "(Inner || Outer) chunk radius repetitions: "
+                                   "(Inner | Outer) chunk radius repetitions: "
                                    "number of cells in the radial coordinate direction for the lower part "
                                    "of the domain (up to the Middle boundary radius) and for the upper part "
                                    "of the domain. "
@@ -641,7 +628,7 @@ namespace aspect
                                    "the velocity in direction of the cylinder axes is zero. "
                                    "This is consistent with the definition of what we consider "
                                    "the two-dimension case given in "
-                                   "Section~\\ref{sec:meaning-of-2d}. "
+                                   "Section~\\ref{sec:methods:2d-models}. "
                                    "It is also possible to add initial topography to the chunk geometry, "
                                    "based on an ascii data file. ")
   }

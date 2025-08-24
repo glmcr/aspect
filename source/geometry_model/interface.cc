@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -25,24 +25,18 @@
 #include <deal.II/base/exceptions.h>
 #include <tuple>
 #include <deal.II/dofs/dof_tools.h>
+#include <deal.II/base/utilities.h>
 
 namespace aspect
 {
   namespace GeometryModel
   {
     template <int dim>
-    void
-    Interface<dim>::initialize ()
-    {}
-
-
-
-    template <int dim>
     std::map<std::string,types::boundary_id>
     Interface<dim>::get_symbolic_boundary_names_map() const
     {
       // return an empty map in the base class
-      return std::map<std::string,types::boundary_id>();
+      return {};
     }
 
 
@@ -52,7 +46,7 @@ namespace aspect
     Interface<dim>::get_periodic_boundary_pairs() const
     {
       // return an empty set in the base class
-      return std::set<std::pair<std::pair<types::boundary_id, types::boundary_id>, unsigned int>>();
+      return {};
     }
 
 
@@ -60,7 +54,8 @@ namespace aspect
     template <int dim>
     void
     Interface<dim>::adjust_positions_for_periodicity (Point<dim> &/*position*/,
-                                                      const ArrayView<Point<dim>> &/*connected_positions*/) const
+                                                      const ArrayView<Point<dim>> &/*connected_positions*/,
+                                                      const ArrayView<Tensor<1, dim>> &/*connected_velocities*/) const
     {
       AssertThrow(false,
                   ExcMessage("Positions cannot be adjusted for periodicity in the chosen geometry model."));
@@ -85,7 +80,7 @@ namespace aspect
       Assert (false,
               ExcMessage ("The cartesian_to_natural_coordinates function has "
                           "not been implemented in this geometry model."));
-      return std::array<double,dim>();
+      return {};
     }
 
 
@@ -128,21 +123,6 @@ namespace aspect
     }
 
 
-
-    template <int dim>
-    void
-    Interface<dim>::
-    declare_parameters (dealii::ParameterHandler &)
-    {}
-
-
-
-    template <int dim>
-    void
-    Interface<dim>::parse_parameters (dealii::ParameterHandler &)
-    {}
-
-
     /* --------- functions to translate between symbolic and numeric boundary indicators ------ */
 
     namespace
@@ -168,25 +148,7 @@ namespace aspect
         if (boundary_names_mapping.find (name) != boundary_names_mapping.end())
           return boundary_names_mapping.find(name)->second;
         else
-          {
-            // if it wasn't a symbolic name, it better be a number. we would
-            // like to use Utilities::string_to_int, but as indicated by a
-            // comment in that function, as of mid-2014 the function does not
-            // do any error checking, so do it by hand here. (this was fixed
-            // in late July 2014, so should work in deal.II 8.2.)
-            //
-            // since we test for errno, we need to make sure it is zero before
-            // or otherwise the conversion may succeed and strtol will just
-            // leave it where it was.
-            char *p;
-            errno = 0;
-            const long int boundary_id = std::strtol(name.c_str(), &p, 10);
-            if ((errno != 0) || (name.size() == 0) || ((name.size()>0) && (*p != '\0')))
-              throw std::string ("Could not convert from string <") + name + "> to a boundary indicator.";
-
-            // seems as if the conversion worked:
-            return boundary_id;
-          }
+          return dealii::Utilities::string_to_int(name);
       }
 
 
@@ -255,8 +217,8 @@ namespace aspect
     namespace
     {
       std::tuple
-      <void *,
-      void *,
+      <aspect::internal::Plugins::UnusablePluginList,
+      aspect::internal::Plugins::UnusablePluginList,
       aspect::internal::Plugins::PluginList<Interface<2>>,
       aspect::internal::Plugins::PluginList<Interface<3>>> registered_plugins;
     }

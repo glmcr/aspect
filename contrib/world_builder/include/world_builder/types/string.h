@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2018 - 2021 by the authors of the World Builder code.
+  Copyright (C) 2018-2024 by the authors of the World Builder code.
 
   This file is part of the World Builder.
 
@@ -17,14 +17,18 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _world_feature_types_string_h
-#define _world_feature_types_string_h
+#ifndef WORLD_BUILDER_TYPES_STRING_H
+#define WORLD_BUILDER_TYPES_STRING_H
 
-#include <world_builder/types/interface.h>
+#include <vector>
+
+#include "world_builder/types/interface.h"
 
 
 namespace WorldBuilder
 {
+  class Parameters;
+
   namespace Types
   {
 
@@ -34,7 +38,7 @@ namespace WorldBuilder
      * the returned temperature or composition of the temperature and composition
      * functions of this class will be.
      */
-    class String : public Interface
+    class String final: public Interface
     {
       public:
         /**
@@ -71,7 +75,7 @@ namespace WorldBuilder
         /**
          * Destructor
          */
-        ~String();
+        ~String() final;
 
         /**
          * Todo
@@ -93,7 +97,7 @@ namespace WorldBuilder
           return new String(*this);
         };
     };
-  }
-}
+  } // namespace Types
+} // namespace WorldBuilder
 
 #endif

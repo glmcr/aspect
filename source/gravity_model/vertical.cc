@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -51,7 +51,7 @@ namespace aspect
           prm.declare_entry ("Magnitude", "1.",
                              Patterns::Double (),
                              "Value of the gravity vector in $m/s^2$ directed "
-                             "along negative y (2D) or z (3D) axis (if the magnitude "
+                             "along negative y (2d) or z (3d) axis (if the magnitude "
                              "is positive.");
         }
         prm.leave_subsection ();
@@ -77,7 +77,7 @@ namespace aspect
 
       AssertThrow (this->get_geometry_model().natural_coordinate_system() == Utilities::Coordinates::cartesian,
                    ExcMessage ("Gravity model 'vertical' should not be used with geometry models that "
-                               "do not have a cartesian natural coordinate system."));
+                               "do not have a Cartesian natural coordinate system."));
     }
   }
 }

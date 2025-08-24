@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2017 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2017 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -42,7 +42,8 @@ namespace aspect
                               const unsigned int        n_compositional_fields,
                               const unsigned int        stokes_dofs_per_cell,
                               const bool                add_compaction_pressure,
-                              const bool                rebuild_matrix)
+                              const bool                rebuild_matrix,
+                              const bool                use_bfbt)
           :
           ScratchBase<dim>(),
 
@@ -53,8 +54,9 @@ namespace aspect
           grads_phi_u (stokes_dofs_per_cell, numbers::signaling_nan<SymmetricTensor<2,dim>>()),
           div_phi_u (stokes_dofs_per_cell, numbers::signaling_nan<double>()),
           phi_p (stokes_dofs_per_cell, numbers::signaling_nan<double>()),
+          phi_u (stokes_dofs_per_cell,numbers::signaling_nan<Tensor<1,dim>>()),
           phi_p_c (add_compaction_pressure ? stokes_dofs_per_cell : 0, numbers::signaling_nan<double>()),
-          grad_phi_p (add_compaction_pressure ? stokes_dofs_per_cell : 0, numbers::signaling_nan<Tensor<1,dim>>()),
+          grad_phi_p ((add_compaction_pressure || use_bfbt) ? stokes_dofs_per_cell : 0, numbers::signaling_nan<Tensor<1,dim>>()),
           material_model_inputs(quadrature.size(), n_compositional_fields),
           material_model_outputs(quadrature.size(), n_compositional_fields),
           rebuild_stokes_matrix(rebuild_matrix)
@@ -78,6 +80,7 @@ namespace aspect
           grads_phi_u (scratch.grads_phi_u),
           div_phi_u (scratch.div_phi_u),
           phi_p (scratch.phi_p),
+          phi_u (scratch.phi_u),
           phi_p_c (scratch.phi_p_c),
           grad_phi_p(scratch.grad_phi_p),
           material_model_inputs(scratch.material_model_inputs),
@@ -116,7 +119,8 @@ namespace aspect
                       const bool                add_compaction_pressure,
                       const bool                use_reference_density_profile,
                       const bool                rebuild_stokes_matrix,
-                      const bool                rebuild_newton_stokes_matrix)
+                      const bool                rebuild_newton_stokes_matrix,
+                      const bool                use_bfbt)
           :
           StokesPreconditioner<dim> (finite_element, quadrature,
                                      mapping,
@@ -124,7 +128,8 @@ namespace aspect
                                      n_compositional_fields,
                                      stokes_dofs_per_cell,
                                      add_compaction_pressure,
-                                     rebuild_stokes_matrix),
+                                     rebuild_stokes_matrix,
+                                     use_bfbt),
 
           face_finite_element_values (mapping,
                                       finite_element,
@@ -357,7 +362,7 @@ namespace aspect
         {}
 
 
-        template<int dim>
+        template <int dim>
         void
         AdvectionSystem<dim>::
         reinit (const typename DoFHandler<dim>::active_cell_iterator &cell_ref)
@@ -379,6 +384,7 @@ namespace aspect
           :
           local_matrix (stokes_dofs_per_cell,
                         stokes_dofs_per_cell),
+          local_inverse_lumped_mass_matrix (stokes_dofs_per_cell),
           local_dof_indices (stokes_dofs_per_cell)
         {}
 
@@ -389,6 +395,7 @@ namespace aspect
         StokesPreconditioner (const StokesPreconditioner &data)
           :
           local_matrix (data.local_matrix),
+          local_inverse_lumped_mass_matrix (data.local_inverse_lumped_mass_matrix),
           local_dof_indices (data.local_dof_indices)
         {}
 
@@ -507,21 +514,8 @@ namespace aspect
               ||
               (reference_cell == ReferenceCells::Hexahedron),
               ExcNotImplemented());
-#if DEAL_II_VERSION_GTE(10,0,0)
       return (reference_cell.n_faces() *
               reference_cell.face_reference_cell(0).n_isotropic_children());
-#else
-      // The ReferenceCell::n_isotropic_children() function did not
-      // exist before pre-10.0. Work around this by assuming that
-      // we are using quadrilateral/hexahedral meshes. That's
-      // a pretty safe bet since deal.II did not have all of the
-      // capabilities to really run ASPECT in a meaningful way
-      // before then anyway.
-      if (reference_cell.get_dimension() == 2)
-        return 4 * 2;
-      else
-        return 6 * 4;
-#endif
     }
 
 
@@ -531,21 +525,8 @@ namespace aspect
                           const unsigned int face)
     {
       AssertIndexRange (face, reference_cell.n_faces());
-#if DEAL_II_VERSION_GTE(10,0,0)
       return (face *
               reference_cell.face_reference_cell(0).n_isotropic_children());
-#else
-      // The ReferenceCell::n_isotropic_children() function did not
-      // exist before pre-10.0. Work around this by assuming that
-      // we are using quadrilateral/hexahedral meshes. That's
-      // a pretty safe bet since deal.II did not have all of the
-      // capabilities to really run ASPECT in a meaningful way
-      // before then anyway.
-      if (reference_cell.get_dimension() == 2)
-        return face * 2;
-      else
-        return face * 4;
-#endif
     }
 
 
@@ -556,24 +537,11 @@ namespace aspect
                           const unsigned int sub_face)
     {
       AssertIndexRange (face, reference_cell.n_faces());
-#if DEAL_II_VERSION_GTE(10,0,0)
       AssertIndexRange (sub_face,
                         reference_cell.face_reference_cell(0).n_isotropic_children());
       return (face *
               reference_cell.face_reference_cell(0).n_isotropic_children()
               + sub_face);
-#else
-      // The ReferenceCell::n_isotropic_children() function did not
-      // exist before pre-10.0. Work around this by assuming that
-      // we are using quadrilateral/hexahedral meshes. That's
-      // a pretty safe bet since deal.II did not have all of the
-      // capabilities to really run ASPECT in a meaningful way
-      // before then anyway.
-      if (reference_cell.get_dimension() == 2)
-        return face * 2 + sub_face;
-      else
-        return face * 4 + sub_face;
-#endif
     }
 
 
@@ -594,7 +562,7 @@ namespace aspect
                              "then this function should be implemented. "
                              "If this is an assembler that does not have to compute a residual, it should not be called."));
 
-      return std::vector<double>();
+      return {};
     }
 
 

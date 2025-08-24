@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -34,7 +34,7 @@ namespace aspect
     evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
              MaterialModel::MaterialModelOutputs<dim> &out) const
     {
-      EquationOfStateOutputs<dim> eos_outputs (this->n_compositional_fields()+1);
+      EquationOfStateOutputs<dim> eos_outputs (this->introspection().get_number_of_fields_of_type(CompositionalFieldDescription::chemical_composition)+1);
 
       // Store which components to exclude during volume fraction computation.
       ComponentMask composition_mask(this->n_compositional_fields(), true);
@@ -49,7 +49,9 @@ namespace aspect
       for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
         {
           const std::vector<double> composition = in.composition[i];
-          const std::vector<double> volume_fractions = MaterialUtilities::compute_composition_fractions(composition, composition_mask);
+
+          const std::vector<double> volume_fractions = MaterialUtilities::compute_only_composition_fractions(composition,
+                                                       this->introspection().chemical_composition_field_indices());
 
           equation_of_state.evaluate(in, i, eos_outputs);
 
@@ -86,7 +88,7 @@ namespace aspect
             }
         }
 
-      elastic_rheology.fill_elastic_force_outputs(in, average_elastic_shear_moduli, out);
+      elastic_rheology.fill_elastic_outputs(in, average_elastic_shear_moduli, out);
       elastic_rheology.fill_reaction_outputs(in, average_elastic_shear_moduli, out);
 
     }
@@ -113,13 +115,15 @@ namespace aspect
           prm.declare_entry ("Viscosities", "1.e21",
                              Patterns::List(Patterns::Double (0.)),
                              "List of viscosities for background mantle and compositional fields, "
-                             "for a total of N+1 values, where N is the number of compositional fields. "
+                             "for a total of N+1 values, where N is the number of all compositional fields or only "
+                             "those corresponding to chemical compositions. "
                              "If only one value is given, then all use the same value. "
                              "Units: \\si{\\pascal\\second}.");
           prm.declare_entry ("Thermal conductivities", "4.7",
                              Patterns::List(Patterns::Double (0.)),
                              "List of thermal conductivities for background mantle and compositional fields, "
-                             "for a total of N+1 values, where N is the number of compositional fields. "
+                             "for a total of N+1 values, where N is the number of all compositional fields or only "
+                             "those corresponding to chemical compositions. "
                              "If only one value is given, then all use the same value. "
                              "Units: \\si{\\watt\\per\\meter\\per\\kelvin}.");
           prm.declare_entry ("Viscosity averaging scheme", "harmonic",
@@ -138,13 +142,6 @@ namespace aspect
     void
     Viscoelastic<dim>::parse_parameters (ParameterHandler &prm)
     {
-
-      // Get the number of fields for composition-dependent material properties
-      const unsigned int n_fields = this->n_compositional_fields() + 1;
-
-      AssertThrow(this->get_parameters().enable_elasticity == true,
-                  ExcMessage ("Material model Viscoelastic only works if 'Enable elasticity' is set to true"));
-
       prm.enter_subsection("Material model");
       {
         prm.enter_subsection("Viscoelastic");
@@ -159,13 +156,19 @@ namespace aspect
           viscosity_averaging = MaterialUtilities::parse_compositional_averaging_operation ("Viscosity averaging scheme",
                                 prm);
 
-          // Parse viscoelastic properties
-          viscosities = Utilities::possibly_extend_from_1_to_N (Utilities::string_to_double(Utilities::split_string_list(prm.get("Viscosities"))),
-                                                                n_fields,
-                                                                "Viscosities");
-          thermal_conductivities = Utilities::possibly_extend_from_1_to_N (Utilities::string_to_double(Utilities::split_string_list(prm.get("Thermal conductivities"))),
-                                                                           n_fields,
-                                                                           "Thermal conductivities");
+          // Make options file for parsing maps to double arrays
+          std::vector<std::string> chemical_field_names = this->introspection().chemical_composition_field_names();
+          chemical_field_names.insert(chemical_field_names.begin(),"background");
+
+          std::vector<std::string> compositional_field_names = this->introspection().get_composition_names();
+          compositional_field_names.insert(compositional_field_names.begin(),"background");
+
+          Utilities::MapParsing::Options options(chemical_field_names, "Viscosities");
+          options.list_of_allowed_keys = compositional_field_names;
+
+          viscosities = Utilities::MapParsing::parse_map_to_double_array (prm.get("Viscosities"), options);
+          options.property_name = "Thermal conductivities";
+          thermal_conductivities = Utilities::MapParsing::parse_map_to_double_array (prm.get("Thermal conductivities"), options);
         }
         prm.leave_subsection();
       }
@@ -207,13 +210,13 @@ namespace aspect
                                    "model is incompressible and allows specifying an arbitrary number "
                                    "of compositional fields, where each field represents a different "
                                    "rock type or component of the viscoelastic stress tensor. The stress "
-                                   "tensor in 2D and 3D, respectively, contains 3 or 6 components. The "
+                                   "tensor in 2d and 3d, respectively, contains 3 or 6 components. The "
                                    "compositional fields representing these components must be named "
                                    "and listed in a very specific format, which is designed to minimize "
                                    "mislabeling stress tensor components as distinct 'compositional "
-                                   "rock types' (or vice versa). For 2D models, the first three "
+                                   "rock types' (or vice versa). For 2d models, the first three "
                                    "compositional fields must be labeled 'stress\\_xx', 'stress\\_yy' and 'stress\\_xy'. "
-                                   "In 3D, the first six compositional fields must be labeled 'stress\\_xx', "
+                                   "In 3d, the first six compositional fields must be labeled 'stress\\_xx', "
                                    "'stress\\_yy', 'stress\\_zz', 'stress\\_xy', 'stress\\_xz', 'stress\\_yz'. "
                                    "\n\n "
                                    "Expanding the model to include non-linear viscous flow (e.g., "
@@ -294,7 +297,7 @@ namespace aspect
                                    "For each material parameter the user supplies a comma delimited list of length "
                                    "N+1, where N is the number of compositional fields. The additional field corresponds "
                                    "to the value for background material. They should be ordered ''background, "
-                                   "composition1, composition2...''. However, the first 3 (2D) or 6 (3D) composition "
+                                   "composition1, composition2...''. However, the first 3 (2d) or 6 (3d) composition "
                                    "fields correspond to components of the elastic stress tensor and their material "
                                    "values will not contribute to the volume fractions. If a single value is given, then "
                                    "all the compositional fields are given that value. Other lengths of lists are not "

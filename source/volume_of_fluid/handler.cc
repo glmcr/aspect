@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -154,22 +154,19 @@ namespace aspect
 
 
 
-        template<int dim>
+        template <int dim>
         VolumeOfFluidSystem<dim>::VolumeOfFluidSystem(const VolumeOfFluidSystem &data)
           :
           local_matrix (data.local_matrix),
           local_rhs (data.local_rhs),
           local_face_rhs (data.local_face_rhs),
           local_face_matrices_ext_ext (data.local_face_matrices_ext_ext),
-          face_contributions_mask(data.face_contributions_mask),
+          // clear the flag that indicates that we have valid data in any
+          // of the matrices:
+          face_contributions_mask(data.face_contributions_mask.size(), false),
           local_dof_indices (data.local_dof_indices),
           neighbor_dof_indices (data.neighbor_dof_indices)
-        {
-          // clear the flag that indicates that we have valid data in any
-          // of the matrices
-          for (unsigned int i=0; i < face_contributions_mask.size(); ++i)
-            face_contributions_mask[i] = false;
-        }
+        {}
       }
     }
   }
@@ -222,21 +219,18 @@ namespace aspect
       {
         // Add declaration for volume fraction field
         vars.push_back(VariableDeclaration<dim>("volume_fraction_"+volume_of_fluid_field_names[f],
-                                                std::unique_ptr<FiniteElement<dim>>(
-                                                  new FE_DGQ<dim>(0)),
+                                                std::make_unique<FE_DGQ<dim>>(0),
                                                 1,
                                                 1));
 
         // Add declaration for reconstructed interface cache
         vars.push_back(VariableDeclaration<dim>("volume_of_fluid_interface_reconstruction_"+volume_of_fluid_field_names[f],
-                                                std::unique_ptr<FiniteElement<dim>>(
-                                                  new FE_DGQ<dim>(0)),
+                                                std::make_unique<FE_DGQ<dim>>(0),
                                                 dim+1,
                                                 1));
 
         vars.push_back(VariableDeclaration<dim>("volume_of_fluid_contour_"+volume_of_fluid_field_names[f],
-                                                std::unique_ptr<FiniteElement<dim>>(
-                                                  new FE_DGQ<dim>(1)),
+                                                std::make_unique<FE_DGQ<dim>>(1),
                                                 1,
                                                 1));
       }
@@ -264,7 +258,7 @@ namespace aspect
       prm.declare_entry ("Number initialization samples", "3",
                          Patterns::Integer (1),
                          "Number of divisions per dimension when computing the initial volume fractions."
-                         "If set to the default of 3 for a 2D model, then initialization will be based on "
+                         "If set to the default of 3 for a 2d model, then initialization will be based on "
                          "the initialization criterion at $3^2=9$ points within each cell. If the initialization "
                          "based on a composition style initial condition, a larger value may be desired for better "
                          "approximation of the initial fluid fractions. Smaller values will suffice in the case of "
@@ -293,7 +287,7 @@ namespace aspect
                         "are then based on an iterated midpoint quadrature. "
                         "Resultant volume fractions outside of the bounds will be "
                         "coerced to the nearest valid value (ie 0 or 1). "
-                        "If ``level set`` is specified, the intial data will be assumed to "
+                        "If ``level set`` is specified, the initial data will be assumed to "
                         "be in the form of a signed distance level set function "
                         "(i.e. a function which is positive when in the "
                         "fluid, negative outside, and zero on the interface "
@@ -320,7 +314,7 @@ namespace aspect
           {
             // Add this field as the next volume of fluid field
             volume_of_fluid_field_names.push_back(names_of_compositional_fields[i]);
-            // Note that compositional field indicies include temperature as field 0, so increase index by 1
+            // Note that compositional field indices include temperature as field 0, so increase index by 1
             volume_of_fluid_composition_map_index[i+1] = n_volume_of_fluid_fields;
             ++n_volume_of_fluid_fields;
           }
@@ -360,7 +354,7 @@ namespace aspect
                                    "entry <" + p + ">."));
 
           // get the name of the compositional field
-          const std::string key = split_parts[0];
+          const std::string &key = split_parts[0];
 
           // check that the names used are actually names of fields,
           // are solved by volume of fluid fields, and are unique in this list
@@ -389,7 +383,7 @@ namespace aspect
                                    "<Initial composition model/Volume of fluid initialization type>."));
 
           // Get specification for how to treat initializing data
-          const std::string value = split_parts[1];
+          const std::string &value = split_parts[1];
 
           if (value == "composition")
             initialization_data_type[volume_of_fluid_composition_map_index[compositional_field_index+1]]
@@ -428,12 +422,12 @@ namespace aspect
                 ExcMessage("Volume of Fluid Interface Tracking is currently incompatible with the Free Surface implementation."));
 
     AssertThrow(!this->get_parameters().include_melt_transport,
-                ExcMessage("Volume of Fluid Interface Tracking has not been tested with melt transport yet, so inclusion of both is currently disabled."))
+                ExcMessage("Volume of Fluid Interface Tracking has not been tested with melt transport yet, so inclusion of both is currently disabled."));
 
     if ( this->get_parameters().initial_adaptive_refinement > 0 ||
          this->get_parameters().adaptive_refinement_interval > 0 )
       {
-        AssertThrow(this->get_mesh_refinement_manager().template has_matching_mesh_refinement_strategy<MeshRefinement::VolumeOfFluidInterface<dim>>(),
+        AssertThrow(this->get_mesh_refinement_manager().template has_matching_active_plugin<MeshRefinement::VolumeOfFluidInterface<dim>>(),
                     ExcMessage("Volume of Fluid Interface Tracking requires that the 'volume of fluid interface' strategy be used for AMR"));
 
         AssertThrow(this->get_parameters().adaptive_refinement_interval <(1/this->get_parameters().CFL_number),

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -22,6 +22,7 @@
 #include <aspect/postprocess/interface.h>
 #include <aspect/gravity_model/interface.h>
 #include <aspect/geometry_model/interface.h>
+#include <aspect/simulator.h>
 #include <aspect/simulator_access.h>
 #include <aspect/global.h>
 
@@ -158,12 +159,11 @@ namespace aspect
        *
        * @param filename Name of the input file.
        */
-      void read_solitary_wave_solution (const std::string &filename)
+      void read_solitary_wave_solution (const std::string &filename,
+                                        const MPI_Comm comm)
       {
         std::string temp;
-        std::ifstream in(filename.c_str(), std::ios::in);
-        AssertThrow (in,
-                     ExcMessage (std::string("Couldn't open file <") + filename + std::string(">")));
+        std::stringstream in(Utilities::read_and_distribute_file_content(filename, comm));
 
         while (!in.eof())
           {
@@ -195,13 +195,14 @@ namespace aspect
                              const double /*offset*/,
                              const double compaction_length,
                              const bool read_solution,
-                             const std::string file_name)
+                             const std::string file_name,
+                             const MPI_Comm comm)
       {
         // non-dimensionalize the amplitude
         const double non_dim_amplitude = amplitude / background_porosity;
 
         if (read_solution)
-          read_solitary_wave_solution(file_name);
+          read_solitary_wave_solution(file_name, comm);
         else
           {
             porosity.resize(max_points);
@@ -281,8 +282,8 @@ namespace aspect
             delta_ = delta;
           }
 
-          virtual void vector_value (const Point<dim> &p,
-                                     Vector<double>   &values) const
+          void vector_value (const Point<dim> &p,
+                             Vector<double>   &values) const override
           {
             unsigned int index = static_cast<int>((p[dim-1]-delta_)/max_z_ * (initial_pressure_.size()-1));
             if (p[dim-1]-delta_ < 0)
@@ -327,22 +328,20 @@ namespace aspect
          * compute the analytical solution for the shape of the solitary wave.
          */
         void
-        initialize ();
+        initialize () override;
 
         /**
          * Return the boundary velocity as a function of position.
          */
-        virtual
         double
-        initial_composition (const Point<dim> &position, const unsigned int n_comp) const;
+        initial_composition (const Point<dim> &position, const unsigned int n_comp) const override;
 
         static
         void
         declare_parameters (ParameterHandler &prm);
 
-        virtual
         void
-        parse_parameters (ParameterHandler &prm);
+        parse_parameters (ParameterHandler &prm) override;
 
         double
         get_amplitude () const;
@@ -374,12 +373,12 @@ namespace aspect
     class SolitaryWaveMaterial : public MaterialModel::MeltInterface<dim>, public ::aspect::SimulatorAccess<dim>
     {
       public:
-        virtual bool is_compressible () const
+        bool is_compressible () const override
         {
           return false;
         }
 
-        virtual double reference_darcy_coefficient () const
+        double reference_darcy_coefficient () const override
         {
           // Make sure we keep track of the initial composition manager and
           // that it continues to live beyond the time when the simulator
@@ -392,21 +391,21 @@ namespace aspect
           // solitary wave initial condition.
           const SolitaryWaveInitialCondition<dim> &initial_composition =
             initial_composition_manager->template
-            get_matching_initial_composition_model<SolitaryWaveInitialCondition<dim>>();
+            get_matching_active_plugin<SolitaryWaveInitialCondition<dim>>();
 
-          return reference_permeability * pow(initial_composition.get_background_porosity(), 3.0) / eta_f;
+          return reference_permeability * std::pow(initial_composition.get_background_porosity(), 3.0) / eta_f;
 
         }
 
         double length_scaling (const double porosity) const
         {
-          return std::sqrt(reference_permeability * std::pow(porosity,3) * (xi_0 + 4.0/3.0 * eta_0) / eta_f);
+          return std::sqrt(reference_permeability * Utilities::fixed_power<3>(porosity) * (xi_0 + 4.0/3.0 * eta_0) / eta_f);
         }
 
         double velocity_scaling (const double porosity) const
         {
           const Point<dim> surface_point = this->get_geometry_model().representative_point(0.0);
-          return reference_permeability * std::pow(porosity,2) * (reference_rho_s - reference_rho_f)
+          return reference_permeability * Utilities::fixed_power<2>(porosity) * (reference_rho_s - reference_rho_f)
                  * this->get_gravity_model().gravity_vector(surface_point).norm() / eta_f;
         }
 
@@ -420,12 +419,11 @@ namespace aspect
         /**
          * Read the parameters this class declares from the parameter file.
          */
-        virtual
         void
-        parse_parameters (ParameterHandler &prm);
+        parse_parameters (ParameterHandler &prm) override;
 
-        virtual void evaluate(const typename MaterialModel::Interface<dim>::MaterialModelInputs &in,
-                              typename MaterialModel::Interface<dim>::MaterialModelOutputs &out) const
+        void evaluate(const typename MaterialModel::Interface<dim>::MaterialModelInputs &in,
+                      typename MaterialModel::Interface<dim>::MaterialModelOutputs &out) const override
         {
           const unsigned int porosity_idx = this->introspection().compositional_index_for_name("porosity");
 
@@ -446,14 +444,14 @@ namespace aspect
           // fill melt outputs if they exist
           aspect::MaterialModel::MeltOutputs<dim> *melt_out = out.template get_additional_output<aspect::MaterialModel::MeltOutputs<dim>>();
 
-          if (melt_out != NULL)
+          if (melt_out != nullptr)
             for (unsigned int i=0; i<in.n_evaluation_points(); ++i)
               {
                 double porosity = in.composition[i][porosity_idx];
 
                 melt_out->compaction_viscosities[i] = xi_0 * (1.0 - porosity);
                 melt_out->fluid_viscosities[i]= eta_f;
-                melt_out->permeabilities[i]= reference_permeability * std::pow(porosity,3);
+                melt_out->permeabilities[i]= reference_permeability * Utilities::fixed_power<3>(porosity);
                 melt_out->fluid_densities[i]= reference_rho_f;
                 melt_out->fluid_density_gradients[i] = 0.0;
               }
@@ -582,7 +580,8 @@ namespace aspect
                                           offset,
                                           compaction_length,
                                           read_solution,
-                                          file_name);
+                                          file_name,
+                                          this->get_mpi_communicator());
     }
 
 
@@ -668,9 +667,8 @@ namespace aspect
         /**
          * Generate graphical output from the current solution.
          */
-        virtual
         std::pair<std::string,std::string>
-        execute (TableHandler &statistics);
+        execute (TableHandler &statistics) override;
 
         /**
          * Initialization function. Take references to the material model and
@@ -678,7 +676,7 @@ namespace aspect
          * the analytical solution for the shape of the solitary wave and store them.
          */
         void
-        initialize ();
+        initialize () override;
 
         void
         store_initial_pressure ();
@@ -708,7 +706,7 @@ namespace aspect
       // then get the parameters we need
 
       const SolitaryWaveInitialCondition<dim> &initial_composition
-        = this->get_initial_composition_manager().template get_matching_initial_composition_model<SolitaryWaveInitialCondition<dim>> ();
+        = this->get_initial_composition_manager().template get_matching_active_plugin<SolitaryWaveInitialCondition<dim>> ();
 
       amplitude           = initial_composition.get_amplitude();
       background_porosity = initial_composition.get_background_porosity();
@@ -747,17 +745,13 @@ namespace aspect
                                update_quadrature_points |
                                update_JxW_values);
 
-      typename DoFHandler<dim>::active_cell_iterator
-      cell = this->get_dof_handler().begin_active(),
-      endc = this->get_dof_handler().end();
-
       // do the same stuff we do in depth average
       std::vector<double> volume(max_points,0.0);
       std::vector<double> pressure(max_points,0.0);
       std::vector<double> p_c(n_q_points);
       double local_max_pressure = 0.0;
 
-      for (; cell!=endc; ++cell)
+      for (const auto &cell : this->get_dof_handler().active_cell_iterators())
         if (cell->is_locally_owned())
           {
             fe_values.reinit (cell);
@@ -814,8 +808,11 @@ namespace aspect
               // interpolate between the values we have
               unsigned int k = i-1;
               while (initial_pressure[k] == 0.0)
-                k--;
-              Assert(k >= 0, ExcInternalError());
+                {
+                  Assert(k > 0, ExcInternalError());
+                  k--;
+                }
+
               unsigned int j = i+1;
               while (initial_pressure[j] == 0.0)
                 j++;
@@ -832,13 +829,13 @@ namespace aspect
       AssertThrow(this->introspection().compositional_name_exists("porosity"),
                   ExcMessage("Postprocessor Solitary Wave only works if there is a compositional field called porosity."));
       const unsigned int porosity_index = this->introspection().compositional_index_for_name("porosity");
+      const typename Simulator<dim>::AdvectionField porosity = Simulator<dim>::AdvectionField::composition(porosity_index);
 
       // create a quadrature formula based on the compositional element alone.
-      // be defensive about determining that a compositional field actually exists
-      AssertThrow (this->introspection().base_elements.compositional_fields
-                   != numbers::invalid_unsigned_int,
+      AssertThrow (this->introspection().n_compositional_fields > 0,
                    ExcMessage("This postprocessor cannot be used without compositional fields."));
-      const QGauss<dim> quadrature_formula (this->get_fe().base_element(this->introspection().base_elements.compositional_fields).degree+1);
+
+      const QGauss<dim> quadrature_formula (this->get_fe().base_element(porosity.base_element(this->introspection())).degree+1);
       const unsigned int n_q_points = quadrature_formula.size();
 
       FEValues<dim> fe_values (this->get_mapping(),
@@ -849,10 +846,6 @@ namespace aspect
                                update_JxW_values);
 
       std::vector<double> compositional_values(n_q_points);
-
-      typename DoFHandler<dim>::active_cell_iterator
-      cell = this->get_dof_handler().begin_active(),
-      endc = this->get_dof_handler().end();
 
       // The idea here is to first find the maximum, and then use the analytical solution of the
       // solitary wave to calculate a phase shift for every point.
@@ -866,7 +859,7 @@ namespace aspect
         double local_max_porosity = -std::numeric_limits<double>::max();
         double local_max_z_location = std::numeric_limits<double>::quiet_NaN();
 
-        for (; cell!=endc; ++cell)
+        for (const auto &cell : this->get_dof_handler().active_cell_iterators())
           if (cell->is_locally_owned())
             {
               fe_values.reinit (cell);
@@ -890,11 +883,10 @@ namespace aspect
 
 
       // iterate over all points and calculate the phase shift
-      cell = this->get_dof_handler().begin_active();
       double phase_shift_integral = 0.0;
       unsigned int number_of_points = 0;
 
-      for (; cell!=endc; ++cell)
+      for (const auto &cell : this->get_dof_handler().active_cell_iterators())
         if (cell->is_locally_owned())
           {
             fe_values.reinit (cell);
@@ -947,8 +939,8 @@ namespace aspect
       if (this->get_timestep_number()==0)
         {
           store_initial_pressure();
-          ref_func.reset (new AnalyticSolutions::FunctionSolitaryWave<dim>(offset,0.0,initial_pressure,
-                                                                           this->get_geometry_model().maximal_depth(), this->introspection().n_components));
+          ref_func = std::make_unique<AnalyticSolutions::FunctionSolitaryWave<dim>>(offset,0.0,initial_pressure,
+                                                                                     this->get_geometry_model().maximal_depth(), this->introspection().n_components);
         }
 
       double delta=0;

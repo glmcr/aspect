@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -22,8 +22,11 @@
 #include <aspect/geometry_model/spherical_shell.h>
 #include <aspect/geometry_model/initial_topography_model/zero_topography.h>
 
+#include <aspect/compat.h>
+
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
+#include <deal.II/grid/manifold_lib.h>
 #include <aspect/utilities.h>
 #include <deal.II/dofs/dof_tools.h>
 
@@ -33,33 +36,259 @@ namespace aspect
   {
     namespace
     {
-      template <int dim>
-      void append_face_to_subcell_data(SubCellData &subcell_data, const CellData<dim-1> & face);
-
-
-
-      template <>
-      void append_face_to_subcell_data<2>(SubCellData &subcell_data, const CellData<1> &face)
+      void append_face_to_subcell_data(SubCellData &subcell_data, const CellData<1> &face)
       {
         subcell_data.boundary_lines.push_back(face);
       }
 
 
 
-      template <>
-      void append_face_to_subcell_data<3>(SubCellData &subcell_data, const CellData<2> &face)
+      void append_face_to_subcell_data(SubCellData &subcell_data, const CellData<2> &face)
       {
         subcell_data.boundary_quads.push_back(face);
       }
     }
 
 
+    namespace internal
+    {
+      template <int dim>
+      SphericalManifoldWithTopography<dim>::
+      SphericalManifoldWithTopography(const InitialTopographyModel::Interface<dim> &topography,
+                                      const double inner_radius,
+                                      const double outer_radius)
+        :
+        SphericalManifold<dim>(Point<dim>()),
+        topo (&topography),
+        R0 (inner_radius),
+        R1 (outer_radius)
+      {}
+
+
+      template <int dim>
+      std::unique_ptr<Manifold<dim, dim>>
+      SphericalManifoldWithTopography<dim>::clone() const
+      {
+        return std::make_unique<SphericalManifoldWithTopography<dim>>(*this);
+      }
+
+
+
+      template <int dim>
+      double
+      SphericalManifoldWithTopography<dim>::
+      topography_for_point(const Point<dim> &x_y_z) const
+      {
+        if (dynamic_cast<const InitialTopographyModel::ZeroTopography<dim>*>(topo) != nullptr)
+          return 0;
+        else
+          {
+            Assert (dim==3, ExcNotImplemented());
+
+            // The natural coordinate system of the sphere geometry is r/phi/theta.
+            // This is what we need to query the topography with. So start by
+            // converting into this coordinate system
+            const std::array<double, dim> r_phi_theta = Utilities::Coordinates::cartesian_to_spherical_coordinates(x_y_z);
+
+            // Grab lon,lat coordinates
+            Point<dim-1> surface_point;
+            for (unsigned int d=0; d<dim-1; ++d)
+              surface_point[d] = r_phi_theta[d+1];
+            return topo->value(surface_point);
+          }
+      }
+
+
+
+      template <int dim>
+      Point<dim>
+      SphericalManifoldWithTopography<dim>::
+      push_forward_from_sphere(const Point<dim> &p) const
+      {
+        const double topography = topography_for_point(p);
+
+        // We can short-circuit the computations here if the topography
+        // is zero.
+        if (topography == 0)
+          return p;
+        else
+          {
+            // For the case with (non-zero) topography, we have to project
+            // the point out/inward.
+
+            // We start from the undeformed sphere. So the current radius must be
+            // between R0 and R1. Check this, with a slight tolerance to account
+            // for the fact that our mesh is not *completely* spherical.
+            const double r = p.norm();
+            Assert (r>=R0*0.99, ExcInternalError());
+            Assert (r<=R1*1.01, ExcInternalError());
+
+            // Then we need to stretch the point p outward by a factor that is
+            // zero at the core-mantle boundary and results in the right topography
+            // at the top.
+            //
+            // The stretching factor is relative to the distance from the core
+            // mantle boundary.
+            const double cmb_stretching_factor = (R1+topography-R0)/(R1-R0);
+
+            // From this we can compute what the desired radius is going to be, and
+            // scale the given point accordingly:
+            const double new_radius = (r-R0)*cmb_stretching_factor + R0;
+            return p * (new_radius/r);
+          }
+      }
+
+
+
+      template <int dim>
+      Point<dim>
+      SphericalManifoldWithTopography<dim>::
+      pull_back_to_sphere(const Point<dim> &p) const
+      {
+        const double topography = topography_for_point(p);
+
+        // We can short-circuit the computations here if the topography
+        // is zero.
+        if (topography == 0)
+          return p;
+        else
+          {
+            // For the case with (non-zero) topography, we have to project
+            // the point in/outward.
+
+            // We start from the deformed sphere. So the current radius must be
+            // between R0 and R1+topography. Check this, with a slight tolerance
+            // to account for the fact that our mesh is not *completely* spherical.
+            const double r = p.norm();
+            Assert (r>=R0*0.99, ExcInternalError());
+            Assert (r<=(R1+topography)*1.01, ExcInternalError());
+
+            // Then we need to stretch(=shrink) the point p outward by a factor that is
+            // zero at the core-mantle boundary and results in the right topography
+            // at the top.
+            const double cmb_stretching_factor = (R1-R0)/(R1+topography-R0);
+
+            // From this we can compute what the desired radius is going to be, and
+            // scale the given point accordingly:
+            const double new_radius = (r-R0)*cmb_stretching_factor + R0;
+            return p * (new_radius/r);
+          }
+      }
+
+
+
+      template <int dim>
+      Point<dim>
+      SphericalManifoldWithTopography<dim>::
+      get_intermediate_point(const Point<dim> &p1,
+                             const Point<dim> &p2,
+                             const double      w) const
+      {
+        return
+          push_forward_from_sphere
+          (SphericalManifold<dim>::get_intermediate_point (pull_back_to_sphere(p1),
+                                                           pull_back_to_sphere(p2), w));
+      }
+
+
+
+      template <int dim>
+      Tensor<1, dim>
+      SphericalManifoldWithTopography<dim>::
+      get_tangent_vector(const Point<dim> &x1,
+                         const Point<dim> &x2) const
+      {
+        // TODO: Deal with pull back and push forward
+        return SphericalManifold<dim>::get_tangent_vector (x1, x2);
+      }
+
+
+
+      template <int dim>
+      Tensor<1, dim>
+      SphericalManifoldWithTopography<dim>::
+      normal_vector(const typename Triangulation<dim, dim>::face_iterator &face,
+                    const Point<dim> &p) const
+      {
+        // We calculate radial, rather than *normal*, vectors here if a face is
+        // at the boundary. This is as described in the documentation of this
+        // function.
+
+        // TODO: Add an input parameter that determines whether we use this
+        //   or the "geometrically correct" behavior.
+        return SphericalManifold<dim>::normal_vector (face, p);
+      }
+
+
+
+      template <int dim>
+      void
+      SphericalManifoldWithTopography<dim>::
+      get_normals_at_vertices(
+        const typename Triangulation<dim, dim>::face_iterator &face,
+        typename Manifold<dim, dim>::FaceVertexNormals &face_vertex_normals) const
+      {
+        // TODO: Deal with pull back and push forward
+        SphericalManifold<dim>::get_normals_at_vertices(face, face_vertex_normals);
+      }
+
+
+
+      template <int dim>
+      void
+      SphericalManifoldWithTopography<dim>::
+      get_new_points(const ArrayView<const Point<dim>> &surrounding_points,
+                     const Table<2, double>            &weights,
+                     ArrayView<Point<dim>>              new_points) const
+      {
+        // First compute the points in the untransformed coordinate system
+        // without surface topography:
+        std::vector<Point<dim>> untransformed_points;
+        untransformed_points.reserve(surrounding_points.size());
+        for (const Point<dim> &p : surrounding_points)
+          untransformed_points.emplace_back (pull_back_to_sphere(p));
+
+        // Call the function in the base class:
+        SphericalManifold<dim>::get_new_points(untransformed_points, weights, new_points);
+
+        // Since the function in the base class returned its information
+        // in a writable array, we can in-place push forward to the deformed
+        // sphere with topography:
+        for (Point<dim> &p : new_points)
+          p = push_forward_from_sphere(p);
+      }
+
+
+
+      template <int dim>
+      Point<dim>
+      SphericalManifoldWithTopography<dim>::
+      get_new_point(const ArrayView<const Point<dim>> &surrounding_points,
+                    const ArrayView<const double>          &weights) const
+      {
+        // First compute the points in the untransformed coordinate system
+        // without surface topography:
+        std::vector<Point<dim>> untransformed_points;
+        untransformed_points.reserve(surrounding_points.size());
+        for (const Point<dim> &p : surrounding_points)
+          untransformed_points.emplace_back (pull_back_to_sphere(p));
+
+        // Call the function in the base class, and transform the
+        // returned value:
+        return push_forward_from_sphere(SphericalManifold<dim>::get_new_point(untransformed_points,
+                                                                              weights));
+      }
+    }
+
+
 
     template <int dim>
-    SphericalShell<dim>::SphericalShell()
-      :
-      spherical_manifold()
-    {}
+    void
+    SphericalShell<dim>::initialize ()
+    {
+      manifold = std::make_unique<internal::SphericalManifoldWithTopography<dim>>(this->get_initial_topography_model(),
+                                                                                   R0, R1);
+    }
 
 
 
@@ -106,7 +335,7 @@ namespace aspect
               Assert(custom_mesh == slices || custom_mesh == list, ExcNotImplemented());
               // If we are using a custom mesh scheme, we need to create
               // a new triangulation to extrude (this will be a 1D line in
-              // 2D space, or a 2D surface in 3D space).
+              // 2d space, or a 2d surface in 3d space).
               Triangulation<dim-1,dim> sphere_mesh;
               GridGenerator::hyper_sphere (sphere_mesh);
               sphere_mesh.refine_global (initial_lateral_refinement);
@@ -186,7 +415,7 @@ namespace aspect
                               cell->vertex_index(vertex_n) + cell_layer * sphere_mesh.n_vertices();
                           face.boundary_id = 0;
 
-                          append_face_to_subcell_data<dim>(subcell_data, face);
+                          append_face_to_subcell_data(subcell_data, face);
                         }
 
                       // Mark the top face of the cell as boundary 1 if we are in
@@ -200,13 +429,14 @@ namespace aspect
                               (cell_layer + 1) * sphere_mesh.n_vertices();
                           face.boundary_id = 1;
 
-                          append_face_to_subcell_data<dim>(subcell_data, face);
+                          append_face_to_subcell_data(subcell_data, face);
                         }
 
                     }
                 }
 
               // Then create the actual mesh:
+              GridTools::consistently_order_cells (cells);
               coarse_grid.create_triangulation(points, cells, subcell_data);
             }
         }
@@ -250,11 +480,19 @@ namespace aspect
           Assert (false, ExcInternalError());
         }
 
-      // Use a manifold description for all cells. use manifold_id 99 in order
-      // not to step on the boundary indicators used below
-      coarse_grid.set_manifold (99, spherical_manifold);
-      set_manifold_ids(coarse_grid);
+      // Then add the topography to the mesh by moving all vertices from the
+      // undeformed sphere to the sphere with topography:
+      GridTools::transform (
+        [&](const Point<dim> &p) -> Point<dim>
+      {
+        return manifold->push_forward_from_sphere(p);
+      },
+      coarse_grid);
 
+      // Use a manifold description for all cells. Use manifold_id 99 in order
+      // not to step on the boundary indicators used below.
+      coarse_grid.set_manifold (my_manifold_id, *manifold);
+      set_manifold_ids(coarse_grid);
     }
 
 
@@ -264,7 +502,7 @@ namespace aspect
     SphericalShell<dim>::set_manifold_ids (parallel::distributed::Triangulation<dim> &triangulation) const
     {
       for (const auto &cell : triangulation.active_cell_iterators())
-        cell->set_all_manifold_ids (99);
+        cell->set_all_manifold_ids (my_manifold_id);
     }
 
 
@@ -307,11 +545,11 @@ namespace aspect
           case 2:
           {
             static const std::pair<std::string,types::boundary_id> mapping[]
-              = { std::pair<std::string,types::boundary_id> ("bottom", 0),
-                  std::pair<std::string,types::boundary_id> ("top", 1),
-                  std::pair<std::string,types::boundary_id> ("left",  2),
-                  std::pair<std::string,types::boundary_id> ("right", 3)
-                };
+            = { {"bottom", 0},
+              {"top", 1},
+              {"left",  2},
+              {"right", 3}
+            };
 
             if (phi == 360)
               return std::map<std::string,types::boundary_id> (std::begin(mapping),
@@ -325,26 +563,22 @@ namespace aspect
           {
             if (phi == 360)
               {
-                static const std::pair<std::string,types::boundary_id> mapping[]
-                  = { std::pair<std::string,types::boundary_id>("bottom", 0),
-                      std::pair<std::string,types::boundary_id>("top",    1)
-                    };
-
-                return std::map<std::string,types::boundary_id> (std::begin(mapping),
-                                                                 std::end(mapping));
+                return
+                {
+                  {"bottom", 0},
+                  {"top",    1}
+                };
               }
             else if (phi == 90)
               {
-                static const std::pair<std::string,types::boundary_id> mapping[]
-                  = { std::pair<std::string,types::boundary_id>("bottom", 0),
-                      std::pair<std::string,types::boundary_id>("top",    1),
-                      std::pair<std::string,types::boundary_id>("east",   2),
-                      std::pair<std::string,types::boundary_id>("west",   3),
-                      std::pair<std::string,types::boundary_id>("south",  4)
-                    };
-
-                return std::map<std::string,types::boundary_id> (std::begin(mapping),
-                                                                 std::end(mapping));
+                return
+                {
+                  {"bottom", 0},
+                  {"top",    1},
+                  {"east",   2},
+                  {"west",   3},
+                  {"south",  4}
+                };
               }
             else
               Assert (false, ExcNotImplemented());
@@ -352,7 +586,7 @@ namespace aspect
         }
 
       Assert (false, ExcNotImplemented());
-      return std::map<std::string,types::boundary_id>();
+      return {};
     }
 
 
@@ -375,11 +609,12 @@ namespace aspect
     template <int dim>
     void
     SphericalShell<dim>::adjust_positions_for_periodicity (Point<dim> &position,
-                                                           const ArrayView<Point<dim>> &connected_positions) const
+                                                           const ArrayView<Point<dim>> &connected_positions,
+                                                           const ArrayView<Tensor<1, dim>> &connected_velocities) const
     {
       AssertThrow(dim == 2,
                   ExcMessage("Periodic boundaries currently "
-                             "only work with 2D spherical shell."));
+                             "only work with 2d spherical shell."));
       AssertThrow(phi == 90,
                   ExcMessage("Periodic boundaries currently "
                              "only work with 90 degree opening angle in spherical shell."));
@@ -406,6 +641,9 @@ namespace aspect
 
           for (auto &connected_position: connected_positions)
             connected_position = rotation_matrix * connected_position;
+
+          for (auto &connected_velocity: connected_velocities)
+            connected_velocity = rotation_matrix * connected_velocity;
         }
 
       return;
@@ -444,7 +682,7 @@ namespace aspect
     double
     SphericalShell<dim>::height_above_reference_surface(const Point<dim> &position) const
     {
-      return position.norm()-outer_radius();
+      return position.norm()-R1;
     }
 
 
@@ -453,8 +691,18 @@ namespace aspect
     Point<dim>
     SphericalShell<dim>::representative_point(const double depth) const
     {
+      Assert (depth >= 0,
+              ExcMessage ("Given depth must be positive or zero."));
+      Assert (depth <= maximal_depth(),
+              ExcMessage ("Given depth must be less than or equal to the maximal depth of this geometry."));
+
+      // Choose a point along the axes toward the north pole, at the
+      // requested depth.
       Point<dim> p;
-      p(dim-1) = std::min (std::max(R1 - depth, R0), R1);
+      p[dim-1] = std::min (std::max(R1 - depth, R0), R1);
+
+      // Return this point. This ignores the surface topography,
+      // but that is as documented.
       return p;
     }
 
@@ -464,6 +712,11 @@ namespace aspect
     double
     SphericalShell<dim>::maximal_depth() const
     {
+      // The depth is defined as relative to a reference surface (without
+      // topography) and since we don't apply topography on the CMB,
+      // the maximal depth really is R1-R0 unless one applies a
+      // topography that is always strictly below zero (i.e., where the
+      // actual surface lies strictly below the reference surface).
       return R1-R0;
     }
 
@@ -507,8 +760,8 @@ namespace aspect
     SphericalShell<dim>::point_is_in_domain(const Point<dim> &point) const
     {
       AssertThrow(!this->get_parameters().mesh_deformation_enabled ||
-                  this->get_timestep_number() == 0,
-                  ExcMessage("After displacement of the mesh, this function can no longer be used to determine whether a point lies in the domain or not."));
+                  this->simulator_is_past_initialization() == false,
+                  ExcMessage("After displacement of the free surface, this function can no longer be used to determine whether a point lies in the domain or not."));
 
       AssertThrow(Plugins::plugin_type_matches<const InitialTopographyModel::ZeroTopography<dim>>(this->get_initial_topography_model()),
                   ExcMessage("After adding topography, this function can no longer be used to determine whether a point lies in the domain or not."));
@@ -519,7 +772,7 @@ namespace aspect
       point1[0] = R0;
       point2[0] = R1;
       point1[1] = 0.0;
-      point2[1] = phi / 180.0 * numbers::PI;
+      point2[1] = phi * constants::degree_to_radians;
       if (dim == 3)
         {
           point1[2] = 0.0;
@@ -532,10 +785,12 @@ namespace aspect
             point2[2] = numbers::PI;
         }
 
-      for (unsigned int d = 0; d < dim; d++)
+      for (unsigned int d = 0; d < dim; ++d)
         if (spherical_point[d] > point2[d]+std::numeric_limits<double>::epsilon()*std::abs(point2[d]) ||
             spherical_point[d] < point1[d]-std::numeric_limits<double>::epsilon()*std::abs(point2[d]))
           return false;
+
+      // TODO: Take into account topography
 
       return true;
     }
@@ -546,6 +801,7 @@ namespace aspect
     std::array<double,dim>
     SphericalShell<dim>::cartesian_to_natural_coordinates(const Point<dim> &position) const
     {
+      // TODO: Take into account topography
       return Utilities::Coordinates::cartesian_to_spherical_coordinates<dim>(position);
     }
 
@@ -564,6 +820,7 @@ namespace aspect
     Point<dim>
     SphericalShell<dim>::natural_to_cartesian_coordinates(const std::array<double,dim> &position) const
     {
+      // TODO: Take into account topography
       return Utilities::Coordinates::spherical_to_cartesian_coordinates<dim>(position);
     }
 
@@ -639,18 +896,22 @@ namespace aspect
                              Patterns::Double (0.),
                              "Inner radius of the spherical shell. Units: \\si{\\meter}."
                              "\n\n"
-                             "\\note{The default value of 3,481,000 m equals the "
+                             ":::{note}\n"
+                             "The default value of 3,481,000 m equals the "
                              "radius of a sphere with equal volume as Earth (i.e., "
                              "6371 km) minus the average depth of the core-mantle "
-                             "boundary (i.e., 2890 km).}");
+                             "boundary (i.e., 2890 km).\n"
+                             ":::");
           prm.declare_entry ("Outer radius", "6336000.",  // 6371-35 in km
                              Patterns::Double (0.),
                              "Outer radius of the spherical shell. Units: \\si{\\meter}."
                              "\n\n"
-                             "\\note{The default value of 6,336,000 m equals the "
+                             ":::{note}\n"
+                             "The default value of 6,336,000 m equals the "
                              "radius of a sphere with equal volume as Earth (i.e., "
                              "6371 km) minus the average depth of the mantle-crust "
-                             "interface (i.e., 35 km).}");
+                             "interface (i.e., 35 km).\n"
+                             ":::");
           prm.declare_entry ("Opening angle", "360.",
                              Patterns::Double (0., 360.),
                              "Opening angle in degrees of the section of the shell "
@@ -726,7 +987,7 @@ namespace aspect
           if (custom_mesh == list)
             {
               // Check that list is in ascending order
-              for (unsigned int i = 1; i < R_values_list.size(); i++)
+              for (unsigned int i = 1; i < R_values_list.size(); ++i)
                 AssertThrow(R_values_list[i] > R_values_list[i-1],
                             ExcMessage("Radial values must be strictly ascending"));
               // Check that first value is not smaller than the inner radius
@@ -747,7 +1008,7 @@ namespace aspect
           periodic = prm.get_bool ("Phi periodic");
           if (periodic)
             {
-              AssertThrow (dim == 2,  ExcMessage("Periodic boundaries in the spherical shell are only supported for 2D models."));
+              AssertThrow (dim == 2,  ExcMessage("Periodic boundaries in the spherical shell are only supported for 2d models."));
               AssertThrow (phi == 90, ExcMessage("Periodic boundaries in the spherical shell are only supported for an opening angle of 90 degrees."));
             }
 
@@ -791,7 +1052,7 @@ namespace aspect
                                    "the velocity in direction of the cylinder axes is zero. "
                                    "This is consistent with the definition of what we consider "
                                    "the two-dimension case given in "
-                                   "Section~\\ref{sec:meaning-of-2d}."
+                                   "Section~\\ref{sec:methods:2d-models}."
                                    "\n\n"
                                    "The model assigns boundary indicators as follows: In 2d, "
                                    "inner and outer boundaries get boundary indicators zero "

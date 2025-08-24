@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2015 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -75,7 +75,7 @@ namespace aspect
 
     /**
      * A material model that implements a simple formulation of the
-     * material parameters required for the modelling of melt transport,
+     * material parameters required for the modeling of melt transport,
      * including a source term for the porosity according to the melting
      * model for dry peridotite of Katz, 2003. This also includes a
      * computation of the latent heat of melting (if the latent heat
@@ -102,16 +102,16 @@ namespace aspect
          * in the model is accounted for by changes in melt fraction."
          * Thus, this function will always return false.
          */
-        virtual bool is_compressible () const override;
+        bool is_compressible () const override;
 
         /**
          * @name Reference quantities
          * @{
          */
-        virtual double reference_darcy_coefficient () const override;
+        double reference_darcy_coefficient () const override;
 
-        virtual void evaluate(const typename Interface<dim>::MaterialModelInputs &in,
-                              typename Interface<dim>::MaterialModelOutputs &out) const override;
+        void evaluate(const typename Interface<dim>::MaterialModelInputs &in,
+                      typename Interface<dim>::MaterialModelOutputs &out) const override;
 
         virtual void melt_fractions (const MaterialModel::MaterialModelInputs<dim> &in,
                                      std::vector<double> &melt_fractions) const;
@@ -305,7 +305,7 @@ namespace aspect
     reference_darcy_coefficient () const
     {
       // 0.01 = 1% melt
-      return reference_permeability * std::pow(0.01,3.0) / eta_f;
+      return reference_permeability * Utilities::fixed_power<3>(0.01) / eta_f;
     }
 
     template <int dim>
@@ -349,7 +349,7 @@ namespace aspect
       if (peridotite_melt_fraction > F_max && temperature < T_liquidus)
         {
           const double T_max = std::pow(F_max,1/beta) * (T_lherz_liquidus - T_solidus) + T_solidus;
-          peridotite_melt_fraction = F_max + (1 - F_max) * pow((temperature - T_max) / (T_liquidus - T_max),beta);
+          peridotite_melt_fraction = F_max + (1 - F_max) * std::pow((temperature - T_max) / (T_liquidus - T_max),beta);
         }
       return peridotite_melt_fraction;
     }
@@ -486,7 +486,7 @@ namespace aspect
 
               // 4) Reduce shear viscosity due to melt presence
               const double porosity = std::min(1.0, std::max(in.composition[i][porosity_idx],0.0));
-              out.viscosities[i] *= exp(- alpha_phi * porosity);
+              out.viscosities[i] *= std::exp(- alpha_phi * porosity);
             }
         }
 
@@ -533,8 +533,8 @@ namespace aspect
                   const double tensile_strength_c = cohesions[c]/strength_reductions[c];
 
                   // Convert friction angle from degrees to radians
-                  double phi = angles_internal_friction[c] * numbers::PI/180.0;
-                  const double transition_pressure = (cohesions[c] * std::cos(phi) - tensile_strength_c) / (1.0 -  sin(phi));
+                  double phi = angles_internal_friction[c] * constants::degree_to_radians;
+                  const double transition_pressure = (cohesions[c] * std::cos(phi) - tensile_strength_c) / (1.0 -  std::sin(phi));
 
                   double yield_strength_c = 0.0;
                   // In case we're not using the Keller et al. formulation,
@@ -589,14 +589,14 @@ namespace aspect
       // fill melt outputs if they exist
       MeltOutputs<dim> *melt_out = out.template get_additional_output<MeltOutputs<dim>>();
 
-      if (melt_out != NULL)
+      if (melt_out != nullptr)
         {
           for (unsigned int i=0; i<in.n_evaluation_points(); ++i)
             {
               const unsigned int porosity_idx = this->introspection().compositional_index_for_name("porosity");
               double porosity = std::min(1.0, std::max(in.composition[i][porosity_idx],0.0));
               melt_out->fluid_viscosities[i] = eta_f;
-              melt_out->permeabilities[i] = reference_permeability * std::pow(porosity,3) * std::pow(1.0-porosity,2);
+              melt_out->permeabilities[i] = reference_permeability * Utilities::fixed_power<3>(porosity) * Utilities::fixed_power<2>(1.0-porosity);
 
               melt_out->fluid_densities[i] = out.densities[i] + melt_density_change;
               melt_out->fluid_density_gradients[i] = 0.0;
@@ -1030,7 +1030,7 @@ namespace aspect
                                    "and it is not advised that it be used for any serious models "
                                    "at this point.\n\n"
                                    "This material model implements a simple formulation of the "
-                                   "material parameters required for the modelling of melt transport, "
+                                   "material parameters required for the modeling of melt transport, "
                                    "including a source term for the porosity according to the melting "
                                    "model for dry peridotite of \\cite{KSL2003}. All other material "
                                    "properties are taken from the visco-plastic model.")

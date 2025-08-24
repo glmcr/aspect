@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -54,7 +54,7 @@ namespace aspect
           /**
            * @copydoc CellDataVectorCreator<dim>::execute()
            */
-          std::pair<std::string, Vector<float> *>
+          std::pair<std::string, std::unique_ptr<Vector<float>>>
           execute () const override;
 
       };

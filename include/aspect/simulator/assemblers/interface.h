@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2017 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2017 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -100,7 +100,8 @@ namespace aspect
                                 const unsigned int        n_compositional_fields,
                                 const unsigned int        stokes_dofs_per_cell,
                                 const bool                add_compaction_pressure,
-                                const bool                rebuild_matrix);
+                                const bool                rebuild_matrix,
+                                const bool                use_bfbt);
           StokesPreconditioner (const StokesPreconditioner &scratch);
 
           ~StokesPreconditioner () override;
@@ -114,6 +115,7 @@ namespace aspect
           std::vector<SymmetricTensor<2,dim>> grads_phi_u;
           std::vector<double>                  div_phi_u;
           std::vector<double>                  phi_p;
+          std::vector<Tensor<1,dim>>           phi_u;
           std::vector<double>                  phi_p_c;
           std::vector<Tensor<1,dim>>          grad_phi_p;
 
@@ -158,7 +160,8 @@ namespace aspect
                         const bool                add_compaction_pressure,
                         const bool                use_reference_density_profile,
                         const bool                rebuild_stokes_matrix,
-                        const bool                rebuild_newton_stokes_matrix);
+                        const bool                rebuild_newton_stokes_matrix,
+                        const bool                use_bfbt);
 
           StokesSystem (const StokesSystem<dim> &scratch);
 
@@ -369,13 +372,14 @@ namespace aspect
           StokesPreconditioner<dim> &operator= (const StokesPreconditioner<dim> &data) = default;
 
           FullMatrix<double> local_matrix;
+          Vector<double> local_inverse_lumped_mass_matrix;
           std::vector<types::global_dof_index> local_dof_indices;
 
           /**
            * Extract the values listed in @p all_dof_indices only if
            * it corresponds to the Stokes component and copy it to the variable
            * local_dof_indices declared above in the same class as this function
-          */
+           */
           void extract_stokes_dof_indices(const std::vector<types::global_dof_index> &all_dof_indices,
                                           const Introspection<dim>                   &introspection,
                                           const FiniteElement<dim>                   &finite_element);
@@ -532,14 +536,9 @@ namespace aspect
      * which equation is solved.
      */
     template <int dim>
-    class Interface
+    class Interface : public Plugins::InterfaceBase
     {
       public:
-        /**
-         * Destructor
-         */
-        virtual ~Interface () = default;
-
         /**
          * Execute this assembler object. This function performs the primary work
          * of an assembler. More precisely, it uses information for the current
@@ -716,28 +715,29 @@ namespace aspect
         std::vector<std::unique_ptr<Assemblers::Interface<dim>>> stokes_system_on_boundary_face;
 
         /**
-         * A vector of pointers containing all assemblers for the advection systems.
+         * A vector of vectors of pointers containing a list of all assemblers
+         * for each individual advection system.
          * These assemblers are called once per cell.
          */
-        std::vector<std::unique_ptr<Assemblers::Interface<dim>>> advection_system;
+        std::vector<std::vector<std::unique_ptr<Assemblers::Interface<dim>>>> advection_system;
 
         /**
-         * A vector of pointers containing all assemblers for the Advection
-         * systems that compute face contributions at boundaries. These assemblers
-         * are called once per boundary face with the properly initialized inputs,
-         * therefore they allow terms that only exist on boundary faces (e.g.
-         * flux boundary conditions).
+         * A vector of vectors of pointers containing a list of all assemblers
+         * for the individual advection systems that compute face contributions
+         * at boundaries. These assemblers are called once per boundary face with
+         * the properly initialized inputs, therefore they allow terms that only
+         * exist on boundary faces (e.g. flux boundary conditions).
          */
-        std::vector<std::unique_ptr<Assemblers::Interface<dim>>> advection_system_on_boundary_face;
+        std::vector<std::vector<std::unique_ptr<Assemblers::Interface<dim>>>> advection_system_on_boundary_face;
 
         /**
-         * A vector of pointers containing all assemblers for the Advection
-         * systems that compute face contributions on faces between cells.
-         * These assemblers are called once per interior face with the properly
-         * initialized inputs, therefore they allow terms that only exist on
-         * interior faces (e.g. DG penalty terms).
+         * A vector of vectors of pointers containing a list of all assemblers
+         * for the individual advection systems that compute face contributions
+         * on faces between cells. These assemblers are called once per interior
+         * face with the properly initialized inputs, therefore they allow terms
+         * that only exist on interior faces (e.g. DG penalty terms).
          */
-        std::vector<std::unique_ptr<Assemblers::Interface<dim>>> advection_system_on_interior_face;
+        std::vector<std::vector<std::unique_ptr<Assemblers::Interface<dim>>>> advection_system_on_interior_face;
 
         /**
          * A structure that describes what information an assembler function

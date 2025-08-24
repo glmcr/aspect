@@ -1,12 +1,9 @@
 # ASPECT
 
-```{admonition} Under construction
-:class: warning
+```{admonition} Community Project
+:class: information
 
-We are in the process of migrating the documentation from LaTeX producing a PDF file to Markedly Structured Text (MyST) and Sphinx producing this online documentation.
-
-Here is a quick reference for MyST and Sphinx commands: [**MyST Quick Reference**](quickref.md)
-
+ASPECT is a community software project. A list of ASPECT developers and contributors is available {ref}`here <sec:authors>`. Contributions to software or documentation by every user are welcome and encouraged. See [here](https://github.com/geodynamics/aspect/blob/main/CONTRIBUTING.md) for how to contribute.
 ```
 
 ```{image} _static/images/aspect_logo.png
@@ -30,9 +27,11 @@ ASPECT is published under the GNU GPL v2 or newer license.
 ## Table of Contents
 ```{toctree}
 ---
-maxdepth: 2
+maxdepth: 1
 ---
 user/index.md
 parameters/index.md
+user/developer_documentation.md
+user/authors.md
 references.md
 ```

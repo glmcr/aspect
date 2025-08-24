@@ -1,6 +1,11 @@
 name: linux
 
-on: pull_request
+on:
+  push:
+    branches:
+      - 'main'
+      - 'aspect-*'
+  pull_request:
 
 concurrency:
   group: ${{ github.actor }}-${{ github.ref }}
@@ -21,34 +26,36 @@ jobs:
     runs-on: [ubuntu-20.04]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: setup
       run: |
+        sudo apt-get update
         sudo apt-get install -y software-properties-common
-        sudo add-apt-repository ppa:ginggs/deal.ii-9.3.2-backports
+        sudo add-apt-repository ppa:ginggs/deal.ii-9.5.1-backports
         sudo apt-get update
         sudo apt-get install -yq --no-install-recommends libdeal.ii-dev
     - name: compile
       run: |
         mkdir build-no-unity
         cd build-no-unity
-        cmake -D ASPECT_PRECOMPILE_HEADERS=OFF -D ASPECT_UNITY_BUILD=OFF -D CMAKE_CXX_FLAGS='-Werror' ..
-        make -j 2
+        cmake -D CMAKE_BUILD_TYPE=Debug -D ASPECT_PRECOMPILE_HEADERS=OFF -D ASPECT_UNITY_BUILD=OFF -D CMAKE_CXX_FLAGS='-Werror' -D ASPECT_ADDITIONAL_CXX_FLAGS='-Wdeprecated-declarations' ..
+        make -j 4
         ./aspect --test
 
   linux:
-    #linux build including indent and documentation
+    #linux build including indent, examples and documentation
     name: indent+documentation
     runs-on: [ubuntu-20.04]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: setup
       run: |
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository ppa:ginggs/deal.ii-9.3.2-backports
         sudo apt-get update
-        sudo apt-get install -yq --no-install-recommends texlive-plain-generic texlive-base texlive-latex-recommended texlive-latex-base texlive-fonts-recommended texlive-bibtex-extra lmodern texlive-latex-extra texlive-science graphviz python3-pip python-setuptools libdeal.ii-dev doxygen inkscape
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository ppa:ginggs/deal.ii-9.5.1-backports
+        sudo apt-get update
+        sudo apt-get install -yq --no-install-recommends texlive-plain-generic texlive-base texlive-latex-recommended texlive-latex-base texlive-fonts-recommended texlive-bibtex-extra lmodern texlive-latex-extra texlive-science graphviz python3-pip python-setuptools libdeal.ii-dev doxygen latexmk biber inkscape
         doxygen --version
 
         wget https://github.com/tjhei/astyle/releases/download/v2.04/astyle_2.04_linux.tar.gz
@@ -63,31 +70,32 @@ jobs:
         ./contrib/utilities/indent
         git diff > changes-astyle.diff
     - name: archive indent results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: changes-astyle.diff
         path: changes-astyle.diff
     - name: check indentation
       run: |
         git diff --exit-code
+    - name: citation list
+      run: |
+        cd doc
+        latexmk -pdf -f citations-list.tex
+        grep WARN citations-list.blg && echo "warnings found!" && exit 1
+        echo "OK"
     - name: compile
       run: |
         mkdir build
         cd build
-        cmake -D ASPECT_PRECOMPILE_HEADERS=ON -D ASPECT_UNITY_BUILD=ON -D CMAKE_CXX_FLAGS='-Werror' ..
-        make -j 2
+        /usr/bin/cmake -D CMAKE_BUILD_TYPE=Debug -D ASPECT_PRECOMPILE_HEADERS=ON -D ASPECT_UNITY_BUILD=ON \
+                       -D CMAKE_CXX_FLAGS='-Werror' -D ASPECT_INSTALL_EXAMPLES=ON ..
+        make -j 4
         ./aspect --test
     - name: doc
       run: |
         cd doc
         export OMPI_MCA_btl="self,vader"
         ./update_parameters.sh $GITHUB_WORKSPACE/build/aspect
-        make manual.pdf
-    - name: archive
-      uses: actions/upload-artifact@v1
-      with:
-        name: manual.log
-        path: doc/manual/manual.log
 
   tests:
     #linux build including tests
@@ -97,15 +105,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: "geodynamics/aspect-tester:focal-dealii-9.3-v2"
+          - image: "geodynamics/aspect-tester:focal-dealii-9.5-v3"
             run-tests: "ON"
             compare-tests: "ON"
-            result-file: "changes-test-results-9.3.diff"
-            container-options: '--name container'
-          - image: "geodynamics/aspect-tester:focal-dealii-9.4-v2"
-            run-tests: "ON"
-            compare-tests: "OFF"
-            result-file: "changes-test-results-9.4.diff"
+            result-file: "changes-test-results-9.5.diff"
             container-options: '--name container'
           - image: "geodynamics/aspect-tester:focal-dealii-master"
             run-tests: "ON"
@@ -118,15 +121,16 @@ jobs:
       options: ${{ matrix.container-options }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: compile
       run: |
         mkdir build
         cd build
         cmake \
+        -D CMAKE_BUILD_TYPE=Debug \
         -G 'Ninja' \
         -D CMAKE_CXX_FLAGS='-Werror' \
-        -D ASPECT_ADDITIONAL_CXX_FLAGS='-O3' \
+        -D ASPECT_ADDITIONAL_CXX_FLAGS='-O3 -Wdeprecated-declarations' \
         -D ASPECT_TEST_GENERATOR='Ninja' \
         -D ASPECT_PRECOMPILE_HEADERS=ON \
         -D ASPECT_UNITY_BUILD=ON \
@@ -134,7 +138,7 @@ jobs:
         -D ASPECT_COMPARE_TEST_RESULTS='${{ matrix.compare-tests }}' \
         -D CMAKE_UNITY_BUILD_BATCH_SIZE=8 \
         ..
-        ninja -j 2
+        ninja -j 4
         ./aspect --test
     - name: prebuild tests
       run: |
@@ -153,16 +157,19 @@ jobs:
       continue-on-error: true
       run: |
         cd build
+        # TODO: temporary fix for a git incompability.
+        # Can likely be removed when the tester image runs on Ubuntu 22.04
+        /usr/bin/git config --system --add safe.directory /__w/aspect/aspect
         ninja generate_reference_output
-        git diff ../tests > changes-test-results.diff
+        git diff ../tests > ${{ matrix.result-file }}
     - name: archive test results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.result-file }}
-        path: build/changes-test-results.diff
+        path: build/${{ matrix.result-file }}
     - name: check test results
       run: |
-        if [ -f build/test_run_failed ] || [ -s build/changes-test-results.diff ]; then
+        if [ -f build/test_run_failed ] || [ -s build/${{ matrix.result-file}} ]; then
           exit 1
         else
           exit 0

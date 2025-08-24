@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'ASPECT'
-copyright = '2022'
-author = 'Wolfgang Bangerth, Juliane Dannberg, Menno Fraters, Rene Gassmöller, Anne Glerum, Timo Heister, Bob Myhill, John Naliboff; with contributions by: Jacqueline Austermann, Magali Billen, Markus B&uuml;rg, Thomas Clevenger, Samuel Cox, William Durkin, Grant Euen, Thomas Geenen, Ryan Grove, Eric Heien, Ludovic Jeanniot, Louise Kellogg, Scott King, Martin Kronbichler, Marine Lasbleis, Haoyuan Li, Shangxin Liu, Hannah Mark, Elvira Mulyukova, Bart Niday, Jonathan Perry-Houts, Elbridge Gerry Puckett, Tahiry Rajaonarison, Fred Richards, Jonathan Robey, Ian Rose, Max Rudolph, Stephanie Sparks, D. Sarah Stamps, Cedric Thieulot, Wanying Wang, Iris van Zelst, Siqi Zhang'
+copyright = '2023'
+author = 'the authors of the ASPECT manual'
 
 # The full version, including alpha/beta/rc tags
 with open('../../VERSION', 'r') as file:
@@ -77,12 +77,15 @@ html_theme_options = {
             "icon": "fab fa-github-square",
         },
     ],
-    "show_navbar_depth": 2,
+    "show_navbar_depth": 1,
     "use_repository_button": True,
     "use_edit_page_button": True,
     "use_issues_button": True,
-    "extra_navbar": "<p><img src=\"/en/latest/_static/images/cig_logo_dots.png\" alt=\"CIG Logo\" height=\"80px\"  style=\"padding: 5px;\"/></p>",
     "home_page_in_toc": True,
+    "logo": {
+        "text": "ASPECT " + release,
+    },
+    "primary_sidebar_end": "navbar_end.html"
 }
 
 bibtex_bibfiles = ["references.bib"]

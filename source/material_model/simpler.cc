@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -122,12 +122,10 @@ namespace aspect
                                    "simpler",
                                    "A material model that has constant values "
                                    "except for density, which depends linearly on temperature: "
-                                   "\\begin{align}"
-                                   "  \\rho(p,T) &= \\left(1-\\alpha (T-T_0)\\right)\\rho_0."
-                                   "\\end{align}"
+                                   "$ \\rho(p,T) = \\left(1-\\alpha (T-T_0)\\right)\\rho_0.$ "
                                    "\n\n"
-                                   "\\note{This material model fills the role the ``simple'' material "
+                                   "Note that this material model fills the role the ``simple'' material "
                                    "model was originally intended to fill, before the latter acquired "
-                                   "all sorts of complicated temperature and compositional dependencies.}")
+                                   "all sorts of complicated temperature and compositional dependencies. ")
   }
 }

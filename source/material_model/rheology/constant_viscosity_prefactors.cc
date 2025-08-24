@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2020 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -56,7 +56,8 @@ namespace aspect
                            Patterns::List(Patterns::Double(0)),
                            "List of constant viscosity prefactors (i.e., multiplicative factors) "
                            "for background material and compositional fields, for a total of N+1 "
-                           "where N is the number of compositional fields. Units: none.");
+                           "where N is the number of all compositional fields or only those "
+                           "corresponding to chemical compositions. Units: none.");
       }
 
 
@@ -65,12 +66,22 @@ namespace aspect
       void
       ConstantViscosityPrefactors<dim>::parse_parameters (ParameterHandler &prm)
       {
-        // increment by one for background:
-        const unsigned int n_fields = this->n_compositional_fields() + 1;
+        // Retrieve the list of composition names
+        std::vector<std::string> compositional_field_names = this->introspection().get_composition_names();
 
-        constant_viscosity_prefactors = Utilities::possibly_extend_from_1_to_N (Utilities::string_to_double(Utilities::split_string_list(prm.get("Constant viscosity prefactors"))),
-                                                                                n_fields,
-                                                                                "Constant viscosity prefactors");
+        // Retrieve the list of names of fields that represent chemical compositions, and not, e.g.,
+        // plastic strain
+        std::vector<std::string> chemical_field_names = this->introspection().chemical_composition_field_names();
+
+        // Establish that a background field is required here
+        compositional_field_names.insert(compositional_field_names.begin(), "background");
+        chemical_field_names.insert(chemical_field_names.begin(),"background");
+
+        Utilities::MapParsing::Options options(chemical_field_names, "Constant viscosity prefactors");
+        options.list_of_allowed_keys = compositional_field_names;
+
+        constant_viscosity_prefactors = Utilities::MapParsing::parse_map_to_double_array (prm.get("Constant viscosity prefactors"),
+                                        options);
       }
     }
   }

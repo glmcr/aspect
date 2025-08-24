@@ -1,4 +1,4 @@
-# Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+# Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 #
 # This file is part of ASPECT.
 #
@@ -17,25 +17,26 @@
 # <http://www.gnu.org/licenses/>.
 
 ################### top matter ################
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.13.4)
 
 IF (CMP0058)
  cmake_policy(CMP0058 NEW)
 ENDIF()
+
+PROJECT(testsuite CXX)
 
 SET(ASPECT_BINARY "${ASPECT_BINARY}" CACHE STRING "" FORCE)
 SET(Aspect_DIR "${Aspect_DIR}" CACHE STRING "" FORCE)
 SET(ASPECT_COMPARE_TEST_RESULTS "${ASPECT_COMPARE_TEST_RESULTS}" CACHE BOOL "" FORCE)
 SET(ASPECT_RUN_ALL_TESTS OFF CACHE BOOL "")
 
-FIND_PACKAGE(Aspect 2.4.0 QUIET HINTS ${Aspect_DIR})
+FIND_PACKAGE(Aspect 2.4.0 QUIET REQUIRED HINTS ${Aspect_DIR})
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
 FIND_PACKAGE(Perl)
 
 MESSAGE(STATUS "Setting up tests with CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
-PROJECT(testsuite CXX)
 
 ENABLE_TESTING()
 
@@ -97,20 +98,21 @@ ENDFUNCTION()
 
 # Analyze the .prm to decide if this test should be run or not. We are
 # checking for the following strings in the .prm:
-# 1. "WORLD BUILDER" - only run with World Builder.
-# 2. "QUICK_TEST" - enable the test even if RUN_ALL_TESTS is false
+# 1. "Enable if: ASPECT_WITH_WORLD_BUILDER" - only run with World Builder.
+# 2. "Enable if: QUICK_TEST" - enable the test even if RUN_ALL_TESTS is false
 FUNCTION(SHOULD_ENABLE_TEST _filename)
 
   FILE(STRINGS ${_filename} _input_lines
-  REGEX "WORLD BUILDER")
+       REGEX "Enable if: ASPECT_WITH_WORLD_BUILDER")
   IF(NOT "${_input_lines}" STREQUAL "")
-    IF (${_input_lines} MATCHES "WORLD BUILDER" AND NOT ASPECT_WITH_WORLD_BUILDER)
+    IF (${_input_lines} MATCHES "Enable if: ASPECT_WITH_WORLD_BUILDER"
+        AND NOT ASPECT_WITH_WORLD_BUILDER)
       SET(_use_test OFF PARENT_SCOPE)
     ENDIF()
   ENDIF()
 
   FILE(STRINGS ${_filename} _input_lines
-       REGEX "QUICK_TEST")
+       REGEX "Enable if: QUICK_TEST")
   IF(NOT ASPECT_RUN_ALL_TESTS AND "${_input_lines}" STREQUAL "")
     SET(_use_test OFF PARENT_SCOPE)
   ENDIF()
@@ -313,18 +315,24 @@ FOREACH(_test ${_tests})
     # "prebuild" tests on the CI system, which does not use the ctest
     # mechanism. So without this additional timeout command, tests would hang
     # indefinitely.
+    # We are creating an empty file "/runs" if the test runs successfully without
+    # crashing. This is used later to only diff if necessary.
     IF("${_mpi_count}" STREQUAL "1")
       ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/screen-output
+        COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/runs
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/timeout.sh ${TEST_TIME_LIMIT}s ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_test.sh ${EXPECT} ${ASPECT_BINARY} ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.x.prm ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/screen-output.tmp
         COMMAND ${_replacement_script} screen-output <${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/screen-output.tmp >${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/screen-output
+        COMMAND touch ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/runs
         DEPENDS ${ASPECT_BINARY} ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.x.prm ${_testdepends})
     ELSE()
       ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/screen-output
+        COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/runs
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/timeout.sh ${TEST_TIME_LIMIT}s mpirun -np ${_mpi_count} ${ASPECT_BINARY} ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.x.prm
                 > ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/screen-output.tmp
         COMMAND ${_replacement_script} screen-output <${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/screen-output.tmp >${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/screen-output
+        COMMAND touch ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/runs
         DEPENDS ${ASPECT_BINARY} ${CMAKE_CURRENT_BINARY_DIR}/${_testname}.x.prm ${_testdepends})
     ENDIF()
 
@@ -361,8 +369,10 @@ FOREACH(_test ${_tests})
         # the normalized output file:
         SET(_run_file ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/${_name}.notime)
 
-        # generate .diff file:
+        # generate .diff file, only run diff if "/runs" exists (test ran successfully),
+        # otherwise GENERATE_REFERENCE_OUTPUT would overwrite reference data with garbage.
         ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/${_name}.diff
+          COMMAND test -f ${CMAKE_CURRENT_BINARY_DIR}/output-${_testname}/runs
           COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/diff_test.sh
                   ${TEST_DIFF}
                   ${_testname}/${_name}

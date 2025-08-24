@@ -1,11 +1,5 @@
-(sec:parameter-documentation-home)=
+(parameters)=
 # Parameter Documentation
-:::{admonition} Under construction
-:class: warning
-
-Migrating the ASPECT manual from LaTeX to Sphinx/MyST is not complete.
-If what you are looking for is not here, please see the PDF version.
-:::
 
 :::{toctree}
 ---
@@ -33,6 +27,8 @@ Melt_20settings.md
 Mesh_20deformation.md
 Mesh_20refinement.md
 Nullspace_20removal.md
+Particles.md
+Particles_202.md
 Postprocess.md
 Prescribed_20Stokes_20solution.md
 Solver_20parameters.md

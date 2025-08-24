@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -30,7 +30,7 @@ namespace
   const std::string
   get_stats(const aspect::LinearAlgebra::BlockSparseMatrix &matrix,
             const std::string &matrix_name,
-            const MPI_Comm &comm)
+            const MPI_Comm comm)
   {
     std::ostringstream output;
 

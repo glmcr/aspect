@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2018 - 2021 by the authors of the World Builder code.
+  Copyright (C) 2018-2024 by the authors of the World Builder code.
 
   This file is part of the World Builder.
 
@@ -17,14 +17,18 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _world_feature_types_object_h
-#define _world_feature_types_object_h
+#ifndef WORLD_BUILDER_TYPES_OBJECT_H
+#define WORLD_BUILDER_TYPES_OBJECT_H
 
-#include <world_builder/types/interface.h>
+#include <vector>
+
+#include "world_builder/types/interface.h"
 
 
 namespace WorldBuilder
 {
+  class Parameters;
+
   namespace Types
   {
     /**
@@ -37,7 +41,7 @@ namespace WorldBuilder
     * by index, and a list holds the values strictly ordered, only accessible
     * an iterator. An other difference it that lists have a name.
      */
-    class Object : public Interface
+    class Object final: public Interface
     {
       public:
         /**
@@ -54,7 +58,7 @@ namespace WorldBuilder
         /**
          * Destructor
          */
-        ~Object();
+        ~Object() final;
 
         /**
          * Todo
@@ -77,7 +81,7 @@ namespace WorldBuilder
         };
 
     };
-  }
-}
+  } // namespace Types
+} // namespace WorldBuilder
 
 #endif

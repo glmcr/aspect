@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2015 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -121,7 +121,7 @@ namespace aspect
 
         // Set use_strain_rates to true since the compaction viscosity might also depend on the strain rate.
         MaterialModel::MaterialModelInputs<dim> in(input_data,
-                                                   this->introspection(), true);
+                                                   this->introspection());
         MaterialModel::MaterialModelOutputs<dim> out(n_quadrature_points, this->n_compositional_fields());
         MeltHandler<dim>::create_material_model_outputs(out);
 

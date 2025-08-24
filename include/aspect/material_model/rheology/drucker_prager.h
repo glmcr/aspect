@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2019 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -54,6 +54,11 @@ namespace aspect
          * Limit maximum yield stress from drucker prager yield criterion.
          */
         double max_yield_stress;
+
+        /**
+         * Constructor. Initializes all values to NaN.
+         */
+        DruckerPragerParameters();
       };
 
       template <int dim>
@@ -82,10 +87,17 @@ namespace aspect
           parse_parameters (ParameterHandler &prm,
                             const std::unique_ptr<std::vector<unsigned int>> &expected_n_phases_per_composition = nullptr);
 
+          /**
+           * Compute the parameters for the Drucker Prager plasticity.
+           * If @p n_phase_transitions_per_composition points to a vector of
+           * unsigned integers this is considered the number of phase transitions
+           * for each compositional field and viscosity will be first computed on
+           * each phase and then averaged for each compositional field.
+           */
           const DruckerPragerParameters
           compute_drucker_prager_parameters (const unsigned int composition,
                                              const std::vector<double> &phase_function_values = std::vector<double>(),
-                                             const std::vector<unsigned int> &n_phases_per_composition = std::vector<unsigned int>()) const;
+                                             const std::vector<unsigned int> &n_phase_transitions_per_composition = std::vector<unsigned int>()) const;
 
           /**
            * Compute the plastic yield stress based on the Drucker Prager yield criterion.
@@ -97,7 +109,10 @@ namespace aspect
                                 const double max_yield_stress) const;
 
           /**
-           * Compute the plastic viscosity with the yield stress and effective strain rate.
+           * Compute the apparent viscosity using the yield stress and effective strain rate.
+           * If the non_yielding_viscosity is not infinite
+           * (i.e., if there are other rheological elements accommodating strain), the returned
+           * value is the effective composite viscosity, not the pure "plastic" viscosity.
            */
           double
           compute_viscosity (const double cohesion,
@@ -105,7 +120,7 @@ namespace aspect
                              const double pressure,
                              const double effective_strain_rate,
                              const double max_yield_stress,
-                             const double pre_yield_viscosity = std::numeric_limits<double>::infinity()) const;
+                             const double non_yielding_viscosity = std::numeric_limits<double>::infinity()) const;
 
           /**
            * Compute the strain rate and first stress derivative
@@ -114,7 +129,7 @@ namespace aspect
           std::pair<double, double>
           compute_strain_rate_and_derivative (const double stress,
                                               const double pressure,
-                                              const DruckerPragerParameters p) const;
+                                              const DruckerPragerParameters &p) const;
 
           /**
            * Compute the derivative of the plastic viscosity with respect to pressure.
@@ -125,8 +140,25 @@ namespace aspect
 
         private:
 
+          /**
+           * The Drucker-Prager rheology is a simple plastic model
+           * that yields at a stress of
+           * (6.0 * cohesion * cos_phi + 6.0 * pressure * sin_phi) / (sqrt(3.0) * (3.0 + sin_phi))
+           * in 3D or
+           * cohesion * cos_phi + pressure * sin_phi in 2D.
+           * Phi is an angle of internal friction, that is
+           * input by the user in degrees, but stored as radians.
+           */
           std::vector<double> angles_internal_friction;
+
+          /**
+           * The cohesion is provided and stored in Pa.
+           */
           std::vector<double> cohesions;
+
+          /**
+           * The yield stress is limited to a constant value, stored in Pa.
+           */
           double max_yield_stress;
 
           /**

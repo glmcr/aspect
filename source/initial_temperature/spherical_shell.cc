@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -25,8 +25,6 @@
 #include <aspect/geometry_model/sphere.h>
 #include <aspect/geometry_model/chunk.h>
 #include <aspect/geometry_model/ellipsoidal_chunk.h>
-#include <fstream>
-#include <iostream>
 #include <cstring>
 
 
@@ -61,7 +59,7 @@ namespace aspect
       const double phi   = std::atan2(position(0),position(1));
       const double s_mod = s
                            +
-                           0.2 * s * (1-s) * std::sin(angular_mode*phi +(90 + 2*rotation_offset)*numbers::PI/180 ) * scale;
+                           0.2 * s * (1-s) * std::sin(angular_mode*phi + (90 + 2*rotation_offset) * constants::degree_to_radians ) * scale;
 
       // Check that a boundary temperature is prescribed
       AssertThrow (this->has_boundary_temperature(),
@@ -232,9 +230,9 @@ namespace aspect
       const double x = (scale - this->depth)*std::cos(angle);
       const double y = (scale - this->depth)*std::sin(angle);
       const double Perturbation = (sign * amplitude *
-                                   std::exp( -( std::pow((position(0)*scale/R1-x),2)
+                                   std::exp( -( Utilities::fixed_power<2>((position(0)*scale/R1-x))
                                                 +
-                                                std::pow((position(1)*scale/R1-y),2) ) / sigma));
+                                                Utilities::fixed_power<2>((position(1)*scale/R1-y)) ) / sigma));
 
       if (r > R1 - 1e-6*R1 || InterpolVal + Perturbation < T1)
         return T1*dT;

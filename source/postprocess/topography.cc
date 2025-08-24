@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -51,7 +51,9 @@ namespace aspect
 
       const types::boundary_id relevant_boundary = this->get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
 
-      // Get a quadrature rule that exists only on the corners
+      // Define a quadrature rule that has points only on the vertices of
+      // a face, so that we can evaluate the solution at the surface
+      // nodes.
       const QTrapezoid<dim-1> face_corners;
       FEFaceValues<dim> face_vals (this->get_mapping(), this->get_fe(), face_corners, update_quadrature_points);
 
@@ -59,6 +61,14 @@ namespace aspect
       // later sent to processor 0
       std::ostringstream output_stats;
       std::ostringstream output_file;
+
+      // On processor 0, write the file header
+      if (Utilities::MPI::this_mpi_process(this->get_mpi_communicator()) == 0)
+        {
+          output_file << "# "
+                      << ((dim==2)? "x y" : "x y z")
+                      << " topography" << std::endl;
+        }
 
       // Choose stupidly large values for initialization
       double local_max_height = std::numeric_limits<double>::lowest();
@@ -132,21 +142,9 @@ namespace aspect
       if (this->get_parameters().run_postprocessors_on_nonlinear_iterations)
         filename.append("." + Utilities::int_to_string (this->get_nonlinear_iteration(), 4));
 
-      const std::vector<std::string> data = Utilities::MPI::gather(this->get_mpi_communicator(), output_file.str());
-
-      // On processor 0, collect all of the data the individual processors sent
-      // and concatenate them into one file:
-      if (Utilities::MPI::this_mpi_process(this->get_mpi_communicator()) == 0)
-        {
-          std::ofstream file (filename.c_str());
-
-          file << "# "
-               << ((dim==2)? "x y" : "x y z")
-               << " topography" << std::endl;
-
-          for (const auto &str : data)
-            file << str;
-        }
+      Utilities::collect_and_write_file_content(filename,
+                                                output_file.str(),
+                                                this->get_mpi_communicator());
 
       // if output_interval is positive, then update the last supposed output
       // time
@@ -236,6 +234,17 @@ namespace aspect
                                   "where NNNNN is the number of the time step.\n"
                                   "The file format then consists of lines with Euclidean coordinates "
                                   "followed by the corresponding topography value."
-                                  "Topography is printed/written in meters.")
+                                  "Topography is printed/written in meters."
+                                  "\n\n"
+                                  "It is worth comparing this postprocessor with the "
+                                  "visualization postprocessor called ``surface elevation''. The latter is "
+                                  "used to *visualize* the surface elevation in graphical form, by "
+                                  "outputting it into the same files that the solution and other "
+                                  "postprocessed variables are written, to then be used for "
+                                  "visualization using programs such as VisIt or Paraview. In "
+                                  "contrast, the current postprocessor generates the same *kind* "
+                                  "of information, but instead writes it as a point cloud that "
+                                  "can then more easily be processed using tools other "
+                                  "than visualization programs.")
   }
 }

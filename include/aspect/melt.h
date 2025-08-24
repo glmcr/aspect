@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -45,7 +45,7 @@ namespace aspect
       public:
         /**
          * Constructor. When the MeltInputs are created,
-         * all properties are initialized with signalingNaNs.
+         * all properties are initialized with signaling NaNs.
          * This means that individual heating or material models
          * can all attach the plugins they need, and in a later
          * step they will all be filled together (using the fill
@@ -76,15 +76,16 @@ namespace aspect
     class MeltOutputs : public AdditionalMaterialOutputs<dim>
     {
       public:
+        /**
+         * Constructor. When the MeltOutputs are created,
+         * all properties are initialized with signaling NaNs.
+         * This means that after the call to the material model
+         * it can be checked if the material model actually
+         * computed the values, by checking if the individual
+         * values are finite (using std::isfinite).
+         */
         MeltOutputs (const unsigned int n_points,
-                     const unsigned int /*n_comp*/)
-        {
-          compaction_viscosities.resize(n_points);
-          fluid_viscosities.resize(n_points);
-          permeabilities.resize(n_points);
-          fluid_densities.resize(n_points);
-          fluid_density_gradients.resize(n_points, Tensor<1,dim>());
-        }
+                     const unsigned int n_comp);
 
         /**
          * Compaction viscosity values $\xi$ at the given positions.
@@ -129,11 +130,24 @@ namespace aspect
     /**
      * Base class for material models that implement a melt fraction function.
      * This is used to compute some statistics about the melt fraction.
+     *
+     * This class is used as a "mix-in" class: Concrete material models will
+     * be derived from MaterialModel::Interface (and consequently have to
+     * implement the `virtual` functions of that class) *and also* from the
+     * current class (and consequently have to implement the `virtual` function
+     * of the current class). The inheritance from MaterialModel::Interface is
+     * typically via the MaterialModel::MeltInterface intermediate class.
      */
     template <int dim>
     class MeltFractionModel
     {
       public:
+        /**
+         * Destructor. Does nothing but is virtual so that derived classes
+         * destructors are also virtual.
+         */
+        virtual ~MeltFractionModel () = default;
+
         /**
          * Compute the equilibrium melt fractions for the given input conditions.
          * @p in and @p melt_fractions need to have the same size.
@@ -146,11 +160,54 @@ namespace aspect
                                      std::vector<double> &melt_fractions) const = 0;
 
         /**
-         * Destructor. Does nothing but is virtual so that derived classes
-         * destructors are also virtual.
+         * Return whether an object provided as argument is of a class that is
+         * derived from the current MeltFractionModel class. (Many of these models
+         * will be derived from MaterialModel::Interface and *also* be derived
+         * from MeltFractionModel; only the latter derivation is of interest to
+         * this function.
          */
-        virtual ~MeltFractionModel () = default;
+        template <typename ModelType>
+        static
+        bool is_melt_fraction_model (const ModelType &model_object);
+
+        /**
+         * Return a reference to the MeltFractionModel base class of
+         * the object. This function will throw an exception unless
+         * is_melt_fraction_model() returns `true` for the given argument.
+         */
+        template <typename ModelType>
+        static
+        const MeltFractionModel<dim> &
+        as_melt_fraction_model (const ModelType &model_object);
     };
+
+
+
+    template <int dim>
+    template <typename ModelType>
+    inline
+    bool
+    MeltFractionModel<dim>::is_melt_fraction_model (const ModelType &model_object)
+    {
+      return (dynamic_cast<const MeltFractionModel<dim>*>(&model_object)
+              != nullptr);
+    }
+
+
+    template <int dim>
+    template <typename ModelType>
+    inline
+    const MeltFractionModel<dim> &
+    MeltFractionModel<dim>::as_melt_fraction_model (const ModelType &model_object)
+    {
+      Assert (is_melt_fraction_model(model_object) == true,
+              ExcMessage ("This function can only be called for model objects "
+                          "whose types are derived from MeltFractionModel."));
+
+      return dynamic_cast<const MeltFractionModel<dim>&>(model_object);
+    }
+
+
 
     /**
      * Base class for material models to be used with melt transport enabled.
@@ -430,7 +487,7 @@ namespace aspect
        */
       void compute_melt_variables(LinearAlgebra::BlockSparseMatrix &system_matrix,
                                   LinearAlgebra::BlockVector &solution,
-                                  LinearAlgebra::BlockVector &system_rhs);
+                                  LinearAlgebra::BlockVector &system_rhs) const;
 
       /**
        * Return whether this object refers to the porosity field.

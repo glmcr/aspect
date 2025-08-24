@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2022 by the authors of the ASPECT code.
+  Copyright (C) 2022 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -18,7 +18,4 @@
   <http://www.gnu.org/licenses/>.
 */
 
-#include "../benchmarks/entropy_adiabat/plugins/compute_entropy_profile.cc"
 #include "../benchmarks/entropy_adiabat/plugins/entropy_advection.cc"
-#include "../benchmarks/entropy_adiabat/plugins/entropy_model.cc"
-#include "../benchmarks/entropy_adiabat/plugins/prescribed_temperature.cc"

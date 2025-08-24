@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -39,8 +39,7 @@ namespace aspect
     void
     AsciiData<dim>::initialize ()
     {
-      const std::set<types::boundary_id> boundary_ids = this->get_fixed_temperature_boundary_indicators();
-      Utilities::AsciiDataBoundary<dim>::initialize(boundary_ids,
+      Utilities::AsciiDataBoundary<dim>::initialize(this->get_fixed_temperature_boundary_indicators(),
                                                     1);
     }
 

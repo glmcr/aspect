@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2018 - 2020 by the authors of the ASPECT code.
+  Copyright (C) 2018 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -50,7 +50,6 @@ namespace aspect
         /**
          * @copydoc aspect::TimeStepping::Interface<dim>::execute()
          */
-        virtual
         double
         execute() override;
 

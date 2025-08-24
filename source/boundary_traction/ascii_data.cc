@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -35,10 +35,12 @@ namespace aspect
     void
     AsciiData<dim>::initialize ()
     {
-      for (const auto &bv : this->get_boundary_traction())
-        if (bv.second.get() == this)
-          boundary_ids.insert(bv.first);
-
+      for (const auto &bv : this->get_boundary_traction_manager().get_active_boundary_traction_conditions())
+        {
+          for (const auto &plugin : bv.second)
+            if (plugin.get() == this)
+              boundary_ids.insert(bv.first);
+        }
       AssertThrow(*(boundary_ids.begin()) != numbers::invalid_boundary_id,
                   ExcMessage("Did not find the boundary indicator for the traction ascii data plugin."));
 

@@ -7,7 +7,7 @@ slip are imposed on the sides while no-slip boundary conditions are imposed on
 the top and the bottom of the box. Fluid 1 $(\rho_1,\eta_1)$ of thickness
 $h_1$ overlays fluid 2 $(\rho_2,\eta_2)$ of thickness $h_2$ (with
 $h_1+h_2=L_y$). An initial sinusoidal disturbance of the interface between
-these layers is introduced and is characterised by an amplitude $\Delta$ and a
+these layers is introduced and is characterized by an amplitude $\Delta$ and a
 wavelength $\lambda=L_x/2$ as shown in {numref}`fig:RTi_setup`.
 
 ```{figure-md} fig:RTi_setup
@@ -57,6 +57,8 @@ file:
     end
 
 
+**[Description of benchmark files](../README.md)**
+
 ```{figure-md} fig:RTi_grids_a
 <img src="grid.*" style="width:44.0%" />
 
@@ -77,3 +79,7 @@ and is found to match analytical results.
 
  Maximum velocity for three values of the \phi_1 parameter.
 ```
+
+:::{toctree}
+../README.md
+:::

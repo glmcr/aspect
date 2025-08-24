@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -112,7 +112,7 @@ namespace aspect
           if (! cell->is_artificial())
             {
               fe_values.reinit (cell);
-              in.reinit(fe_values, cell, simulator_access.introspection(), simulator_access.get_solution(), false);
+              in.reinit(fe_values, cell, simulator_access.introspection(), simulator_access.get_solution());
 
               std::vector<types::global_dof_index> local_dof_indices(simulator_access.get_fe().dofs_per_cell);
               cell->get_dof_indices (local_dof_indices);

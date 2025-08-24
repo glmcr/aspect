@@ -1,5 +1,5 @@
 
-Loading shared library <./libfind_boundary_composition_model.so>
+Loading shared library <./libfind_boundary_composition_model.debug.so>
 
 Number of active cells: 64 (on 4 levels)
 Number of degrees of freedom: 1,526 (578+81+289+289+289)
@@ -16,8 +16,7 @@ InitialComposition is found!
    Solving temperature system... 0 iterations.
    Solving field_a system ... 0 iterations.
    Solving field_b system ... 0 iterations.
-   Rebuilding Stokes preconditioner...
-   Solving Stokes system... 22+0 iterations.
+   Solving Stokes system (GMG)... 15+0 iterations.
 
    Postprocessing:
 

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -21,10 +21,6 @@
 
 #include <aspect/simulator.h>
 #include <aspect/global.h>
-
-#include <deal.II/lac/solver_gmres.h>
-
-#include <deal.II/lac/trilinos_solver.h>
 
 #include <deal.II/base/tensor_function.h>
 
@@ -117,10 +113,10 @@ namespace aspect
         // all processors need to agree on the index.
 
         // First find candidates for DoF indices to constrain for each velocity component.
-        types::global_dof_index vel_idx[dim];
+        std::array<types::global_dof_index,dim> vel_idx;
         {
-          for (unsigned int d=0; d<dim; ++d)
-            vel_idx[d] = numbers::invalid_dof_index;
+          for (types::global_dof_index &idx : vel_idx)
+            idx = numbers::invalid_dof_index;
 
           unsigned int n_left_to_find = dim;
 
@@ -154,13 +150,12 @@ namespace aspect
 
                     // are we done searching?
                     if (n_left_to_find == 0)
-                      break; // exit inner loop
+                      goto after_cell_loop; // exit both nested loops at the same time
                   }
-
-                if (n_left_to_find == 0)
-                  break; // exit outer loop
               }
 
+        after_cell_loop:
+          ;
         }
 
 
@@ -199,7 +194,11 @@ namespace aspect
                 {
                   Assert(!constraints.is_constrained((global_idx)),
                          ExcInternalError());
+#if DEAL_II_VERSION_GTE(9,6,0)
+                  constraints.constrain_dof_to_zero(global_idx);
+#else
                   constraints.add_line(global_idx);
+#endif
                 }
             }
       }
@@ -208,7 +207,7 @@ namespace aspect
 
   template <int dim>
   void Simulator<dim>::remove_nullspace(LinearAlgebra::BlockVector &relevant_dst,
-                                        LinearAlgebra::BlockVector &tmp_distributed_stokes)
+                                        LinearAlgebra::BlockVector &tmp_distributed_stokes) const
   {
     if (parameters.nullspace_removal & NullspaceRemoval::angular_momentum)
       {
@@ -245,9 +244,9 @@ namespace aspect
   }
 
   template <int dim>
-  void Simulator<dim>::remove_net_linear_momentum( const bool use_constant_density,
-                                                   LinearAlgebra::BlockVector &relevant_dst,
-                                                   LinearAlgebra::BlockVector &tmp_distributed_stokes )
+  void Simulator<dim>::remove_net_linear_momentum(const bool use_constant_density,
+                                                  LinearAlgebra::BlockVector &relevant_dst,
+                                                  LinearAlgebra::BlockVector &tmp_distributed_stokes) const
   {
     Assert(introspection.block_indices.velocities != introspection.block_indices.pressure,
            ExcNotImplemented());
@@ -262,45 +261,28 @@ namespace aspect
     Tensor<1,dim> local_momentum;
     double local_mass = 0.0;
 
-
-    // Vectors for evaluating the finite element solution
-    std::vector<std::vector<double>> composition_values (introspection.n_compositional_fields,
-                                                          std::vector<double> (n_q_points));
-    std::vector<Tensor<1,dim>> velocities( n_q_points );
-
-    typename DoFHandler<dim>::active_cell_iterator cell;
     // loop over all local cells
     for (const auto &cell : dof_handler.active_cell_iterators())
       if (cell->is_locally_owned())
         {
           fe.reinit (cell);
 
-          // get the velocity at each quadrature point
-          fe[introspection.extractors.velocities].get_function_values (relevant_dst, velocities);
-
           // get the density at each quadrature point if necessary
           MaterialModel::MaterialModelInputs<dim> in(n_q_points,
                                                      introspection.n_compositional_fields);
           MaterialModel::MaterialModelOutputs<dim> out(n_q_points,
                                                        introspection.n_compositional_fields);
-          in.requested_properties = MaterialModel::MaterialProperties::density;
 
-          if (!use_constant_density)
+          if (use_constant_density)
             {
-              fe[introspection.extractors.pressure].get_function_values(relevant_dst, in.pressure);
-              fe[introspection.extractors.temperature].get_function_values(relevant_dst, in.temperature);
-              in.velocity = velocities;
-              fe[introspection.extractors.pressure].get_function_gradients(relevant_dst, in.pressure_gradient);
-              for (unsigned int c = 0; c < introspection.n_compositional_fields; ++c)
-                fe[introspection.extractors.compositional_fields[c]].get_function_values(relevant_dst,
-                                                                                         composition_values[c]);
-
-              for (unsigned int i = 0; i < n_q_points; ++i)
-                {
-                  in.position[i] = fe.quadrature_point(i);
-                  for (unsigned int c = 0; c < introspection.n_compositional_fields; ++c)
-                    in.composition[i][c] = composition_values[c][i];
-                }
+              // get only the velocity at each quadrature point
+              fe[introspection.extractors.velocities].get_function_values (relevant_dst, in.velocity);
+            }
+          else
+            {
+              // get all material inputs including velocity and evaluate for density
+              in.reinit(fe,cell,introspection,relevant_dst);
+              in.requested_properties = MaterialModel::MaterialProperties::density;
               material_model->evaluate(in, out);
             }
 
@@ -309,15 +291,16 @@ namespace aspect
             {
               // get the density at this quadrature point
               const double rho = (use_constant_density ? 1.0 : out.densities[k]);
+              const double JxW = fe.JxW(k);
 
-              local_momentum += velocities[k] * rho * fe.JxW(k);
-              local_mass += rho * fe.JxW(k);
+              local_momentum += in.velocity[k] * rho * JxW;
+              local_mass += rho * JxW;
             }
         }
 
     // Calculate the total mass and velocity correction
-    const double mass = Utilities::MPI::sum( local_mass, mpi_communicator);
-    Tensor<1,dim> velocity_correction = Utilities::MPI::sum(local_momentum, mpi_communicator)/mass;
+    const double mass = Utilities::MPI::sum(local_mass, mpi_communicator);
+    Tensor<1,dim> velocity_correction = Utilities::MPI::sum(local_momentum, mpi_communicator) / mass;
 
     // We may only want to remove the nullspace for a single component, so zero out
     // the velocity correction if it is not selected by the NullspaceRemoval flag
@@ -379,11 +362,11 @@ namespace aspect
                           :
                           dynamic_cast<FEValuesBase<dim> &>(fe_face_values));
 
-    // moment of inertia and angular momentum for 3D
+    // moment of inertia and angular momentum for 3d
     SymmetricTensor<2,dim> local_moment_of_inertia;
     Tensor<1,dim> local_angular_momentum;
 
-    // analogues to the moment of inertia and angular momentum for 2D
+    // analogues to the moment of inertia and angular momentum for 2d
     double local_scalar_moment_of_inertia = 0.0;
     double local_scalar_angular_momentum = 0.0;
 
@@ -425,7 +408,7 @@ namespace aspect
           if (use_constant_density == false)
             {
               // Set use_strain_rates to false since we don't need viscosity
-              in.reinit(fe, cell, introspection, solution, false);
+              in.reinit(fe, cell, introspection, solution);
               material_model->evaluate(in, out);
             }
           else
@@ -484,10 +467,10 @@ namespace aspect
 
 
   template <int dim>
-  void Simulator<dim>::remove_net_angular_momentum( const bool use_constant_density,
-                                                    LinearAlgebra::BlockVector &relevant_dst,
-                                                    LinearAlgebra::BlockVector &tmp_distributed_stokes,
-                                                    const bool limit_to_top_faces)
+  void Simulator<dim>::remove_net_angular_momentum(const bool use_constant_density,
+                                                   LinearAlgebra::BlockVector &relevant_dst,
+                                                   LinearAlgebra::BlockVector &tmp_distributed_stokes,
+                                                   const bool limit_to_top_faces) const
   {
     Assert(introspection.block_indices.velocities != introspection.block_indices.pressure,
            ExcNotImplemented());
@@ -530,7 +513,7 @@ namespace aspect
 {
 #define INSTANTIATE(dim) \
   template struct RotationProperties<dim>; \
-  template void Simulator<dim>::remove_nullspace (LinearAlgebra::BlockVector &,LinearAlgebra::BlockVector &vector); \
+  template void Simulator<dim>::remove_nullspace (LinearAlgebra::BlockVector &,LinearAlgebra::BlockVector &vector) const; \
   template void Simulator<dim>::setup_nullspace_constraints (AffineConstraints<double> &);
 
   ASPECT_INSTANTIATE(INSTANTIATE)

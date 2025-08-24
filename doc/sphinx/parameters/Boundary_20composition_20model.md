@@ -13,7 +13,7 @@
 
 **Documentation:** When the composition is fixed on a given boundary as determined by the list of &rsquo;Fixed composition boundary indicators&rsquo;, there might be parts of the boundary where material flows out and one may want to prescribe the composition only on those parts of the boundary where there is inflow. This parameter determines if compositions are only prescribed at these inflow parts of the boundary (if false) or everywhere on a given boundary, independent of the flow direction (if true). By default, this parameter is set to false, except in models with melt transport (see below). Note that in this context, &lsquo;fixed&rsquo; refers to the fact that these are the boundary indicators where Dirichlet boundary conditions are applied, and does not imply that the boundary composition is time-independent.
 
-Mathematically speaking, the compositional fields satisfy an advection equation that has no diffusion. For this equation, one can only impose Dirichlet boundary conditions (i.e., prescribe a fixed compositional field value at the boundary) at those boundaries where material flows in. This would correspond to the &ldquo;false&rdquo; setting of this parameter, which is correspondingly the default. On the other hand, on a finite dimensional discretization such as the one one obtains from the finite element method, it is possible to also prescribe values on outflow boundaries, even though this may make no physical sense. This would then correspond to the &ldquo;true&rdquo; setting of this parameter.
+Mathematically speaking, the compositional fields satisfy an advection equation that has no diffusion. For this equation, one can only impose Dirichlet boundary conditions (i.e., prescribe a fixed compositional field value at the boundary) at those boundaries where material flows in. This would correspond to the &ldquo;false&rdquo; setting of this parameter, which is correspondingly the default. On the other hand, on a finite dimensional discretization such as the one one obtains from the finite element method, it is possible to also prescribe values on outflow boundaries, even though this may make no physical sense. This would then correspond to the &ldquo;true&rdquo; setting of this parameter. Note however that this parameter is only taken into account for the continuous field method and is not applied to the Discontinuous Galerkin (DG) field method.
 
 A warning for models with melt transport: In models with fluid flow, some compositional fields (in particular the porosity) might be transported with the fluid velocity, and would need to set the constraints based on the fluid velocity. However, this is currently not possible, because we reuse the same matrix for all compositional fields, and therefore can not use different constraints for different fields. Consequently, we set this parameter to true by default in models where melt transport is enabled. Be aware that if you change this default setting, you will not use the melt velocity, but the solid velocity to determine on which parts of the boundaries there is outflow.
 
@@ -49,13 +49,13 @@ The following boundary composition models are available:
 
 Since the symbol $t$ indicating time may appear in the formulas for the prescribed composition, it is interpreted as having units seconds unless the global input parameter &ldquo;Use years in output instead of seconds&rdquo; is set, in which case we interpret the formula expressions as having units year.
 
-The format of these functions follows the syntax understood by the muparser library, see Section~\ref{sec:muparser-format}.
+The format of these functions follows the syntax understood by the muparser library, see {ref}`sec:run-aspect:parameters-overview:muparser-format`.
 
 &lsquo;initial composition&rsquo;: A model in which the composition at the boundary is chosen to be the same as given in the initial conditions.
 
 Because this class simply takes what the initial composition had described, this class can not know certain pieces of information such as the minimal and maximal composition on the boundary. For operations that require this, for example in post-processing, this boundary composition model must therefore be told what the minimal and maximal values on the boundary are. This is done using parameters set in section &ldquo;Boundary composition model/Initial composition&rdquo;.
 
-&lsquo;spherical constant&rsquo;: A model in which the composition is chosen constant on the inner and outer boundaries of a surface, spherical shell, chunk or ellipsoidal chunk. Parameters are read from subsection &rsquo;Spherical constant&rsquo;.
+&lsquo;spherical constant&rsquo;: A model in which the composition is chosen constant on the inner and outer boundaries of a sphere, spherical shell, chunk or ellipsoidal chunk. Parameters are read from subsection &rsquo;Spherical constant&rsquo;.
 
 (parameters:Boundary_20composition_20model/List_20of_20model_20operators)=
 ### __Parameter name:__ List of model operators
@@ -83,13 +83,13 @@ Because this class simply takes what the initial composition had described, this
 
 Since the symbol $t$ indicating time may appear in the formulas for the prescribed composition, it is interpreted as having units seconds unless the global input parameter &ldquo;Use years in output instead of seconds&rdquo; is set, in which case we interpret the formula expressions as having units year.
 
-The format of these functions follows the syntax understood by the muparser library, see Section~\ref{sec:muparser-format}.
+The format of these functions follows the syntax understood by the muparser library, see {ref}`sec:run-aspect:parameters-overview:muparser-format`.
 
 &lsquo;initial composition&rsquo;: A model in which the composition at the boundary is chosen to be the same as given in the initial conditions.
 
 Because this class simply takes what the initial composition had described, this class can not know certain pieces of information such as the minimal and maximal composition on the boundary. For operations that require this, for example in post-processing, this boundary composition model must therefore be told what the minimal and maximal values on the boundary are. This is done using parameters set in section &ldquo;Boundary composition model/Initial composition&rdquo;.
 
-&lsquo;spherical constant&rsquo;: A model in which the composition is chosen constant on the inner and outer boundaries of a surface, spherical shell, chunk or ellipsoidal chunk. Parameters are read from subsection &rsquo;Spherical constant&rsquo;.
+&lsquo;spherical constant&rsquo;: A model in which the composition is chosen constant on the inner and outer boundaries of a sphere, spherical shell, chunk or ellipsoidal chunk. Parameters are read from subsection &rsquo;Spherical constant&rsquo;.
 
 **Warning**: This parameter provides an old and deprecated way of specifying boundary composition models and shouldn&rsquo;t be used. Please use &rsquo;List of model names&rsquo; instead.
 
@@ -133,7 +133,7 @@ Because this class simply takes what the initial composition had described, this
 
 **Pattern:** [Double 0...MAX_DOUBLE (inclusive)]
 
-**Documentation:** The &lsquo;First data file model time&rsquo; parameter has been deactivated and will be removed in a future release. Do not use this paramter and instead provide data files starting from the model start time.
+**Documentation:** The &lsquo;First data file model time&rsquo; parameter has been deactivated and will be removed in a future release. Do not use this parameter and instead provide data files starting from the model start time.
 
 (parameters:Boundary_20composition_20model/Ascii_20data_20model/First_20data_20file_20number)=
 ### __Parameter name:__ First data file number
@@ -243,7 +243,7 @@ Because this class simply takes what the initial composition had described, this
 
 **Pattern:** [Selection cartesian|spherical|depth ]
 
-**Documentation:** A selection that determines the assumed coordinate system for the function variables. Allowed values are &rsquo;cartesian&rsquo;, &rsquo;spherical&rsquo;, and &rsquo;depth&rsquo;. &rsquo;spherical&rsquo; coordinates are interpreted as r,phi or r,phi,theta in 2D/3D respectively with theta being the polar angle. &rsquo;depth&rsquo; will create a function, in which only the first parameter is non-zero, which is interpreted to be the depth of the point.
+**Documentation:** A selection that determines the assumed coordinate system for the function variables. Allowed values are &rsquo;cartesian&rsquo;, &rsquo;spherical&rsquo;, and &rsquo;depth&rsquo;. &rsquo;spherical&rsquo; coordinates are interpreted as r,phi or r,phi,theta in 2d/3d respectively with theta being the polar angle. &rsquo;depth&rsquo; will create a function, in which only the first parameter is non-zero, which is interpreted to be the depth of the point.
 
 (parameters:Boundary_20composition_20model/Function/Function_20constants)=
 ### __Parameter name:__ Function constants
@@ -297,14 +297,14 @@ If the function you are describing represents a vector-valued function with mult
 ### __Parameter name:__ Inner composition
 **Default value:** 1.
 
-**Pattern:** [Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]
+**Pattern:** [List of <[Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]> of length 0...4294967295 (inclusive)]
 
-**Documentation:** Composition at the inner boundary (core mantle boundary). Units: none.
+**Documentation:** A comma separated list of composition boundary values at the bottom boundary (at minimal radius). This list must have one entry or as many entries as there are compositional fields. Units: none.
 
 (parameters:Boundary_20composition_20model/Spherical_20constant/Outer_20composition)=
 ### __Parameter name:__ Outer composition
 **Default value:** 0.
 
-**Pattern:** [Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]
+**Pattern:** [List of <[Double -MAX_DOUBLE...MAX_DOUBLE (inclusive)]> of length 0...4294967295 (inclusive)]
 
-**Documentation:** Composition at the outer boundary (lithosphere water/air). For a spherical geometry model, this is the only boundary. Units: none.
+**Documentation:** A comma separated list of composition boundary values at the top boundary (at maximal radius). This list must have one entry or as many entries as there are compositional fields. Units: none.

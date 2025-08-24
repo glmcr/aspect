@@ -12,12 +12,12 @@ namespace aspect
   {
     using namespace dealii;
 
-    template<int dim>
+    template <int dim>
     class SolKzCompositionalMaterial : public SolKzMaterial<dim>
     {
       public:
-        virtual void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-                              MaterialModel::MaterialModelOutputs<dim> &out) const
+        void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+                      MaterialModel::MaterialModelOutputs<dim> &out) const override
         {
           SolKzMaterial<dim>::evaluate(in, out);
 

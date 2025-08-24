@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -54,7 +54,7 @@ namespace aspect
      * The parameters that describe this geometry and that are read from the
      * input file are the inner, outer and middle boundary radius of the shell,
      * the minimum and maximum longitude, minimum and maximum longitude, and the
-     * number of cells initialised in each dimension. In the radial direction,
+     * number of cells initialized in each dimension. In the radial direction,
      * this number should be specified for both the lower and the upper part of
      * the chunk (with their boundary lying at the middle boundary radius).
      *
@@ -75,12 +75,6 @@ namespace aspect
          * from SimulatorAccess.
          */
         void initialize () override;
-
-        /**
-         * This function calls the initialize function of the manifold
-         * with the given pointer to the initial topography model.
-         */
-        void set_topography_model (const InitialTopographyModel::Interface<dim> *topo_pointer);
 
         /**
          * Generate a coarse mesh for the geometry described by this class.
@@ -147,21 +141,6 @@ namespace aspect
          * @copydoc Interface::representative_point()
          */
         Point<dim> representative_point(const double depth) const override;
-
-        /**
-         * Whereas the depth function returns the depth with respect
-         * to the unperturbed surface, this function
-         * returns the depth with respect to the surface
-         * including the initial topography. For models without
-         * initial topography, the result will be the same.
-         *
-         * Note that the perturbed surface only considers the
-         * initially prescribed topography, not any perturbations
-         * due to a displacement of the free surface. Therefore,
-         * be careful with using this function if the surface changes
-         * over time.
-         */
-        double depth_wrt_topo(const Point<dim> &position) const;
 
         /**
          * Return the longitude at the western edge of the chunk measured in
@@ -273,6 +252,15 @@ namespace aspect
 
       private:
         /**
+         * Whether to make the grid by gluing together two chunks, or just
+         * use one chunk to make the grid. Using two grids glued together
+         * is a safer option, since it forces the boundary conditions
+         * to be always applied to the same depth, but one unified grid allows
+         * for a more flexible usage of the adaptive refinement.
+         */
+        bool use_merged_grids;
+
+        /**
          * Minimum longitude-depth (2D) or
          * longitude-latitude-depth (3D) point
          * of the entire merged chunk.
@@ -304,18 +292,31 @@ namespace aspect
          * The number of cells in each coordinate direction
          * for the lower and upper chunk.
          */
-        std::vector<unsigned int> lower_repetitions;
-        std::vector<unsigned int> upper_repetitions;
+        std::array<unsigned int, dim> lower_repetitions;
+        std::array<unsigned int, dim> upper_repetitions;
 
         /**
-         * An object that describes the geometry.
+         * An object that describes the geometry. This pointer is
+         * initialized in the initialize() function, and serves as the manifold
+         * object that the triangulation is later given in create_coarse_mesh()
+         * where the triangulation clones it.
+         *
+         * The object is marked as 'const' to make it clear that it should not
+         * be modified once created. That is because the triangulation copies it,
+         * and modifying the current object will not have any impact on the
+         * manifold used by the triangulation.
          */
-        internal::ChunkGeometry<dim> manifold;
+        std::unique_ptr<const internal::ChunkGeometry<dim>> manifold;
+
+        /**
+         * Give a symbolic name to the manifold id to be used by this class.
+         */
+        static constexpr types::manifold_id my_manifold_id = 15;
 
         /**
          * Bind boundary indicators to child cells after each mesh refinement round.
          */
-        virtual void set_boundary_indicators (parallel::distributed::Triangulation<dim> &triangulation) const;
+        void set_boundary_indicators (parallel::distributed::Triangulation<dim> &triangulation) const;
     };
   }
 }

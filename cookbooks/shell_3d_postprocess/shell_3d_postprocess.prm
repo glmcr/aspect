@@ -24,6 +24,7 @@ set Surface pressure                       = 0
 # outer radius of 6371km
 subsection Geometry model
   set Model name = spherical shell
+
   subsection Spherical shell
     set Inner radius  = 3481000
     set Outer radius  = 6371000
@@ -48,6 +49,7 @@ end
 # everywhere
 subsection Gravity model
   set Model name = radial constant
+
   subsection Radial constant
     set Magnitude = 10
   end
@@ -70,7 +72,8 @@ end
 # a constant density, and other parameters as stated below.
 subsection Material model
   set Model name = simple
-    subsection Simple model
+
+  subsection Simple model
     set Reference density                 = 3300
     set Viscosity                         = 1e21
     set Thermal expansion coefficient     = 3e-5
@@ -93,14 +96,17 @@ subsection Boundary velocity model
   set Tangential velocity boundary indicators = bottom,top
 end
 
-
 # We output the density, velocity, dynamic topography and geoid anomalies
 subsection Postprocess
   set List of postprocessors = velocity statistics, dynamic topography, visualization, basic statistics, geoid
 
   subsection Visualization
     set Output format                 = vtu
-    set List of output variables      = geoid, dynamic topography, density, viscosity, gravity
+    set List of output variables      = geoid, dynamic topography, material properties, gravity
     set Number of grouped files       = 1
+
+    subsection Material properties
+      set List of material properties = density, viscosity
+    end
   end
 end

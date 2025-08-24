@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -44,10 +44,10 @@ namespace aspect
       return numbers::signaling_nan<double>();
 
     // record maximal entropy on Gauss quadrature points
-    const Quadrature<dim> &quadrature_formula
-      = (advection_field.is_temperature() ?
-         introspection.quadratures.temperature :
-         introspection.quadratures.compositional_fields);
+    const Quadrature<dim> &quadrature_formula =
+      (advection_field.is_temperature() ?
+       introspection.quadratures.temperature :
+       introspection.quadratures.compositional_fields[advection_field.compositional_variable]);
     const unsigned int n_q_points = quadrature_formula.size();
 
     const FEValuesExtractors::Scalar field = advection_field.scalar_extractor(introspection);
@@ -134,28 +134,31 @@ namespace aspect
 
     std::vector<double> residual (scratch.finite_element_values.n_quadrature_points,0.0);
 
-    for (unsigned int i=0; i<assemblers->advection_system.size(); ++i)
+    for (unsigned int i=0; i<assemblers->advection_system[advection_field.field_index()].size(); ++i)
       {
-        const std::vector<double> new_residual = assemblers->advection_system[i]->compute_residual(scratch);
+        const std::vector<double> new_residual = assemblers->advection_system[advection_field.field_index()][i]->compute_residual(scratch);
         for (unsigned int j=0; j<residual.size(); ++j)
           residual[j] += new_residual[j];
 
-        if (auto *stabilization_assembler =
-              dynamic_cast<Assemblers::AdvectionStabilizationInterface<dim>*> ((assemblers->advection_system[i]).get()))
-          {
-            // Ensure no other assembler has set max_advection_prefactor or max_conductivity before,
-            // otherwise we dont know which one to use.
-            Assert (max_advection_prefactor == 0.0 && max_conductivity == 0.0,
-                    ExcMessage("More than one assembler has provided scaling factors for the entropy "
-                               "viscosity stabilization, which is not supported. Make sure only one active advection "
-                               "assembler is derived from the class AdvectionStabilizationInterface."));
+        auto *stabilization_assembler =
+          dynamic_cast<Assemblers::AdvectionStabilizationInterface<dim>*> ((assemblers->advection_system[advection_field.field_index()][i]).get());
 
-            const std::vector<double> advection_prefactors = stabilization_assembler->advection_prefactors(scratch);
-            const std::vector<double> conductivities = stabilization_assembler->diffusion_prefactors(scratch);
+        Assert (stabilization_assembler != nullptr,
+                ExcMessage("Entropy viscosity can only be computed for assemblers that "
+                           "are derived from the advection stabilization assembler interface."));
 
-            max_advection_prefactor = *std::max_element(advection_prefactors.begin(),advection_prefactors.end());
-            max_conductivity = *std::max_element(conductivities.begin(),conductivities.end());
-          }
+        // Ensure no other assembler has set max_advection_prefactor or max_conductivity before,
+        // otherwise we dont know which one to use.
+        Assert (max_advection_prefactor == 0.0 && max_conductivity == 0.0,
+                ExcMessage("More than one assembler has provided scaling factors for the entropy "
+                           "viscosity stabilization, which is not supported. Make sure only one active advection "
+                           "assembler is derived from the class AdvectionStabilizationInterface."));
+
+        const std::vector<double> advection_prefactors = stabilization_assembler->advection_prefactors(scratch);
+        const std::vector<double> conductivities = stabilization_assembler->diffusion_prefactors(scratch);
+
+        max_advection_prefactor = *std::max_element(advection_prefactors.begin(),advection_prefactors.end());
+        max_conductivity = *std::max_element(conductivities.begin(),conductivities.end());
       }
 
     std::vector<Tensor<1,dim>> old_fluid_velocity_values(scratch.finite_element_values.n_quadrature_points);
@@ -549,8 +552,8 @@ namespace aspect
           }
         scratch.material_model_inputs.current_cell = cell;
 
-        for (unsigned int i=0; i<assemblers->advection_system.size(); ++i)
-          assemblers->advection_system[i]->create_additional_material_model_outputs(scratch.material_model_outputs);
+        for (unsigned int i=0; i<assemblers->advection_system[advection_field.field_index()].size(); ++i)
+          assemblers->advection_system[advection_field.field_index()][i]->create_additional_material_model_outputs(scratch.material_model_outputs);
         heating_model_manager.create_additional_material_model_inputs_and_outputs(scratch.material_model_inputs,
                                                                                   scratch.material_model_outputs);
 
@@ -581,6 +584,7 @@ namespace aspect
                                                    cell,
                                                    scratch.finite_element_values.get_quadrature(),
                                                    scratch.finite_element_values.get_mapping(),
+                                                   scratch.material_model_inputs.requested_properties,
                                                    scratch.material_model_outputs);
 
         if (parameters.advection_stabilization_method == Parameters<dim>::AdvectionStabilizationMethod::entropy_viscosity)
@@ -623,13 +627,7 @@ namespace aspect
                 }
             }
 
-            const double fe_order
-              = (advection_field.is_temperature()
-                 ?
-                 parameters.temperature_degree
-                 :
-                 parameters.composition_degree
-                );
+            const double fe_order = advection_field.polynomial_degree(introspection);
             const double h = cell->diameter();
             const double eps = max_conductivity_on_cell;
 
@@ -652,7 +650,7 @@ namespace aspect
                 // important, as long as the result is still a valid number. Note that this
                 // is only important if \|u\| and eps are zero.
                 const double peclet = peclet_times_eps / (eps + 1e-100);
-                const double coth_of_peclet = (1.0 + exp(-2.0*peclet)) / (1.0 - exp(-2.0*peclet));
+                const double coth_of_peclet = (1.0 + std::exp(-2.0*peclet)) / (1.0 - std::exp(-2.0*peclet));
                 const double delta = h/(2.0*norm_of_advection_term*fe_order) * (coth_of_peclet - 1.0/peclet);
                 viscosity_per_cell[cell->active_cell_index()] = delta;
               }

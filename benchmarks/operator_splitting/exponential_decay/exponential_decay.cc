@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -37,14 +37,16 @@ namespace aspect
     class ExponentialDecay : public MaterialModel::Interface<dim>, public ::aspect::SimulatorAccess<dim>
     {
       public:
-        virtual void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
-                              MaterialModel::MaterialModelOutputs<dim> &out) const;
+        void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
+                      MaterialModel::MaterialModelOutputs<dim> &out) const override;
+
         static void declare_parameters (ParameterHandler &prm);
-        virtual void parse_parameters(ParameterHandler &prm);
 
-        virtual bool is_compressible () const;
+        void parse_parameters(ParameterHandler &prm) override;
 
-        virtual void create_additional_named_outputs (MaterialModel::MaterialModelOutputs<dim> &out) const;
+        bool is_compressible () const override;
+
+        void create_additional_named_outputs (MaterialModel::MaterialModelOutputs<dim> &out) const override;
 
       private:
 
@@ -68,13 +70,14 @@ namespace aspect
     class ExponentialDecayHeating : public HeatingModel::Interface<dim>, public ::aspect::SimulatorAccess<dim>
     {
       public:
-        virtual
         void
         evaluate (const MaterialModel::MaterialModelInputs<dim> &material_model_inputs,
                   const MaterialModel::MaterialModelOutputs<dim> &material_model_outputs,
-                  HeatingModel::HeatingModelOutputs &heating_model_outputs) const;
+                  HeatingModel::HeatingModelOutputs &heating_model_outputs) const override;
+
         static void declare_parameters (ParameterHandler &prm);
-        virtual void parse_parameters (ParameterHandler &prm);
+
+        void parse_parameters (ParameterHandler &prm) override;
 
       private:
         /**
@@ -118,12 +121,12 @@ namespace aspect
       // fill melt reaction rates if they exist
       ReactionRateOutputs<dim> *reaction_out = out.template get_additional_output<ReactionRateOutputs<dim>>();
 
-      if (reaction_out != NULL)
+      if (reaction_out != nullptr)
         {
           for (unsigned int q=0; q < in.n_evaluation_points(); ++q)
             {
               // dC/dt = - lambda * C
-              const double decay_constant = half_life > 0.0 ? log(2.0) / half_life : 0.0;
+              const double decay_constant = half_life > 0.0 ? std::log(2.0) / half_life : 0.0;
               reaction_out->reaction_rates[q][0] = - decay_constant / time_scale * in.composition[q][0];
             }
         }
@@ -174,8 +177,8 @@ namespace aspect
           // class; it will get a chance to read its parameters below after we
           // leave the current section
           base_model = create_material_model<dim>(prm.get("Base model"));
-          if (Plugins::plugin_type_matches<SimulatorAccess<dim>>(*base_model))
-            Plugins::get_plugin_as_type<SimulatorAccess<dim>>(*base_model).initialize_simulator (this->get_simulator());
+          if (auto s = dynamic_cast<SimulatorAccess<dim>*>(base_model.get()))
+            s->initialize_simulator (this->get_simulator());
 
           half_life              = prm.get_double ("Half life");
         }
@@ -183,7 +186,7 @@ namespace aspect
       }
       prm.leave_subsection();
 
-      // After parsing the parameters for the exponetial decay material model,
+      // After parsing the parameters for the exponential decay material model,
       // also parse the parameters related to the base model.
       base_model->parse_parameters(prm);
       this->model_dependence = base_model->get_model_dependence();
@@ -194,7 +197,7 @@ namespace aspect
     void
     ExponentialDecay<dim>::create_additional_named_outputs (MaterialModel::MaterialModelOutputs<dim> &out) const
     {
-      if (out.template get_additional_output<ReactionRateOutputs<dim>>() == NULL)
+      if (out.template get_additional_output<ReactionRateOutputs<dim>>() == nullptr)
         {
           const unsigned int n_points = out.n_evaluation_points();
           out.additional_outputs.push_back(
@@ -222,7 +225,7 @@ namespace aspect
       for (unsigned int q=0; q<heating_model_outputs.heating_source_terms.size(); ++q)
         {
           // dC/dt = - lambda * C
-          const double decay_constant = half_life > 0.0 ? log(2.0) / half_life : 0.0;
+          const double decay_constant = half_life > 0.0 ? std::log(2.0) / half_life : 0.0;
           heating_model_outputs.rates_of_temperature_change[q] = - decay_constant / time_scale * in.composition[q][0];
 
           heating_model_outputs.heating_source_terms[q] = 0.0;
@@ -276,14 +279,14 @@ namespace aspect
   {
     public:
       RefFunction () : Function<dim>(dim+3) {}
-      virtual void vector_value (const Point<dim> &/*position*/,
-                                 Vector<double>   &values) const
+      void vector_value (const Point<dim> &/*position*/,
+                         Vector<double>   &values) const override
       {
         values[0] = 0.0; // velocity x
         values[1] = 0.0; // velocity z
         values[2] = 0.0; // pressure
-        values[3] = exp(-log(2.0)/10.0*this->get_time()); // temperature
-        values[4] = exp(-log(2.0)/10.0*this->get_time()); // composition
+        values[3] = std::exp(-std::log(2.0)/10.0*this->get_time()); // temperature
+        values[4] = std::exp(-std::log(2.0)/10.0*this->get_time()); // composition
       }
   };
 
@@ -302,15 +305,14 @@ namespace aspect
       /**
        * Generate graphical output from the current solution.
        */
-      virtual
       std::pair<std::string,std::string>
-      execute (TableHandler &statistics);
+      execute (TableHandler &statistics) override;
 
       double max_error;
       double max_error_T;
   };
 
-  template<int dim>
+  template <int dim>
   ExponentialDecayPostprocessor<dim>::ExponentialDecayPostprocessor ()
   {
     max_error = 0.0;

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -38,71 +38,10 @@ namespace aspect
   {
     template <int dim>
     void
-    Interface<dim>::initialize ()
-    {}
-
-
-
-    template <int dim>
-    void
-    Interface<dim>::update ()
-    {}
-
-
-
-    DEAL_II_DISABLE_EXTRA_DIAGNOSTICS
-    template <int dim>
-    void
-    Interface<dim>::evaluate (const MaterialModel::MaterialModelInputs<dim> &material_model_inputs,
-                              const MaterialModel::MaterialModelOutputs<dim> &material_model_outputs,
-                              HeatingModel::HeatingModelOutputs &heating_model_outputs) const
-    {
-      Assert(heating_model_outputs.heating_source_terms.size() == material_model_inputs.position.size(),
-             ExcMessage ("Heating outputs need to have the same number of entries as the material model inputs."));
-      for (unsigned int q=0; q<heating_model_outputs.heating_source_terms.size(); ++q)
-        {
-          heating_model_outputs.heating_source_terms[q] = specific_heating_rate(material_model_inputs.temperature[q],
-                                                                                material_model_inputs.pressure[q],
-                                                                                material_model_inputs.composition[q],
-                                                                                material_model_inputs.position[q])
-                                                          * material_model_outputs.densities[q];
-          heating_model_outputs.lhs_latent_heat_terms[q] = 0.0;
-        }
-    }
-    DEAL_II_ENABLE_EXTRA_DIAGNOSTICS
-
-
-    template <int dim>
-    double
-    Interface<dim>::specific_heating_rate (const double,
-                                           const double,
-                                           const std::vector<double> &,
-                                           const Point<dim> &) const
-    {
-      Assert(false,
-             ExcMessage ("There is no `evaluate()' or `specific_heating_rate()' function implemented in the heating model!"));
-      return 0.0;
-    }
-
-
-    template <int dim>
-    void
-    Interface<dim>::
-    declare_parameters (dealii::ParameterHandler &)
-    {}
-
-
-    template <int dim>
-    void
-    Interface<dim>::parse_parameters (dealii::ParameterHandler &)
-    {}
-
-
-    template <int dim>
-    void
     Interface<dim>::
     create_additional_material_model_outputs(MaterialModel::MaterialModelOutputs<dim> & /*outputs*/) const
     {}
+
 
 
     template <int dim>
@@ -114,17 +53,13 @@ namespace aspect
 
     // ------------------------------ Manager -----------------------------
 
-    template <int dim>
-    Manager<dim>::~Manager()
-      = default;
-
 
 
     template <int dim>
     bool
     Manager<dim>::adiabatic_heating_enabled() const
     {
-      return has_matching_heating_model<HeatingModel::AdiabaticHeating<dim>>() ;
+      return this->template has_matching_active_plugin<HeatingModel::AdiabaticHeating<dim>>() ;
     }
 
 
@@ -133,7 +68,7 @@ namespace aspect
     bool
     Manager<dim>::shear_heating_enabled() const
     {
-      return has_matching_heating_model<HeatingModel::ShearHeating<dim>>() ;
+      return this->template has_matching_active_plugin<HeatingModel::ShearHeating<dim>>() ;
     }
 
 
@@ -141,8 +76,8 @@ namespace aspect
     namespace
     {
       std::tuple
-      <void *,
-      void *,
+      <aspect::internal::Plugins::UnusablePluginList,
+      aspect::internal::Plugins::UnusablePluginList,
       aspect::internal::Plugins::PluginList<Interface<2>>,
       aspect::internal::Plugins::PluginList<Interface<3>>> registered_plugins;
     }
@@ -170,10 +105,10 @@ namespace aspect
       // parameters we declare here
       prm.enter_subsection ("Heating model");
       {
-        model_names
+        this->plugin_names
           = Utilities::split_string_list(prm.get("List of model names"));
 
-        AssertThrow(Utilities::has_unique_entries(model_names),
+        AssertThrow(Utilities::has_unique_entries(this->plugin_names),
                     ExcMessage("The list of strings for the parameter "
                                "'Heating model/List of model names' contains entries more than once. "
                                "This is not allowed. Please check your parameter file."));
@@ -182,31 +117,20 @@ namespace aspect
 
       // go through the list, create objects and let them parse
       // their own parameters
-      for (auto &model_name : model_names)
+      for (auto &model_name : this->plugin_names)
         {
-          heating_model_objects.push_back (std::unique_ptr<Interface<dim>>
-                                           (std::get<dim>(registered_plugins)
-                                            .create_plugin (model_name,
-                                                            "Heating model::Model names")));
+          this->plugin_objects.emplace_back (std::get<dim>(registered_plugins)
+                                             .create_plugin (model_name,
+                                                             "Heating model::Model names"));
 
-          if (SimulatorAccess<dim> *sim = dynamic_cast<SimulatorAccess<dim>*>(&*heating_model_objects.back()))
+          if (SimulatorAccess<dim> *sim = dynamic_cast<SimulatorAccess<dim>*>(&*this->plugin_objects.back()))
             sim->initialize_simulator (this->get_simulator());
 
-          heating_model_objects.back()->parse_parameters (prm);
-          heating_model_objects.back()->initialize ();
+          this->plugin_objects.back()->parse_parameters (prm);
+          this->plugin_objects.back()->initialize ();
         }
     }
 
-
-    template <int dim>
-    void
-    Manager<dim>::update ()
-    {
-      for (const auto &heating_model : heating_model_objects)
-        {
-          heating_model->update();
-        }
-    }
 
     template <int dim>
     void
@@ -223,13 +147,13 @@ namespace aspect
           heating_model_outputs.rates_of_temperature_change[q] = 0.0;
         }
 
-      HeatingModel::HeatingModelOutputs individual_heating_outputs(material_model_inputs.position.size(),
+      HeatingModel::HeatingModelOutputs individual_heating_outputs(material_model_inputs.n_evaluation_points(),
                                                                    this->n_compositional_fields());
 
       const MaterialModel::ReactionRateOutputs<dim> *reaction_rate_outputs
         = material_model_outputs.template get_additional_output<MaterialModel::ReactionRateOutputs<dim>>();
 
-      for (const auto &heating_model : heating_model_objects)
+      for (const auto &heating_model : this->plugin_objects)
         {
           heating_model->evaluate(material_model_inputs, material_model_outputs, individual_heating_outputs);
           for (unsigned int q=0; q<heating_model_outputs.heating_source_terms.size(); ++q)
@@ -262,12 +186,12 @@ namespace aspect
     create_additional_material_model_inputs_and_outputs(MaterialModel::MaterialModelInputs<dim>  &material_model_inputs,
                                                         MaterialModel::MaterialModelOutputs<dim> &material_model_outputs) const
     {
-      for (const auto &heating_model : heating_model_objects)
+      for (const auto &heating_model : this->plugin_objects)
         {
           heating_model->create_additional_material_model_inputs(material_model_inputs);
         }
 
-      for (const auto &heating_model : heating_model_objects)
+      for (const auto &heating_model : this->plugin_objects)
         {
           heating_model->create_additional_material_model_outputs(material_model_outputs);
         }
@@ -279,7 +203,7 @@ namespace aspect
     const std::vector<std::string> &
     Manager<dim>::get_active_heating_model_names () const
     {
-      return model_names;
+      return this->plugin_names;
     }
 
 
@@ -287,7 +211,7 @@ namespace aspect
     const std::list<std::unique_ptr<Interface<dim>>> &
     Manager<dim>::get_active_heating_models () const
     {
-      return heating_model_objects;
+      return this->plugin_objects;
     }
 
 

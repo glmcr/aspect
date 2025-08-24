@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -23,6 +23,7 @@
 #include <aspect/simulator_access.h>
 #include <aspect/material_model/interface.h>
 #include <aspect/utilities.h>
+#include <aspect/newton.h>
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/signaling_nan.h>
@@ -72,42 +73,14 @@ namespace aspect
 
 
 
-    template <int dim>
-    void
-    Interface<dim>::initialize ()
-    {}
-
-
-
-    template <int dim>
-    void
-    Interface<dim>::update ()
-    {}
-
-
-
-    template <int dim>
-    void
-    Interface<dim>::
-    declare_parameters (dealii::ParameterHandler &)
-    {}
-
-
-
-    template <int dim>
-    void
-    Interface<dim>::parse_parameters (dealii::ParameterHandler &)
-    {}
-
-
 // -------------------------------- Deal with registering material models and automating
 // -------------------------------- their setup and selection at run time
 
     namespace
     {
       std::tuple
-      <void *,
-      void *,
+      <aspect::internal::Plugins::UnusablePluginList,
+      aspect::internal::Plugins::UnusablePluginList,
       aspect::internal::Plugins::PluginList<Interface<2>>,
       aspect::internal::Plugins::PluginList<Interface<3>>> registered_plugins;
     }
@@ -280,10 +253,8 @@ namespace aspect
       current_cell(input_data.template get_cell<dim>()),
       requested_properties(MaterialProperties::all_properties)
     {
-      if (compute_strain_rate == false)
-        {
-          requested_properties = MaterialProperties::Property(requested_properties & ~MaterialProperties::viscosity);
-        }
+      AssertThrow (compute_strain_rate == true,
+                   ExcMessage ("The option to not compute the strain rate is no longer supported."));
 
       for (unsigned int q=0; q<input_data.solution_values.size(); ++q)
         {
@@ -295,9 +266,7 @@ namespace aspect
               this->pressure_gradient[q][d] = input_data.solution_gradients[q][introspection.component_indices.pressure][d];
             }
 
-          if (compute_strain_rate)
-            this->strain_rate[q] = symmetrize (grad_u);
-
+          this->strain_rate[q] = symmetrize (grad_u);
           this->pressure[q] = input_data.solution_values[q][introspection.component_indices.pressure];
           this->temperature[q] = input_data.solution_values[q][introspection.component_indices.temperature];
 
@@ -359,23 +328,15 @@ namespace aspect
                                      const LinearAlgebra::BlockVector &solution_vector,
                                      const bool compute_strain_rate)
     {
+      AssertThrow (compute_strain_rate == true,
+                   ExcMessage ("The option to not compute the strain rate is no longer supported."));
+
       // Populate the arrays that hold solution values and gradients
       fe_values[introspection.extractors.temperature].get_function_values (solution_vector, this->temperature);
       fe_values[introspection.extractors.velocities].get_function_values (solution_vector, this->velocity);
       fe_values[introspection.extractors.pressure].get_function_values (solution_vector, this->pressure);
       fe_values[introspection.extractors.pressure].get_function_gradients (solution_vector, this->pressure_gradient);
-
-      // Only the viscosity in the material can depend on the strain_rate
-      // if this is not needed, we can save some time here.
-      if (compute_strain_rate)
-        {
-          fe_values[introspection.extractors.velocities].get_function_symmetric_gradients (solution_vector,this->strain_rate);
-          requested_properties = requested_properties | MaterialProperties::viscosity;
-        }
-      else
-        {
-          requested_properties = MaterialProperties::Property(requested_properties & ~MaterialProperties::viscosity);
-        }
+      fe_values[introspection.extractors.velocities].get_function_symmetric_gradients (solution_vector, this->strain_rate);
 
       // Vectors for evaluating the compositional field parts of the finite element solution
       std::vector<std::vector<double>> composition_values (introspection.n_compositional_fields,
@@ -469,7 +430,7 @@ namespace aspect
     {
       std::string get_averaging_operation_names ()
       {
-        return "none|arithmetic average|harmonic average|geometric average|pick largest|project to Q1|log average|harmonic average only viscosity|geometric average only viscosity|project to Q1 only viscosity";
+        return "none|default averaging|arithmetic average|harmonic average|geometric average|pick largest|project to Q1|log average|harmonic average only viscosity|geometric average only viscosity|project to Q1 only viscosity";
       }
 
 
@@ -495,6 +456,8 @@ namespace aspect
           return geometric_average_only_viscosity;
         else if (s == "project to Q1 only viscosity")
           return project_to_Q1_only_viscosity;
+        else if (s == "default averaging")
+          return default_averaging;
         else
           AssertThrow (false,
                        ExcMessage ("The value <" + s + "> for a material "
@@ -505,6 +468,22 @@ namespace aspect
       }
 
 
+
+      namespace
+      {
+        bool
+        all_entries_NaN (const std::vector<double> &values)
+        {
+          for (const double value : values)
+            if (std::isnan(value) == false)
+              return false;
+
+          return true;
+        }
+      }
+
+
+
       // Do the requested averaging operation for one array. The
       // projection matrix argument is only used if the operation
       // chosen is project_to_Q1.
@@ -513,11 +492,6 @@ namespace aspect
                              const FullMatrix<double>      &expansion_matrix,
                              std::vector<double>           &values_out)
       {
-        // if an output field has not been filled (because it was
-        // not requested), then simply do nothing -- no harm no foul
-        if (values_out.size() == 0)
-          return;
-
 #ifdef DEBUG
 #ifdef ASPECT_USE_FP_EXCEPTIONS
         // disable floating point exceptions while averaging. Errors will be reported
@@ -525,6 +499,12 @@ namespace aspect
         fedisableexcept(FE_DIVBYZERO|FE_INVALID);
 #endif
 #endif
+
+        // if an output field has not been filled (because it was
+        // not requested), then simply do nothing -- no harm no foul
+        // note that it is still an error if only some entries are NaN
+        if (values_out.size() == 0 || all_entries_NaN(values_out) == true)
+          return;
 
         const unsigned int N = values_out.size();
         const unsigned int P = expansion_matrix.n();
@@ -793,15 +773,63 @@ namespace aspect
       }
 
 
+      /**
+       * Calculate the weight for viscosity derivative, which depends on
+       * the material averaging scheme. Currently the newton method is
+       * only compatible with arithmetic average, harmonic average and
+       * geometric/log average for viscosity.
+       */
+      double
+      compute_viscosity_derivative_averaging_weight(const AveragingOperation operation,
+                                                    const double average_viscosity,
+                                                    const double viscosity_before_averaging,
+                                                    const double one_over_Nq)
+      {
+        switch (operation)
+          {
+            case none:
+              // should never reach here:
+              return numbers::signaling_nan<double>();
+
+            case arithmetic_average:
+              return one_over_Nq;
+
+            case harmonic_average:
+            case harmonic_average_only_viscosity:
+              return Utilities::fixed_power<2,double>(average_viscosity / viscosity_before_averaging)
+                     * one_over_Nq;
+
+            case geometric_average:
+            case geometric_average_only_viscosity:
+            case log_average:
+              return (average_viscosity / viscosity_before_averaging)
+                     * one_over_Nq;
+
+            default:
+              AssertThrow(false,
+                          ExcMessage("The Newton method currently only works if the material "
+                                     "averaging scheme is ``none'', ``arithmetic average'', "
+                                     "``harmonic average (only viscosity)'', ``geometric "
+                                     "average (only viscosity)'' or ``log average''."));
+          }
+      }
+
+
       template <int dim>
       void average (const AveragingOperation operation,
                     const typename DoFHandler<dim>::active_cell_iterator &cell,
                     const Quadrature<dim>         &quadrature_formula,
                     const Mapping<dim>            &mapping,
+                    const MaterialProperties::Property &requested_properties,
                     MaterialModelOutputs<dim>     &values_out)
       {
+        if (operation == none)
+          return;
+
         FullMatrix<double> projection_matrix;
         FullMatrix<double> expansion_matrix;
+
+        const bool average_viscosity = requested_properties & MaterialProperties::Property::viscosity;
 
         if (operation == project_to_Q1
             ||
@@ -820,29 +848,51 @@ namespace aspect
                                        expansion_matrix);
           }
 
-        if (operation == harmonic_average_only_viscosity)
+        // store the original viscosities if we need to compute the
+        // system jacobian later on
+        MaterialModelDerivatives<dim> *derivatives =
+          values_out.template get_additional_output<MaterialModelDerivatives<dim>>();
+
+        std::vector<double> viscosity_before_averaging;
+        if (derivatives != nullptr)
+          viscosity_before_averaging = values_out.viscosities;
+
+        // compute the average of viscosity
+        if (average_viscosity)
           {
-            average_property (harmonic_average, projection_matrix, expansion_matrix,
-                              values_out.viscosities);
-            return;
+            if (operation == harmonic_average_only_viscosity)
+              average_property (harmonic_average, projection_matrix, expansion_matrix,
+                                values_out.viscosities);
+
+            else if (operation == geometric_average_only_viscosity)
+              average_property (geometric_average, projection_matrix, expansion_matrix,
+                                values_out.viscosities);
+
+            else if (operation == project_to_Q1_only_viscosity)
+              average_property (project_to_Q1, projection_matrix, expansion_matrix,
+                                values_out.viscosities);
+
+            else
+              average_property (operation, projection_matrix, expansion_matrix,
+                                values_out.viscosities);
+
+            // calculate the weight of viscosity derivative at each
+            // quadrature point
+            if (derivatives != nullptr)
+              {
+                for (unsigned int q = 0; q < values_out.n_evaluation_points(); ++q)
+                  derivatives->viscosity_derivative_averaging_weights[q] =
+                    compute_viscosity_derivative_averaging_weight(
+                      operation, values_out.viscosities[q], viscosity_before_averaging[q],
+                      1. / values_out.n_evaluation_points());
+              }
           }
 
-        if (operation == geometric_average_only_viscosity)
-          {
-            average_property (geometric_average, projection_matrix, expansion_matrix,
-                              values_out.viscosities);
-            return;
-          }
+        if (operation == harmonic_average_only_viscosity ||
+            operation == geometric_average_only_viscosity ||
+            operation == project_to_Q1_only_viscosity)
+          return;
 
-        if (operation == project_to_Q1_only_viscosity)
-          {
-            average_property (project_to_Q1, projection_matrix, expansion_matrix,
-                              values_out.viscosities);
-            return;
-          }
-
-        average_property (operation, projection_matrix, expansion_matrix,
-                          values_out.viscosities);
         average_property (operation, projection_matrix, expansion_matrix,
                           values_out.densities);
         average_property (operation, projection_matrix, expansion_matrix,
@@ -858,13 +908,40 @@ namespace aspect
         average_property (operation, projection_matrix, expansion_matrix,
                           values_out.entropy_derivative_temperature);
 
-        // the reaction terms are unfortunately stored in reverse
-        // indexing. it's also not quite clear whether these should
-        // really be averaged, so avoid this for now
+        // The reaction terms are unfortunately stored in reverse
+        // indexing. It's also not quite clear whether these should
+        // really be averaged, so avoid this for now.
 
         // average all additional outputs
         for (unsigned int i=0; i<values_out.additional_outputs.size(); ++i)
           values_out.additional_outputs[i]->average (operation, projection_matrix, expansion_matrix);
+      }
+
+
+
+      AveragingOperation
+      get_averaging_operation_for_viscosity(const AveragingOperation operation)
+      {
+        AveragingOperation operation_for_viscosity = operation;
+        switch (operation)
+          {
+            case harmonic_average:
+              operation_for_viscosity = harmonic_average_only_viscosity;
+              break;
+
+            case geometric_average:
+              operation_for_viscosity = geometric_average_only_viscosity;
+              break;
+
+            case project_to_Q1:
+              operation_for_viscosity = project_to_Q1_only_viscosity;
+              break;
+
+            default:
+              operation_for_viscosity = operation;
+          }
+
+        return operation_for_viscosity;
       }
     }
 
@@ -906,7 +983,7 @@ namespace aspect
 
 
 
-    template<int dim>
+    template <int dim>
     std::vector<double>
     NamedAdditionalMaterialOutputs<dim>::get_nth_output(const unsigned int idx) const
     {
@@ -1008,7 +1085,7 @@ namespace aspect
 
 
 
-    template<int dim>
+    template <int dim>
     ReactionRateOutputs<dim>::ReactionRateOutputs (const unsigned int n_points,
                                                    const unsigned int n_comp)
       :
@@ -1018,7 +1095,7 @@ namespace aspect
 
 
 
-    template<int dim>
+    template <int dim>
     std::vector<double>
     ReactionRateOutputs<dim>::get_nth_output(const unsigned int idx) const
     {
@@ -1055,7 +1132,7 @@ namespace aspect
 
 
 
-    template<int dim>
+    template <int dim>
     PrescribedFieldOutputs<dim>::PrescribedFieldOutputs (const unsigned int n_points,
                                                          const unsigned int n_comp)
       :
@@ -1065,7 +1142,7 @@ namespace aspect
 
 
 
-    template<int dim>
+    template <int dim>
     std::vector<double>
     PrescribedFieldOutputs<dim>::get_nth_output(const unsigned int idx) const
     {
@@ -1081,7 +1158,7 @@ namespace aspect
 
 
 
-    template<int dim>
+    template <int dim>
     PrescribedTemperatureOutputs<dim>::PrescribedTemperatureOutputs (const unsigned int n_points)
       :
       NamedAdditionalMaterialOutputs<dim>(std::vector<std::string>(1,"prescribed_temperature")),
@@ -1090,7 +1167,7 @@ namespace aspect
 
 
 
-    template<int dim>
+    template <int dim>
     std::vector<double>
     PrescribedTemperatureOutputs<dim>::get_nth_output(const unsigned int idx) const
     {
@@ -1150,9 +1227,9 @@ namespace aspect
   std::unique_ptr<Interface<dim>> \
   create_material_model<dim> (ParameterHandler &prm); \
   \
-  template struct MaterialModelInputs<dim>; \
+  template class MaterialModelInputs<dim>; \
   \
-  template struct MaterialModelOutputs<dim>; \
+  template class MaterialModelOutputs<dim>; \
   \
   template class AdditionalMaterialOutputs<dim>; \
   \
@@ -1177,7 +1254,8 @@ namespace aspect
                   const DoFHandler<dim>::active_cell_iterator &cell, \
                   const Quadrature<dim>     &quadrature_formula, \
                   const Mapping<dim>        &mapping, \
-                  MaterialModelOutputs<dim>      &values_out); \
+                  const MaterialProperties::Property &requested_properties, \
+                  MaterialModelOutputs<dim> &values_out); \
   }
 
 

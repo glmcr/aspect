@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -210,20 +210,6 @@ namespace aspect
         double get_min_strain_rate() const;
 
         /**
-         * A function that returns whether the material is plastically yielding at
-         * the given pressure, temperature, composition, and strain rate.
-         *
-         * @deprecated: Use the other function with this name instead, which allows
-         * to pass in more general input variables.
-         */
-        DEAL_II_DEPRECATED
-        bool
-        is_yielding (const double pressure,
-                     const double temperature,
-                     const std::vector<double> &composition,
-                     const SymmetricTensor<2,dim> &strain_rate) const;
-
-        /**
          * A function that returns whether the material is plastically
          * yielding at the given input variables (pressure, temperature,
          * composition, strain rate, and so on).
@@ -264,6 +250,16 @@ namespace aspect
         bool define_conductivities;
 
         std::vector<double> thermal_conductivities;
+
+        /**
+         * Number of phase transitions for each chemical composition (including the background field).
+         */
+        std::vector<unsigned int> n_phase_transitions_for_each_chemical_composition;
+
+        /**
+         * Total number of phases.
+         */
+        unsigned int n_phases;
 
         /**
          * Object for computing the equation of state.

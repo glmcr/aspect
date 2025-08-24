@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -64,7 +64,7 @@ DEAL_II_ENABLE_EXTRA_DIAGNOSTICS
 #include <aspect/time_stepping/interface.h>
 #include <aspect/postprocess/interface.h>
 #include <aspect/adiabatic_conditions/interface.h>
-#include <aspect/particle/world.h>
+#include <aspect/particle/manager.h>
 
 #include <boost/iostreams/tee.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -167,6 +167,14 @@ namespace aspect
     Tensor<1,dim> tensor_angular_momentum;
     Tensor<1,dim> tensor_rotation;
   };
+
+  /**
+   * Exception to be thrown when the nonlinear solver needs too many iterations to converge.
+   */
+  DeclExceptionMsg(ExcNonlinearSolverNoConvergence,
+                   "Nonlinear solver failed to converge in the prescribed number of steps. "
+                   "Consider changing `Max nonlinear iterations` or `Nonlinear solver failure "
+                   "strategy`.");
 
   /**
    * This is the main class of ASPECT. It implements the overall simulation
@@ -344,6 +352,15 @@ namespace aspect
         unsigned int block_index(const Introspection<dim> &introspection) const;
 
         /**
+         * Look up the block index where the sparsity pattern for this field
+         * is stored. This can be different than block_index() as several fields
+         * can use the same pattern (typically in the first compositional field
+         * if all fields are compatible). See Introspection::block_indices
+         * for more information.
+         */
+        unsigned int sparsity_pattern_block_index(const Introspection<dim> &introspection) const;
+
+        /**
          * Returns an index that runs from 0 (temperature field) to n (nth
          * compositional field), and uniquely identifies the current advection
          * field among the list of all advection fields. Can be used to index
@@ -371,6 +388,13 @@ namespace aspect
          * field. See Introspection::polynomial_degree for more information.
          */
         unsigned int polynomial_degree(const Introspection<dim> &introspection) const;
+
+        /**
+         * Return a string that describes the field type and the compositional
+         * variable number and name, if applicable.
+         */
+        std::string
+        name(const Introspection<dim> &introspection) const;
       };
 
     private:
@@ -503,11 +527,12 @@ namespace aspect
       /**
        * Compute the factor by which we scale the second of
        * the Stokes equations (the "pressure scaling factor").
-       * We do this for the current time step by taking the logarithmic
-       * average of the viscosities we find on the cells in this domain.
+       * We compute the factor by taking the logarithmic
+       * average of the viscosities we find on the cells in
+       * this domain and dividing this average by a reference
+       * length scale provided by the used geometry model.
        *
-       * This function then returns the pressure_scaling variable using
-       * this computed reference viscosity.
+       * This function returns the pressure scaling variable.
        *
        * This function is implemented in
        * <code>source/simulator/helper_functions.cc</code>.
@@ -670,10 +695,14 @@ namespace aspect
        * number of iterations is reached. This can greatly improve the
        * convergence rate for particularly nonlinear viscosities.
        *
+       * @param use_newton_iterations Sets whether this function should only use defect
+       * correction iterations (use_newton_iterations = false) or also use Newton iterations
+       * (use_newton_iterations = true).
+       *
        * This function is implemented in
        * <code>source/simulator/solver_schemes.cc</code>.
        */
-      void solve_iterated_advection_and_newton_stokes ();
+      void solve_iterated_advection_and_newton_stokes (bool use_newton_iterations);
 
       /**
        * This function implements one scheme for the various
@@ -687,10 +716,14 @@ namespace aspect
        * number of iterations is reached. This can greatly improve the
        * convergence rate for particularly nonlinear viscosities.
        *
+       * @param use_newton_iterations Sets whether this function should only use defect
+       * correction iterations (use_newton_iterations = false) or also use Newton iterations
+       * (use_newton_iterations = true).
+       *
        * This function is implemented in
        * <code>source/simulator/solver_schemes.cc</code>.
        */
-      void solve_single_advection_iterated_newton_stokes ();
+      void solve_single_advection_and_iterated_newton_stokes (bool use_newton_iterations);
 
       /**
        * This function implements one scheme for the various
@@ -720,7 +753,7 @@ namespace aspect
 
       /**
        * Initiate the assembly of the Stokes preconditioner matrix via
-       * assemble_stokes_preconditoner(), then set up the data structures to
+       * assemble_stokes_preconditioner(), then set up the data structures to
        * actually build a preconditioner from this matrix.
        *
        * This function is implemented in
@@ -749,53 +782,59 @@ namespace aspect
 
       /**
        * Assemble and solve the temperature equation.
-       * This function returns the residual after solving
-       * and can optionally compute and store an initial
-       * residual before solving the equation.
+       * This function returns the residual after solving.
+       *
+       * If the `residual` argument is not a `nullptr`, the function computes
+       * the residual and puts it into this variable. The function returns
+       * the current residual divided by the initial residual given as the
+       * first argument. The two arguments may point to the same variable,
+       * in which case the function first computes the residual and at
+       * the end scales that residual by itself, thus returning 1.0.
        *
        * This function is implemented in
        * <code>source/simulator/solver_schemes.cc</code>.
        */
-      double assemble_and_solve_temperature (const bool compute_initial_residual = false,
-                                             double *initial_residual = nullptr);
+      double assemble_and_solve_temperature (const double &initial_residual = 0,
+                                             double *residual = nullptr);
 
       /**
        * Solve the composition equations with whatever method is selected
        * (fields or particles). This function returns the residuals for
-       * all fields after solving
-       * and can optionally compute and store the initial
-       * residuals before solving the equation. For lack of a definition
-       * the residuals of all compositional fields that are advected
-       * using particles are considered zero.
+       * all fields after solving.
+       *
+       * If the `residual` argument is not a `nullptr`, the function computes
+       * the residual and puts it into this variable. The function returns
+       * the current residual divided by the initial residual given as the
+       * first argument. The two arguments may point to the same variable,
+       * in which case the function first computes the residual and at
+       * the end scales that residual by itself, thus returning 1.0.
        *
        * This function is implemented in
        * <code>source/simulator/solver_schemes.cc</code>.
        */
-      std::vector<double> assemble_and_solve_composition (const bool compute_initial_residual = false,
-                                                          std::vector<double> *initial_residual = nullptr);
+      std::vector<double> assemble_and_solve_composition (const std::vector<double> &initial_residual = {},
+                                                          std::vector<double> *residual = nullptr);
 
       /**
        * Assemble and solve the Stokes equation.
-       * This function returns the nonlinear residual after solving
-       * and can optionally compute and store an initial
-       * residual before solving the equation in the second argument
-       * if the first argument is set to @p true.
+       * This function returns the nonlinear residual after solving.
        *
-       * The returned nonlinear residual is normalized by the initial
-       * residual, i.e., it is the nonlinear residual computed by
-       * solve_stokes() divided by the initial residual as either
-       * already stored in the second argument, or as computed
-       * at the top of the function.
-       *
+       * If the `residual` argument is not a `nullptr`, the function computes
+       * the residual and puts it into this variable. The function returns
+       * the current residual divided by the initial residual given as the
+       * first argument. The two arguments may point to the same variable,
+       * in which case the function first computes the residual and at
+       * the end scales that residual by itself, thus returning 1.0.
        *
        * This function is implemented in
        * <code>source/simulator/solver_schemes.cc</code>.
        */
-      double assemble_and_solve_stokes (const bool compute_initial_residual = false,
-                                        double *initial_nonlinear_residual = nullptr);
+      double assemble_and_solve_stokes (const double &initial_nonlinear_residual = 0,
+                                        double *nonlinear_residual = nullptr);
 
       /**
-       * Assemble and solve the defect correction form of the Stokes equation.
+       * Do one step of the defect correction form of the Stokes equation;
+       * i.e., assemble and solve the defect correction equations.
        * This function takes a structure of DefectCorrectionResiduals which
        * contains information about different residuals. The information in
        * this structure is updated by this function. The parameter use_picard
@@ -805,8 +844,8 @@ namespace aspect
        * This function is implemented in
        * <code>source/simulator/solver_schemes.cc</code>.
        */
-      void assemble_and_solve_defect_correction_Stokes(DefectCorrectionResiduals &dcr,
-                                                       const bool use_picard);
+      void do_one_defect_correction_Stokes_step(DefectCorrectionResiduals &dcr,
+                                                const bool use_picard);
 
       /**
        * Initiate the assembly of one advection matrix and right hand side and
@@ -828,13 +867,6 @@ namespace aspect
        * <code>source/simulator/solver.cc</code>.
        */
       double solve_advection (const AdvectionField &advection_field);
-
-      /**
-       * Interpolate a particular particle property to the solution field.
-       *
-       * @deprecated: Use interpolate_particle_property_vector() instead.
-       */
-      void interpolate_particle_properties (const AdvectionField &advection_field) DEAL_II_DEPRECATED;
 
       /**
        * Interpolate the corresponding particle properties into the given
@@ -909,17 +941,17 @@ namespace aspect
        * first element of the pair, where $F_k=F(x_k)$ is the residual
        * vector for the previous solution $x_k$.
        *
+       * @param solution_vector The solution vector that is computed by this
+       * function. This vector is a block vector that has the same block
+       * structure as the full solution vector and its pressure and velocity
+       * blocks will be overwritten by the solution of the Stokes system.
+       *
+       *
        * This function is implemented in
        * <code>source/simulator/solver.cc</code>.
        */
       std::pair<double,double>
-      solve_stokes ();
-
-      /**
-       * Solve the Stokes system using a block preconditioner and GMG.
-       */
-      std::pair<double,double>
-      solve_stokes_block_gmg ();
+      solve_stokes (LinearAlgebra::BlockVector &solution_vector);
 
       /**
        * This function is called at the end of every time step. It runs all
@@ -1268,14 +1300,6 @@ namespace aspect
        * "physical" pressure so that all following postprocessing
        * steps can use the latter.
        *
-       * In the case of the surface average, whether a face is part of
-       * the surface is determined by asking whether its depth of its
-       * midpoint (as determined by the geometry model) is less than
-       * 1/3*1/sqrt(dim-1)*diameter of the face. For reasonably curved
-       * boundaries, this rules out side faces that are perpendicular
-       * to the surface boundary but includes those faces that are
-       * along the boundary even if the real boundary is curved.
-       *
        * Whether the pressure should be normalized based on the
        * surface or volume average is decided by a parameter in the
        * input file.
@@ -1320,12 +1344,7 @@ namespace aspect
        * come out of GMRES, namely the one on which we later called
        * normalize_pressure().
        *
-       * This function modifies @p vector in-place. In some cases, we need
-       * locally_relevant values of the pressure. To avoid creating a new vector
-       * and transferring data, this function uses a second vector with relevant
-       * dofs (@p relevant_vector) for accessing these pressure values. Both
-       * @p vector and @p relevant_vector are expected to already contain
-       * the correct pressure values.
+       * This function modifies @p vector in-place.
        *
        * @note The adjustment made in this function is done using the
        * negative of the @p pressure_adjustment function argument that
@@ -1339,8 +1358,7 @@ namespace aspect
        * <code>source/simulator/helper_functions.cc</code>.
        */
       void denormalize_pressure(const double                      pressure_adjustment,
-                                LinearAlgebra::BlockVector       &vector,
-                                const LinearAlgebra::BlockVector &relevant_vector) const;
+                                LinearAlgebra::BlockVector       &vector) const;
 
       /**
        * Apply the bound preserving limiter to the discontinuous Galerkin solutions:
@@ -1432,7 +1450,7 @@ namespace aspect
        * <code>source/simulator/helper_functions.cc</code>.
        */
       void interpolate_onto_velocity_system(const TensorFunction<1,dim> &func,
-                                            LinearAlgebra::Vector &vec);
+                                            LinearAlgebra::Vector &vec) const;
 
 
       /**
@@ -1464,7 +1482,7 @@ namespace aspect
        * <code>source/simulator/nullspace.cc</code>.
        */
       void remove_nullspace(LinearAlgebra::BlockVector &relevant_dst,
-                            LinearAlgebra::BlockVector &tmp_distributed_stokes);
+                            LinearAlgebra::BlockVector &tmp_distributed_stokes) const;
 
       /**
        * Compute the angular momentum and other rotation properties
@@ -1501,10 +1519,10 @@ namespace aspect
        * This function is implemented in
        * <code>source/simulator/nullspace.cc</code>.
        */
-      void remove_net_angular_momentum( const bool use_constant_density,
-                                        LinearAlgebra::BlockVector &relevant_dst,
-                                        LinearAlgebra::BlockVector &tmp_distributed_stokes,
-                                        const bool limit_to_top_faces = false);
+      void remove_net_angular_momentum(const bool use_constant_density,
+                                       LinearAlgebra::BlockVector &relevant_dst,
+                                       LinearAlgebra::BlockVector &tmp_distributed_stokes,
+                                       const bool limit_to_top_faces = false) const;
 
       /**
        * Offset the boundary id of all faces located on an outflow boundary
@@ -1537,9 +1555,9 @@ namespace aspect
        * This function is implemented in
        * <code>source/simulator/nullspace.cc</code>.
        */
-      void remove_net_linear_momentum( const bool use_constant_density,
-                                       LinearAlgebra::BlockVector &relevant_dst,
-                                       LinearAlgebra::BlockVector &tmp_distributed_stokes);
+      void remove_net_linear_momentum(const bool use_constant_density,
+                                      LinearAlgebra::BlockVector &relevant_dst,
+                                      LinearAlgebra::BlockVector &tmp_distributed_stokes) const;
 
       /**
        * Compute the maximal velocity throughout the domain. This is needed to
@@ -1697,6 +1715,18 @@ namespace aspect
       stokes_matrix_depends_on_solution () const;
 
       /**
+       * Return whether to the best of our knowledge the A block of the
+       * Stokes system is symmetric. This is the case for most models, except
+       * if additional non-symmetric terms are added by special assemblers
+       * (e.g., the free surface stabilization term).
+       *
+       * This function is implemented in
+       * <code>source/simulator/helper_functions.cc</code>.
+       */
+      bool
+      stokes_A_block_is_symmetric () const;
+
+      /**
        * This function checks that the user-selected formulations of the
        * equations are consistent with the other inputs. If an incorrect
        * selection is detected it throws an exception. It for example assures that
@@ -1710,6 +1740,14 @@ namespace aspect
        */
       void
       check_consistency_of_formulation ();
+
+      /**
+       * This function checks if the default solver and/or material
+       * averaging were selected and if so, determines the appropriate
+       * solver and/or averaging option.
+       */
+      void
+      select_default_solver_and_averaging ();
 
       /**
        * This function checks that the user-selected boundary conditions do not
@@ -1728,7 +1766,7 @@ namespace aspect
        * Computes the initial Newton residual.
        */
       double
-      compute_initial_newton_residual (const LinearAlgebra::BlockVector &linearized_stokes_initial_guess);
+      compute_initial_newton_residual ();
 
       /**
        * This function computes the Eisenstat Walker linear tolerance used for the Newton iterations
@@ -1929,19 +1967,13 @@ namespace aspect
       std::shared_ptr<WorldBuilder::World>                                   world_builder;
 #endif
       BoundaryVelocity::Manager<dim>                                         boundary_velocity_manager;
-      std::map<types::boundary_id,std::unique_ptr<BoundaryTraction::Interface<dim>>> boundary_traction;
+      BoundaryTraction::Manager<dim>                                         boundary_traction_manager;
       const std::unique_ptr<BoundaryHeatFlux::Interface<dim>>                boundary_heat_flux;
 
       /**
-       * The world holding the particles
+       * The managers holding different sets of particles
        */
-      std::unique_ptr<Particle::World<dim>> particle_world;
-
-      /**
-       * A copy of the particle handler to reset the particles
-       * when repeating a time step.
-       */
-      dealii::Particles::ParticleHandler<dim> particle_handler_copy;
+      std::vector<Particle::Manager<dim>> particle_managers;
 
       /**
        * @}
@@ -1956,6 +1988,7 @@ namespace aspect
       unsigned int                                              timestep_number;
       unsigned int                                              pre_refinement_step;
       unsigned int                                              nonlinear_iteration;
+      unsigned int                                              nonlinear_solver_failures;
       /**
        * @}
        */
@@ -2059,6 +2092,12 @@ namespace aspect
        * solving.
        */
       LinearAlgebra::BlockSparseMatrix                          system_matrix;
+
+      /**
+       * This vector is used for the weighted BFBT preconditioner. It
+       * stores the inverted lumped velocity mass matrix.
+       */
+      LinearAlgebra::BlockVector                                inverse_lumped_mass_matrix;
 
       /**
        * An object that contains the entries of preconditioner

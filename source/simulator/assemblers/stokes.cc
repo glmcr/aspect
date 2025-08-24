@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2016 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -115,6 +115,11 @@ namespace aspect
                                                     .velocities].symmetric_gradient(i, q);
                   scratch.phi_p[i_stokes] = scratch.finite_element_values[introspection
                                                                           .extractors.pressure].value(i, q);
+                  if (this->get_parameters().use_bfbt == true)
+                    {
+                      scratch.grad_phi_p[i_stokes]=scratch.finite_element_values[introspection.extractors.pressure].gradient(i,q);
+                      scratch.phi_u[i_stokes]=scratch.finite_element_values[introspection.extractors.velocities].value(i,q);
+                    }
                   ++i_stokes;
                 }
               ++i;
@@ -134,28 +139,52 @@ namespace aspect
                     {
                       data.local_matrix(i, j) += ((2.0 * eta * (scratch.grads_phi_u[i]
                                                                 * scratch.grads_phi_u[j]))
-                                                  + one_over_eta * pressure_scaling
-                                                  * pressure_scaling
-                                                  * (scratch.phi_p[i]
-                                                     * scratch.phi_p[j]))
+                                                 )
                                                  * JxW;
                     }
 
+
+            }
+          if (this->get_parameters().use_bfbt == true)
+            {
+              const double sqrt_eta = std::sqrt(eta);
+              const unsigned int pressure_component_index = this->introspection().component_indices.pressure;
+
+              for (unsigned int i = 0; i < stokes_dofs_per_cell; ++i)
+                {
+                  for (unsigned int j = 0; j < stokes_dofs_per_cell; ++j)
+                    {
+
+
+                      // i and j are not pressures
+                      if (scratch.dof_component_indices[i] != pressure_component_index && scratch.dof_component_indices[j] != pressure_component_index)
+                        data.local_inverse_lumped_mass_matrix[i] += sqrt_eta*scalar_product(scratch.phi_u[i],scratch.phi_u[j])*JxW;
+
+
+                      // i and j are pressures
+                      if (scratch.dof_component_indices[i] == pressure_component_index && scratch.dof_component_indices[j] == pressure_component_index)
+                        data.local_matrix(i, j) += (
+                                                     1.0/sqrt_eta * pressure_scaling
+                                                     * (scratch.grad_phi_p[i]
+                                                        * scratch.grad_phi_p[j] + 1e-6*scratch.phi_p[i]*scratch.phi_p[j] ))
+                                                   * JxW;
+                    }
+                }
             }
           else
             {
-              const unsigned int pressure_component_index = this->introspection().component_indices.pressure;
               for (unsigned int i = 0; i < stokes_dofs_per_cell; ++i)
-                if (scratch.dof_component_indices[i] == pressure_component_index)
-                  for (unsigned int j = 0; j < stokes_dofs_per_cell; ++j)
-                    if (scratch.dof_component_indices[j] == pressure_component_index)
-                      {
-                        data.local_matrix(i, j) += (one_over_eta * pressure_scaling
-                                                    * pressure_scaling
-                                                    * (scratch.phi_p[i]
-                                                       * scratch.phi_p[j]))
-                                                   * JxW;
-                      }
+                for (unsigned int j = 0; j < stokes_dofs_per_cell; ++j)
+                  if (scratch.dof_component_indices[i] ==
+                      scratch.dof_component_indices[j])
+                    {
+                      data.local_matrix(i, j) += (
+                                                   one_over_eta * pressure_scaling
+                                                   * pressure_scaling
+                                                   * (scratch.phi_p[i]
+                                                      * scratch.phi_p[j]))
+                                                 * JxW;
+                    }
             }
 
           // If we are using the equal order Q1-Q1 element, then we also need
@@ -447,7 +476,7 @@ namespace aspect
     StokesIncompressibleTerms<dim>::
     create_additional_material_model_outputs(MaterialModel::MaterialModelOutputs<dim> &outputs) const
     {
-      const unsigned int n_points = outputs.viscosities.size();
+      const unsigned int n_points = outputs.n_evaluation_points();
 
       // Stokes RHS:
       if (this->get_parameters().enable_additional_stokes_rhs
@@ -726,7 +755,7 @@ namespace aspect
       const unsigned int stokes_dofs_per_cell = data.local_dof_indices.size();
       const unsigned int n_q_points    = scratch.finite_element_values.n_quadrature_points;
       const double pressure_scaling = this->get_pressure_scaling();
-      const unsigned int density_idx = this->introspection().find_composition_type(Parameters<dim>::CompositionalFieldDescription::density);
+      const unsigned int density_idx = this->introspection().find_composition_type(CompositionalFieldDescription::density);
 
       const double time_step = this->get_timestep();
       const double old_time_step = this->get_old_timestep();
@@ -910,17 +939,17 @@ namespace aspect
 
       const typename DoFHandler<dim>::face_iterator face = scratch.cell->face(scratch.face_number);
 
-      if (this->get_boundary_traction().find (face->boundary_id())
+      if (this->get_boundary_traction_manager().get_active_boundary_traction_names().find (face->boundary_id())
           !=
-          this->get_boundary_traction().end())
+          this->get_boundary_traction_manager().get_active_boundary_traction_names().end())
         {
           for (unsigned int q=0; q<scratch.face_finite_element_values.n_quadrature_points; ++q)
             {
               const Tensor<1,dim> traction
-                = this->get_boundary_traction().find(face->boundary_id())->second
-                  ->boundary_traction (face->boundary_id(),
-                                       scratch.face_finite_element_values.quadrature_point(q),
-                                       scratch.face_finite_element_values.normal_vector(q));
+                = this->get_boundary_traction_manager().
+                  boundary_traction (face->boundary_id(),
+                                     scratch.face_finite_element_values.quadrature_point(q),
+                                     scratch.face_finite_element_values.normal_vector(q));
 
               for (unsigned int i=0, i_stokes=0; i_stokes<stokes_dofs_per_cell; /*increment at end of loop*/)
                 {

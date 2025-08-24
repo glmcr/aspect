@@ -59,7 +59,6 @@ subsection Gravity model
   end
 end
 
-
 subsection Material model
   set Model name = simple
 
@@ -72,7 +71,6 @@ subsection Material model
     set Viscosity                     = 1e20
   end
 end
-
 
 subsection Formulation
   set Formulation = Boussinesq approximation
@@ -88,10 +86,14 @@ subsection Postprocess
   set List of postprocessors = velocity statistics, temperature statistics, visualization
 
   subsection Visualization
-    set List of output variables      = density, viscosity, strain rate
+    set List of output variables      = material properties, strain rate
     set Output format                 = gnuplot
-  set Time between graphical output = 20e3
+    set Time between graphical output = 20e3
     set Number of grouped files       = 0
+
+    subsection Material properties
+      set List of material properties = density, viscosity
+    end
   end
 end
 

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -70,6 +70,13 @@ namespace aspect
          */
         virtual
         Point<dim> get_extents () const;
+
+        /**
+         * Return an integer array that denotes the number of repetitions of
+         * the box's coarse mesh.
+         */
+        const std::array<unsigned int, dim> &
+        get_repetitions () const;
 
         /**
          * Return a point that denotes the lower left corner of the box
@@ -163,7 +170,8 @@ namespace aspect
          */
         void
         adjust_positions_for_periodicity (Point<dim> &position,
-                                          const ArrayView<Point<dim>> &connected_positions = {}) const override;
+                                          const ArrayView<Point<dim>> &connected_positions = {},
+                                          const ArrayView<Tensor<1, dim>> &connected_velocities = {}) const override;
 
         /**
          * @copydoc Interface::has_curved_elements()
@@ -216,6 +224,11 @@ namespace aspect
 
       private:
         /**
+         * A pointer to the initial topography model.
+         */
+        InitialTopographyModel::Interface<dim> *topo_model;
+
+        /**
          * Extent of the box in x-, y-, and z-direction (in 3d).
          */
         Point<dim> extents;
@@ -228,17 +241,12 @@ namespace aspect
         /**
          * Flag whether the box is periodic in the x-, y-, and z-direction.
          */
-        bool periodic[dim];
+        std::array<bool, dim> periodic;
 
         /**
          * The number of cells in each coordinate direction.
          */
-        unsigned int repetitions[dim];
-
-        /**
-         * A pointer to the initial topography model.
-         */
-        InitialTopographyModel::Interface<dim> *topo_model;
+        std::array<unsigned int, dim> repetitions;
     };
   }
 }

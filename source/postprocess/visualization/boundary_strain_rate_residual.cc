@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 - 2022 by the authors of the ASPECT code.
+  Copyright (C) 2020 - 2024 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -73,15 +73,18 @@ namespace aspect
         const double unit_scaling_factor = this->convert_output_to_years() ? year_in_seconds : 1.0;
 
         const Postprocess::BoundaryStrainRateResidualStatistics<dim> &boundary_strain_rate_residual_statistics =
-          this->get_postprocess_manager().template get_matching_postprocessor<Postprocess::BoundaryStrainRateResidualStatistics<dim>>();
+          this->get_postprocess_manager().template get_matching_active_plugin<Postprocess::BoundaryStrainRateResidualStatistics<dim>>();
 
         // We only want the output at the top boundary, so only compute it if the current cell
         // has a face at the top boundary.
         bool cell_at_top_boundary = false;
-        for (unsigned int f=0; f<GeometryInfo<dim>::faces_per_cell; ++f)
+        for (const unsigned int f : cell->face_indices())
           if (cell->at_boundary(f) &&
               (this->get_geometry_model().translate_id_to_symbol_name (cell->face(f)->boundary_id()) == "top"))
-            cell_at_top_boundary = true;
+            {
+              cell_at_top_boundary = true;
+              break;
+            }
 
         if (cell_at_top_boundary)
           for (unsigned int q=0; q<computed_quantities.size(); ++q)
@@ -103,7 +106,7 @@ namespace aspect
 
             }
 
-        const auto &viz = this->get_postprocess_manager().template get_matching_postprocessor<Postprocess::Visualization<dim>>();
+        const auto &viz = this->get_postprocess_manager().template get_matching_active_plugin<Postprocess::Visualization<dim>>();
         if (!viz.output_pointwise_stress_and_strain())
           average_quantities(computed_quantities);
 
@@ -115,7 +118,7 @@ namespace aspect
       std::list<std::string>
       BoundaryStrainRateResidual<dim>::required_other_postprocessors() const
       {
-        return std::list<std::string> (1, "boundary strain rate residual statistics");
+        return {"boundary strain rate residual statistics"};
       }
 
     }

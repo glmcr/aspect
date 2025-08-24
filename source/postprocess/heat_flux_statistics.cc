@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011 - 2021 by the authors of the ASPECT code.
+  Copyright (C) 2011 - 2023 by the authors of the ASPECT code.
 
   This file is part of ASPECT.
 
@@ -33,6 +33,15 @@ namespace aspect
 {
   namespace Postprocess
   {
+    template <int dim>
+    void
+    HeatFluxStatistics<dim>::initialize ()
+    {
+      CitationInfo::add("cbfheatflux");
+    }
+
+
+
     template <int dim>
     std::pair<std::string,std::string>
     HeatFluxStatistics<dim>::execute (TableHandler &statistics)
@@ -144,12 +153,14 @@ namespace aspect
                                   "the core into the mantle when the domain describes the "
                                   "mantle, then you need to multiply the result by -1."
                                   "\n\n"
-                                  "\\note{In geodynamics, the term ``heat flux'' is often understood "
+                                  ":::{note}\n"
+                                  "In geodynamics, the term ``heat flux'' is often understood "
                                   "to be the quantity $- k \\nabla T$, which is really a heat "
                                   "flux \\textit{density}, i.e., a vector-valued field. In contrast "
                                   "to this, the current postprocessor only computes the integrated "
                                   "flux over each part of the boundary. Consequently, the units of "
-                                  "the quantity computed here are $W=\\frac{J}{s}$.}"
+                                  "the quantity computed here are $W=\\frac{J}{s}$.\n"
+                                  ":::"
                                   "\n\n"
                                   "The ``heat flux densities'' postprocessor computes the same "
                                   "quantity as the one here, but divided by the area of "
