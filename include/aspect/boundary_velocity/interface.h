@@ -302,13 +302,21 @@ namespace aspect
                              "that could not be found in the current model. Activate this "
                              "boundary velocity model in the input file."));
 
+      //auto &p_ret= boundary_velocity_objects.begin();
+      //typename std::vector<std::unique_ptr<BoundaryVelocity::Interface<dim>>>::const_iterator boundary_velocity_model= boundary_velocity_objects.begin();
+      //const BoundaryVelocity::Interface<dim> boundary_velocity_object= boundary_velocity_objects.at(0)[0];
+
       for (const auto &boundary : boundary_velocity_objects)
-        for (const auto &p : boundary)
+        for (const auto &p : boundary.second)
           if (Plugins::plugin_type_matches<BoundaryVelocityType>(*p))
             return Plugins::get_plugin_as_type<BoundaryVelocityType>(*p);
+            //p_ret= p;
 
+      //return (const BoundaryVelocityType &)p_ret;
       // We will never get here, because we had the Assert above. Just to avoid warnings.
-      return Plugins::get_plugin_as_type<BoundaryVelocityType>(**(boundary_velocity_objects.begin()));
+      //return Plugins::get_plugin_as_type<BoundaryVelocityType>(**(boundary_velocity_objects.begin()));
+      //return Plugins::get_plugin_as_type<BoundaryVelocityType>(0);
+      //return boundary_velocity_object;
     }
 
 

@@ -334,7 +334,7 @@ namespace aspect
         double gridXExtent= NO_MTC_ON_DISTANCE_FROM_SIDES;
 	double gridYExtent= NO_MTC_ON_DISTANCE_FROM_SIDES;
 
-        if (Plugins::plugin_type_matches<const GeometryModel::Box<dim>>(this->Composition<dim>::get_geometry_model())) {
+        if (Plugins::plugin_type_matches<const GeometryModel::Box<dim>> (this->Composition<dim>::get_geometry_model())) {
 
            const GeometryModel::Box<dim> &box_geometry_model =
                 Plugins::get_plugin_as_type<const GeometryModel::Box<dim>> (this->Composition<dim>::get_geometry_model());
@@ -364,7 +364,7 @@ namespace aspect
         const double yPositionMeters= gridYExtent - 7000.0 ; //particle->get_location()[1];
 	
 	const BoundaryVelocity::Function<dim> & bndFunctionObj=
-	  this->get_boundary_velocity_manager().template get_matching_boundary_velocity_model<BoundaryVelocity::Function<dim>>();
+	  this->get_boundary_velocity_manager().template get_matching_boundary_velocity_model<const BoundaryVelocity::Function<dim>>();
 
 	const Point<dim> rigth_side_surf_point(gridXExtent-NO_MTC_ON_DISTANCE_FROM_SIDES,yPositionMeters);
 	const Point<dim> left_side_surf_point(NO_MTC_ON_DISTANCE_FROM_SIDES,yPositionMeters);
