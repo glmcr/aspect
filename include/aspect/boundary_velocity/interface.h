@@ -312,9 +312,8 @@ namespace aspect
       // the following return does not compile with gcc >= v11
       //return Plugins::get_plugin_as_type<BoundaryVelocityType>(**(boundary_velocity_objects.begin()));
 
-      // --- compile success with gcc >= v11
-      return Plugins::get_plugin_as_type<BoundaryVelocityType>(*boundary_velocity_objects.find(0)->second[0]);
-      
+      // --- Successful compilation with gcc >= v11
+      return Plugins::get_plugin_as_type<BoundaryVelocityType>(*(boundary_velocity_objects.find(0)->second[0]));     
     }
 
 
