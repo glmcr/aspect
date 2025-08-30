@@ -401,6 +401,17 @@ namespace aspect
 	    part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
 	}
 
+        // --- cooled asth -> asth OLM hybrid.
+        //     do this whatever we are near the vertical sides or not.
+        if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
+	  {
+            lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
+          }
+	else // --- heated asth OLM hybrid (if any) -> asth
+	  {
+            lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
+          }
+
         // --- Do the check for the safe distance from the sides:
 	if (xPositionMeters <= NO_MTC_ON_DISTANCE_FROM_SIDES ||
             xPositionMeters >= (gridXExtent - NO_MTC_ON_DISTANCE_FROM_SIDES)) {
@@ -649,15 +660,16 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, granulites_idx,   eclogites_idx, 0.0, 1.0);
 	  }
 
-        // --- cooled asth -> asth OLM hybrid.
-        if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
-	  {
-            lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
-          }
-	else // --- heated asth OLM hybrid (if any) -> asth
-	  {
-            lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
-	  }
+        // moved before the check on the distance from the sides.
+        // // --- cooled asth -> asth OLM hybrid.
+        // if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
+	//   {
+        //     lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
+        //   }
+	// else // --- heated asth OLM hybrid (if any) -> asth
+	//   {
+        //     lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
+	//   }
 
         //// --- Prograde only oc. seds. (i.e. mainly qtz) -> coesite transition.
         //if (qtz2CoesPTRect.ptInside(pressure_here,temperature_here))
