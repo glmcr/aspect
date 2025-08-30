@@ -165,27 +165,22 @@ namespace aspect
                  // --- Do not modify the thermal diffusivity of the asthenosphere
                  //     (which is also the background material) which is set at 1.25e-5 at STP
                  //     NOTE: This is very ugly, need to implement something more clean
-                 const double thDiffThresholdAsth= 1.0e-5;
+                 //const double thDiffThresholdAsth= 1.0e-5;
 
  		 // --- NOTE: We assume here that the reference T is 273K
 		 //     Limit the thDiffFactor between 1.0 and 0.45
-		 const double thDiffFactor= std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.45));
+		 //const double thDiffFactor= std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.45));
 
 		 for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
 		 {
-                   //thermal_diffusivity += volume_fractions[cmp] * this->thermal_diffusivities[cmp];
+                   // --- Test with constant th. diff. for all materials
+                   thermal_diffusivity += volume_fractions[cmp] * this->thermal_diffusivities[cmp];
 
-                   const double thDiffFactorCheckAsth= ( this->thermal_diffusivities[cmp] > thDiffThresholdAsth) ? 1.0 : thDiffFactor;
-                   
-                   thermal_diffusivity += volume_fractions[cmp] * thDiffFactorCheckAsth * this->thermal_diffusivities[cmp];
+                   //const double thDiffFactorCheckAsth= ( this->thermal_diffusivities[cmp] > thDiffThresholdAsth) ? 1.0 : thDiffFactor;
+                   //thermal_diffusivity += volume_fractions[cmp] * thDiffFactorCheckAsth * this->thermal_diffusivities[cmp];
                  }
 
-		 //// --- NOTE: We assume here that the reference T is 273K
-		 ////     Limit the thDiffFactor between 1.0 and 0.45
-		 //const double thDiffFactor=
-		 //  std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.45));
-		 //thermal_diffusivity *= thDiffFactor ;
-
+                 // --- calculate the effective thermal cond. for this location.
 		 out.thermal_conductivities[i]= thermal_diffusivity * out.specific_heat[i] * out.densities[i];
 		 
 	       } // --- end if block for thermal cond. dependance on T
