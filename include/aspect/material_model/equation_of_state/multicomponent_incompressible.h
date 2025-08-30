@@ -95,9 +95,23 @@ namespace aspect
           parse_parameters (ParameterHandler &prm,
                             const std::unique_ptr<std::vector<unsigned int>> &expected_n_phases_per_composition = nullptr);
 
-	  const std::vector<double> &densities_constref= densities;
-	  const std::vector<double> &thermal_expansivities_constref= thermal_expansivities;
-          const double &reference_T_constref= reference_T;
+	  // const std::vector<double> &densities_constref= densities;
+	  // const std::vector<double> &thermal_expansivities_constref= thermal_expansivities;
+          // const double &reference_T_constref= reference_T;
+          inline double get_reference_T() const
+          {
+            return this->reference_T;
+          }
+
+          inline std::vector<double> get_densities() const
+          {
+            return this->densities;
+          }
+
+          inline std::vector<double> get_thermal_expansivities() const
+          {
+            return this->thermal_expansivities;
+          }          
 
         private:
           /**

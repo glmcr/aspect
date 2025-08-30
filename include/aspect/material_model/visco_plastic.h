@@ -185,6 +185,9 @@ namespace aspect
         void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
                       MaterialModel::MaterialModelOutputs<dim> &out) const override;
 
+        void apply_lusi_thermal_stuff(const MaterialModel::MaterialModelInputs<dim> &in,
+                                        MaterialModel::MaterialModelOutputs<dim> &out) const ;
+
         /**
          * Return whether the model is compressible or not.  Incompressibility
          * does not necessarily imply that the density is constant; rather, it

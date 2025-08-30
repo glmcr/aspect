@@ -19,6 +19,7 @@
 */
 
 #include <aspect/material_model/visco_plastic.h>
+#include <aspect/material_model/visco_plastic_lusi.h>
 #include <aspect/utilities.h>
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/base/signaling_nan.h>
@@ -269,7 +270,129 @@ namespace aspect
         }
     }
 
+    template <int dim>
+    void
+    ViscoPlastic<dim>::
+    apply_lusi_thermal_stuff(const MaterialModel::MaterialModelInputs<dim> &in,
+                               MaterialModel::MaterialModelOutputs<dim> &out) const
+    {
 
+      const double THERMAL_EXP_LOW_T_IN_K_THRESHOLD= 500.0;
+      const double THERMAL_EXP_UPP_T_IN_K_THRESHOLD= 2000.0;
+
+      const double THERMAL_EXP_T_IN_K_THRD_FACT=
+          0.22/(THERMAL_EXP_UPP_T_IN_K_THRESHOLD-THERMAL_EXP_LOW_T_IN_K_THRESHOLD);
+
+      // --- Factor to apply to the thermal diff. to parametrize its dependance on
+      //     the temperature. Note that the thermal cond. is already depending on
+      //     the material density (which itself depends on the temperature) for the
+      //     visco-plastic material but we want to have the thermal cond. depending
+      //     on both the density AND the thermal diff.
+      //     NOTE: We assume here that the reference T is 273K
+      //           1573K is the T threshold for the asth. vs lith. mantle limit.
+      const double THERMAL_DIFF_T_IN_K_FACT= 1.0/(2.0*(1573.0-273.0));
+     
+      // --- Only apply the ad-hoc material changes if the simulator initialization
+      //     is done.
+      if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
+        {
+          const ComponentMask volumetric_compositions = this->rheology->get_volumetric_composition_mask();
+
+          const std::vector<double> densities_cref= this->equation_of_state.get_densities();
+
+          const std::vector<double> thermal_expansivities_cref= this->equation_of_state.get_thermal_expansivities();
+
+          std::vector<double> densities_local(densities_cref);
+          std::vector<double> thermal_expansivities_local(thermal_expansivities_cref);
+
+          const double reference_temperature = this->equation_of_state.get_reference_T();
+
+          // // --- Loop through all requested points
+           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
+             {
+
+          //      //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl ;
+
+               const std::vector<double> volume_fractions= MaterialUtilities::
+                  compute_composition_fractions(in.composition[i], volumetric_compositions);
+
+               if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD)
+               {
+
+          //          //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= "
+          //          //                  << in.temperature[i] << std::endl ;
+
+          //          // If adiabatic heating is used, the reference temperature used to calculate density should be the adiabatic
+          //          // temperature at the current position. This definition is consistent with the Extended Boussinesq Approximation.
+          //          //const double reference_temperature = (this->include_adiabatic_heating()
+          //          //                                      ?
+          //          //                                      this->get_adiabatic_conditions().temperature(in.position[i])
+          //          //                                      :
+          //          //                                      reference_T_cref);
+
+          //          //this->get_pcout() << "ViscoPlasticLUSI:: reference_temperature=" << reference_temperature << std::endl ;
+
+                    const double thExpFact= 1.0 +
+                        (in.temperature[i]-THERMAL_EXP_LOW_T_IN_K_THRESHOLD)*THERMAL_EXP_T_IN_K_THRD_FACT;
+
+     	            // --- Update thermal expansivitires and densities accordinglym (for all compos)
+                    for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
+        	      {
+        	        thermal_expansivities_local[cmp]= thExpFact * thermal_expansivities_cref[cmp];
+
+                        densities_local[cmp]= densities_cref[cmp] *
+                           (1.0 - thermal_expansivities_local[cmp] * (in.temperature[i] - reference_temperature));		      
+        	      }                   
+
+                    out.densities[i]=
+                       MaterialUtilities::average_value (volume_fractions, densities_local, MaterialUtilities::arithmetic);
+
+                    out.thermal_expansion_coefficients[i]=
+                       MaterialUtilities::average_value (volume_fractions, thermal_expansivities_local, MaterialUtilities::arithmetic);
+
+          //          //if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < 1600) {
+          //          //  this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= "
+          //          //                  << in.temperature[i] << std::endl ;
+          //          //  this->get_pcout() << "asth_mtl_idx=" << asth_mtl_idx << std::endl ;
+          //          //  this->get_pcout() << "oc_lith_mtl_idx=" << oc_lith_mtl_idx << std::endl ;
+          //          //  this->get_pcout() << "oc_crust_idx=" << oc_crust_idx << std::endl ;
+          //          //  this->get_pcout() << "ViscoPlasticLUSI:: reference_temperature="
+          //          //                     << reference_temperature << std::endl ;
+          //          //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[asth_mtl_idx]= "
+          //          //                  << thermal_expansivities_cref[asth_mtl_idx] << std::endl;
+          //          //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[asth_mtl_idx]= "
+          //          //                  << thermal_expansivities_local[asth_mtl_idx] << std::endl;
+          //          //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_cref[oc_lith_mtl_idx]= "
+          //          //                    << thermal_expansivities_cref[oc_lith_mtl_idx] << std::endl;
+          //          //  this->get_pcout() << "ViscoPlasticLUSI:: thermal_expansivities_local[oc_lith_mtl_idx]= "
+          //          //                  << thermal_expansivities_local[oc_lith_mtl_idx] << std::endl << std::endl;
+          //          //}
+               } // --- if block for thermal exp. dependance on T
+
+               // --- Now update the thermal cond. via the thermal_diffusivities.
+               if ( in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD) {
+
+                  double thermal_diffusivity= 0.0;
+
+                  for (unsigned int cmp=0; cmp < volume_fractions.size(); ++cmp)
+                  {
+                     thermal_diffusivity += volume_fractions[cmp] * this->thermal_diffusivities[cmp];
+                  }
+
+                  // --- NOTE: We assume here that the reference T is 273K
+                  //     Limit the thDiffFactor between 1.0 and 0.45
+                  const double thDiffFactor=
+                    std::min(1.0,std::max(1.0 - THERMAL_DIFF_T_IN_K_FACT*(in.temperature[i] - reference_temperature), 0.45));
+		 
+                  thermal_diffusivity *= thDiffFactor ;
+
+                  out.thermal_conductivities[i]= thermal_diffusivity * out.specific_heat[i] * out.densities[i];
+		 
+               } // --- end if block for thermal cond. dependance on T
+          } // --- inner for loop    
+        } // if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 )
+    }
+    
 
     template <int dim>
     bool

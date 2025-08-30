@@ -40,6 +40,8 @@ namespace aspect
 
       ViscoPlastic<dim>::evaluate(in,out);
 
+      ViscoPlastic<dim>::apply_lusi_thermal_stuff(in,out);
+      
       // // --- ***IMPORTANT*** Need to add one to the indices
       // //     since the material models properties arrays are always using
       // //     a background field at index 0 so the compositions indices
