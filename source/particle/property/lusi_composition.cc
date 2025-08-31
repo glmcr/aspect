@@ -240,6 +240,17 @@ namespace aspect
 	const double temperature_here= \
 	  solution[this->Composition<dim>::introspection().component_indices.temperature];
 
+        // --- cooled asth -> asth OLM hybrid.
+        //     do this whatever we are near the vertical sides or not.
+        if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
+	  {
+            lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
+          }
+	else // --- heated asth OLM hybrid (if any) -> asth
+	  {
+            lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
+          }       
+
 	//--- pointer shortcut to the particle->get_properties()[data_position]
 	//
 	//double* const __restrict__ part_compo_props= &particle->get_properties().data()[data_position];
@@ -401,16 +412,16 @@ namespace aspect
 	    part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
 	}
 
-        // --- cooled asth -> asth OLM hybrid.
-        //     do this whatever we are near the vertical sides or not.
-        if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
-	  {
-            lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
-          }
-	else // --- heated asth OLM hybrid (if any) -> asth
-	  {
-            lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
-          }
+        // // --- cooled asth -> asth OLM hybrid.
+        // //     do this whatever we are near the vertical sides or not.
+        // if (temperature_here < ASTH_OLM_HYBRID_MAT_TEMP_THESHOLD_KELVINS)
+	//   {
+        //     lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
+        //   }
+	// else // --- heated asth OLM hybrid (if any) -> asth
+	//   {
+        //     lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
+        //   }
 
         // --- Do the check for the safe distance from the sides:
 	if (xPositionMeters <= NO_MTC_ON_DISTANCE_FROM_SIDES ||
