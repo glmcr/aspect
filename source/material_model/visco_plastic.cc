@@ -19,7 +19,7 @@
 */
 
 #include <aspect/material_model/visco_plastic.h>
-#include <aspect/material_model/visco_plastic_lusi.h>
+//#include <aspect/material_model/visco_plastic_lusi.h>
 #include <aspect/utilities.h>
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/base/signaling_nan.h>
