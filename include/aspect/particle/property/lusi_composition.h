@@ -106,6 +106,12 @@ namespace aspect
                                     const Vector<double> &solution,
                                     const std::vector<Tensor<1,dim>> &gradients,
                                     typename ParticleHandler<dim>::particle_iterator &particle) const override;
+          /**
+           * @copydoc aspect::Particle::Property::Interface::update_particle_properties()
+           */
+          void
+          update_particle_properties (const ParticleUpdateInputs<dim> &inputs,
+                                      typename ParticleHandler<dim>::particle_iterator_range &particles) const override;
 
           /**
            * This implementation tells the particle manager that

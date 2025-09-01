@@ -122,6 +122,79 @@ namespace aspect
         //ViscoPlasticStrainInvariant<dim>::initialize_one_particle_property(position,data);
       }
 
+      DEAL_II_DISABLE_EXTRA_DIAGNOSTICS
+      template <int dim>
+      void
+      LUSIComposition<dim>::update_particle_properties (const ParticleUpdateInputs<dim> &inputs,
+                                                  typename ParticleHandler<dim>::particle_iterator_range &particles) const
+      {
+       Vector<double> solution;
+        std::vector<Tensor<1,dim>> gradient;
+
+        bool need_solution = false;
+        bool need_gradient = false;
+        unsigned int n_components = numbers::invalid_unsigned_int;
+
+        if (inputs.solution.size() > 0)
+          {
+            n_components = inputs.solution[0].size();
+
+            for (unsigned int i=0; i<n_components; ++i)
+              if (this->Interface<dim>::get_update_flags(i) & update_values)
+                {
+                  need_solution = true;
+                  break;
+                }
+          }
+
+        if (inputs.gradients.size() > 0)
+          {
+            n_components = inputs.gradients[0].size();
+
+            for (unsigned int i=0; i<n_components; ++i)
+              if (this->Interface<dim>::get_update_flags(i) & update_gradients)
+                {
+                  need_gradient = true;
+                  break;
+                }
+          }
+        
+        unsigned int i = 0;
+        for (auto particle = particles.begin(); particle != particles.end(); ++particle)
+          {
+
+            if (need_solution)
+              {
+                solution.reinit(inputs.solution[i].size());
+                for (unsigned int j=0; j<solution.size(); ++j)
+                  {
+                    if (this->Interface<dim>::get_update_flags(j) & update_values)
+                      solution[j] = inputs.solution[i][j];
+                    else
+                      solution[j] = numbers::signaling_nan<double>();
+                  }
+              }
+
+            if (need_gradient)
+              {
+                gradient.resize(inputs.gradients[i].size());
+
+                for (unsigned int j=0; j<gradient.size(); ++j)
+                  {
+                    if (this->Interface<dim>::get_update_flags(j) & update_gradients)
+                      gradient[j] = inputs.gradients[i][j];
+                    else
+                      gradient[j] = numbers::signaling_nan<Tensor<1,dim>>();
+                  }
+              }
+            
+            this->update_particle_property(this->data_position,solution,gradient,particle);
+
+            ++i;
+          }
+      }
+      DEAL_II_ENABLE_EXTRA_DIAGNOSTICS
+      
       template <int dim>
       void
       LUSIComposition<dim>::update_particle_property(const unsigned int data_position,
