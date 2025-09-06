@@ -499,7 +499,7 @@ namespace aspect
 	//const bool pm_asth_ssz_type= extension_stage ? false: true;
 	//const bool pm_asth_ssz_type= ((!extension_stage) && pm_asth_ssz_vvelo_ok) ? true : false;
 	const bool pm_asth_ssz_type= !in_extension_stage;
-
+          
 	// // --- Determine which type of pm asth. we have depending on the vertical velo. value 
 	// const bool pm_asth_mrb_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD) ? true: false;
 	
@@ -554,8 +554,10 @@ namespace aspect
 	//     transforms to partially melted SSZ asthenosphere 
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
-              pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ||
-	      pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && ssz_decompression ) //metam_fluids_contact_with_asth)
+              pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type )
+             // 2025-09-06: Removed the low T triangle part pmSszAsthPTTriMain to use the same p,T zone as for the p.m. asth. mrb
+             // and also removed the dependency on the vertical velo magnitude -> ssz_decompression
+             // pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type ) // && ssz_decompression ) //metam_fluids_contact_with_asth)
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
@@ -608,8 +610,9 @@ namespace aspect
 	  } // --- pm mrb asth -> mrb oc. crust.
 
 	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
+        //     2025-09-06: removed the dependency on the vertical velo magnitude -> create_new_olm_ssz
 	if ( (asth2SSZOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage && create_new_olm_ssz)
+	      asth2SSZOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage ) //&& create_new_olm_ssz)
 	  {
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
@@ -626,8 +629,9 @@ namespace aspect
 	  } // --- pm mrb asth -> mrb  oc. lith mantle
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
+        //     2025-09-06: removed the dependency on the vertical velo magnitude -> create_new_olm_mrb
 	if ((asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage && create_new_olm_mrb)
+	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage ) //&& create_new_olm_mrb)
 	  {
 
             const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
