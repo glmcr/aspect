@@ -555,7 +555,7 @@ namespace aspect
 	//     (if any) transforms to partially melted SSZ asthenosphere 
         if ( (pmSszAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmSszAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
-              pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type )
+              pmSszAsthPTTri3.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type && (pressureInMPa_here < pmSszAsthPThreshold) )
              // 2025-09-06: Removed the low T triangle part pmSszAsthPTTriMain to use the same p,T zone as for the p.m. asth. mrb
              // and also removed the dependency on the vertical velo magnitude -> ssz_decompression
              // pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type ) // && ssz_decompression ) //metam_fluids_contact_with_asth)

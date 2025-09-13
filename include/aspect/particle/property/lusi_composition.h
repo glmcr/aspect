@@ -391,6 +391,10 @@ namespace aspect
         
       }; // --- class LUSIComposition
 
+      // --- Make the p.m. ssz asth appear only when p < pmSszAsthPThreshold and inside one of its
+      //     (p,T) triangle
+      static const double pmSszAsthPThreshold= PTStateMarker::PASCALS_2_MEGA_PASCALS*1.8e9;
+
       // --- static PTStateMarker objects definitions for class LUSIComposition for the prograde metam. changes
       //     of the oc. crust.
       template <int dim>
