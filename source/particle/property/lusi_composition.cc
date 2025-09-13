@@ -484,14 +484,13 @@ namespace aspect
 	}
 
 	// // --- Get the horizontal velocity at the marker position
-	const double horiz_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[0]];
-
-        const double horiz_velo_absv= std::fabs(horiz_velo);
+	//const double horiz_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[0]];
+        //const double horiz_velo_absv= std::fabs(horiz_velo);
         
 	// // --- Get the vertical velocity at the marker position
 	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
 
-        const double vertical_velo_absv= std::fabs(vertical_velo);
+        //const double vertical_velo_absv= std::fabs(vertical_velo);
 	
 	// // --- Determine if the vertical velo allows the pm asth. of ssz type.
 	// const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
@@ -507,10 +506,12 @@ namespace aspect
 	// const bool pm_asth_mrb_type= ( extension_stage && pm_asth_mrb_vvelo_ok) ? true : false;
 	const bool pm_asth_mrb_type= in_extension_stage;
 
-        const bool create_new_olm_mrb= ((vertical_velo < 0.0) || (vertical_velo_absv < horiz_velo_absv)); //? true : false;
+        //const bool create_new_olm_mrb= ((vertical_velo < 0.0) || (vertical_velo_absv < horiz_velo_absv)); //? true : false;
 
-        const bool create_new_olm_ssz= (vertical_velo < ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD);
+        //const bool create_new_olm_ssz= (vertical_velo < ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD);
 
+        // --- to control the transformation of the p.m. morb asth, and hyb. asth. to the p.m. ssz asth.
+        //     (no such control for the asth. per se)
         const bool ssz_decompression= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD); // && (vertical_velo_absv > horiz_velo_absv)) ? true : false;
 
 	// --- Serpentinization parametrization
@@ -560,11 +561,15 @@ namespace aspect
              // pmSszAsthPTTriMain.ptInside(pressureInMPa_here,temperature_here)) && pm_asth_ssz_type ) // && ssz_decompression ) //metam_fluids_contact_with_asth)
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
-	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 
-	    // --- also transform the partially melted MORB asthenosphere (if any) to partially melted SSZ asthenosphere
-	    //     (implies hydratation of the partially melted MORB asthenosphere )
-	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
+            // --- transform the hyb. asth. and the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
+	    //     but only if the vertical velo is sufficiently large for that (otherwise the p.m. SSZ asth type would appear right at the
+            //     beginning of the convergence from the p.m. MORB asth produced at ext. stage)
+            if (ssz_decompression)
+              {
+	        lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);          
+	        lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
+              }
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
