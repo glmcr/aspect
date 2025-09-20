@@ -314,7 +314,8 @@ namespace aspect
           //      //this->get_pcout() << std::endl << "ViscoPlasticLUSI::execute: in.temperature[i]= " << in.temperature[i] << std::endl ;
 
                const std::vector<double> volume_fractions= MaterialUtilities::
-                  compute_composition_fractions(in.composition[i], volumetric_compositions);
+                  compute_only_composition_fractions(in.composition[i], this->introspection().chemical_composition_field_indices() );
+               // BUG ?? compute_composition_fractions(in.composition[i], volumetric_compositions);
 
                if (in.temperature[i] > THERMAL_EXP_LOW_T_IN_K_THRESHOLD && in.temperature[i] < THERMAL_EXP_UPP_T_IN_K_THRESHOLD)
                {
