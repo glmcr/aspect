@@ -181,7 +181,7 @@ namespace aspect
 
           static constexpr const char* CONT_UPPER_CRUST_NID= "contUppCrust";
       
-          static constexpr const char* CONT_LOWER_CRUST_NID= "contLowrust";
+          static constexpr const char* CONT_LOWER_CRUST_NID= "contLowCrust";
 
           static constexpr const char* FELSIC_AMPHIBOLITES_NID= "felsicAmphibolites"; // --- for upp and cont. crust metam. 
           static constexpr const char* FELSIC_GRANULITES_NID= "felsicGranulites";     // --- for upp and low cont. crust metam. 
