@@ -183,7 +183,8 @@ namespace aspect
       
           static constexpr const char* CONT_LOWER_CRUST_NID= "contLowrust";
 
-        //static constexpr const char* AMPHIBOLITES_PM_NID= "amphibolitesPM";
+          static constexpr const char* FELSIC_AMPHIBOLITES_NID= "felsicAmphibolites"; // --- for upp and cont. crust metam. 
+          static constexpr const char* FELSIC_GRANULITES_NID= "felsicGranulites";     // --- for upp and low cont. crust metam. 
 
 	  static constexpr const char* SERP_NID= "serpentinite";
 

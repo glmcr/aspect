@@ -240,13 +240,13 @@ namespace aspect
           this->Composition<dim>::introspection().compositional_index_for_name(SSZ_OCEANIC_CRUST_NID);
 
         const unsigned int oc_seds_idx=
-          this->Composition<dim>::introspection().compositional_index_for_name(OCEANIC_SEDS_NID);
+         this->Composition<dim>::introspection().compositional_index_for_name(OCEANIC_SEDS_NID);
 
-        // const unsigned int cont_upp_crust_idx=
-        //   this->introspection().compositional_index_for_name(CONT_UPPER_CRUST_NID);
+        const unsigned int cont_upp_crust_idx=
+           this->introspection().compositional_index_for_name(CONT_UPPER_CRUST_NID);
 
-	// const unsigned int cont_low_crust_idx=
-        //   this->introspection().compositional_index_for_name(CONT_LOWER_CRUST_NID);       
+	const unsigned int cont_low_crust_idx=
+           this->introspection().compositional_index_for_name(CONT_LOWER_CRUST_NID);       
 	
         // const unsigned int sc_lith_mtl_idx=
 	//   this->introspection().compositional_index_for_name(SC_LITHOSPHERIC_MANTLE_NID);
@@ -273,7 +273,13 @@ namespace aspect
           this->Composition<dim>::introspection().compositional_index_for_name(ASTH_OLM_HYB_MAT_NID);
 
         const unsigned int serp_idx=
-          this->Composition<dim>::introspection().compositional_index_for_name(SERP_NID);	
+          this->Composition<dim>::introspection().compositional_index_for_name(SERP_NID);
+
+        const unsigned int felsic_amphibolites_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(FELSIC_AMPHIBOLITES_NID);
+
+         const unsigned int felsic_granulites_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(FELSIC_GRANULITES_NID);       
 
 	// --- NOTE: Assuming here that acc_tot_strain_idx is < acc_ninit_plastic_strain_idx
 	//           AND that acc_ninit_plastic_strain_idx = acc_tot_strain_idx + 1
@@ -676,6 +682,10 @@ namespace aspect
             lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, amphibolites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, amphibolites_idx, 0.0, 1.0);
+
+            // --- Also transform upp and low cont. crust to felsic amphi here.
+            lusiMaterialChange(part_compo_props, cont_low_crust_idx, felsic_amphibolites_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, cont_upp_crust_idx, felsic_amphibolites_idx, 0.0, 1.0);
 	  }
 
 	// --- p,T conditions under which oc. crust, greenschists and amphibolites transform
@@ -689,6 +699,10 @@ namespace aspect
             lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, granulites_idx , 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, greenschists_idx, granulites_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, amphibolites_idx, granulites_idx, 0.0, 1.0);
+
+            // --- Also transform upp and low cont. crust to felsic granu here.
+            lusiMaterialChange(part_compo_props, cont_low_crust_idx, felsic_granulites_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, cont_upp_crust_idx, felsic_granulites_idx, 0.0, 1.0);            
 
 	    //// --- Parametrization of the amphibolite facies materials partial melting
 	    ////    (%5 partial melt, other materials that amphibolite should be at %0.0
