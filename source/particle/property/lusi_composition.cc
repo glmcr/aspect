@@ -330,71 +330,77 @@ namespace aspect
         // std::cout << "LUSIComposition<dim>::update_particle_property: temperature_here=" << temperature_here << std::endl;
         //}
 
-        //const types::boundary_id top_num_id=
-	//  this->Composition<dim>::get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
+        const types::boundary_id top_num_id=
+	 this->Composition<dim>::get_geometry_model().translate_symbolic_boundary_name_to_id ("top");
 
 	//const Tensor<1,dim> bnd_velos=
 	//   Function::boundary_velocity(0,particle->get_location());
 	//bool extension_stage= false; //bnd_velos[0]
 	
-        // bool in_a_top_cell= false;
+        bool in_a_top_cell= false;
 
-// #if DEAL_II_VERSION_GTE(9,4,0)
-//         typename DoFHandler<dim>::active_cell_iterator current_cell=
-// 	    typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(),&(this->Composition<dim>::get_dof_handler()));
-// #else
-//         typename DoFHandler<dim>::active_cell_iterator current_cell=
-// 	   typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(this->get_triangulation()),&(this->get_dof_handler()));
-// #endif
+#if DEAL_II_VERSION_GTE(9,4,0)
+        typename DoFHandler<dim>::active_cell_iterator current_cell=
+	    typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(),&(this->Composition<dim>::get_dof_handler()));
+#else
+        typename DoFHandler<dim>::active_cell_iterator current_cell=
+	   typename DoFHandler<dim>::active_cell_iterator(*particle->get_surrounding_cell(this->get_triangulation()),&(this->get_dof_handler()));
+#endif
 
-// 	for (const unsigned int face_no : current_cell->face_indices()) {
+	for (const unsigned int face_no : current_cell->face_indices()) {
 	  
-//            if ( current_cell->face(face_no)->at_boundary() &&
-// 	        current_cell->face(face_no)->boundary_id() == top_num_id) {
-// 	          in_a_top_cell = true;
-// 		  break;
-// 	   }
-// 	}
+           if ( current_cell->face(face_no)->at_boundary() &&
+	        current_cell->face(face_no)->boundary_id() == top_num_id) {
+	          in_a_top_cell = true;
+		  break;
+	   }
+	}
 
         // --- Removed oc. seds. pouring on top (2025-07-19)
-	// // --- Pour some oc. seds. but only if the marker is in a top cell
-	// //     and we have MRB or SSZ oc. crust > 0.1 (oceanic setting)
-	// if (in_a_top_cell && (part_compo_props[mrb_oc_crust_idx] > 0.1 || part_compo_props[ssz_oc_crust_idx] > 0.1 ) ) 
-	//   {
-	//     // --- Ensure to always have oc. seds composition at 0.55 in the top (surface) cells
-        //     part_compo_props[oc_seds_idx]= 0.55; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
-	//     //// --- Need to keep the acc. strains at 0.0 for oc. seds at the surface in the extension stage
-	//     ////     NOTE: Comment those two next lines for the convergence and slab rollback stage.
-	//     //part_compo_props[acc_tot_strain_idx]=
-	//     //  part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-        //     // --- Limit all other compos between 0.0 and 0.45 
-        //     part_compo_props[mrb_oc_crust_idx]= 
-        //      std::max(0.0,std::min(0.45,part_compo_props[mrb_oc_crust_idx]));
-        //     part_compo_props[ssz_oc_crust_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[ssz_oc_crust_idx]));
-        //     part_compo_props[pm_ssz_asth_mtl_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[pm_ssz_asth_mtl_idx]));
-	//     part_compo_props[pm_mrb_asth_mtl_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[pm_mrb_asth_mtl_idx]));
-        //     part_compo_props[ssz_lith_mtl_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[ssz_lith_mtl_idx]));
-        //     part_compo_props[greenschists_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[greenschists_idx]));
-        //     part_compo_props[amphibolites_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[amphibolites_idx]));
-        //     part_compo_props[granulites_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[granulites_idx]));
-        //     part_compo_props[eclogites_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[eclogites_idx]));
-        //     part_compo_props[blueschists_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[blueschists_idx]));
-        //     part_compo_props[asth_mtl_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[asth_mtl_idx]));
-        //     part_compo_props[mrb_lith_mtl_idx]=
-        //      std::max(0.0,std::min(0.45,part_compo_props[mrb_lith_mtl_idx]));
-	//     part_compo_props[asth_olm_hyb_mat_idx]=
-	//      std::max(0.0,std::min(0.45,part_compo_props[asth_olm_hyb_mat_idx]));
-	// }
+	// --- Pour some oc. seds. but only if the marker is in a top cell
+	//     and we have MRB or SSZ oc. crust > 0.1 (oceanic setting)
+	if (in_a_top_cell && (part_compo_props[mrb_oc_crust_idx] > 0.1 || part_compo_props[ssz_oc_crust_idx] > 0.1 ) ) 
+	  {
+	    // --- Ensure to always have oc. seds composition at 0.55 in the top (surface) cells
+            part_compo_props[oc_seds_idx]= 0.55; //std::min(1.2, std::max(1.2, part_compo_props[oc_seds_idx]));
+            
+	    //// --- Need to keep the acc. strains at 0.0 for oc. seds at the surface in the extension stage
+	    ////     NOTE: Comment those two next lines for the convergence and slab rollback stage.
+	    //part_compo_props[acc_tot_strain_idx]=
+	    //  part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+            // --- Limit all other compos between 0.0 and 0.45 
+            part_compo_props[mrb_oc_crust_idx]= 
+             std::max(0.0,std::min(0.45,part_compo_props[mrb_oc_crust_idx]));
+            part_compo_props[ssz_oc_crust_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[ssz_oc_crust_idx]));
+            part_compo_props[pm_ssz_asth_mtl_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[pm_ssz_asth_mtl_idx]));
+	    part_compo_props[pm_mrb_asth_mtl_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[pm_mrb_asth_mtl_idx]));
+            part_compo_props[ssz_lith_mtl_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[ssz_lith_mtl_idx]));
+            part_compo_props[greenschists_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[greenschists_idx]));
+            part_compo_props[amphibolites_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[amphibolites_idx]));
+            part_compo_props[granulites_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[granulites_idx]));
+            part_compo_props[eclogites_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[eclogites_idx]));
+            part_compo_props[blueschists_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[blueschists_idx]));
+            part_compo_props[asth_mtl_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[asth_mtl_idx]));
+            part_compo_props[mrb_lith_mtl_idx]=
+             std::max(0.0,std::min(0.45,part_compo_props[mrb_lith_mtl_idx]));
+	    part_compo_props[asth_olm_hyb_mat_idx]=
+	     std::max(0.0,std::min(0.45,part_compo_props[asth_olm_hyb_mat_idx]));
+            
+	    part_compo_props[felsic_amphibolites_idx]=
+	     std::max(0.0,std::min(0.45,part_compo_props[felsic_amphibolites_idx]));
+            part_compo_props[felsic_granulites_idx]=
+	     std::max(0.0,std::min(0.45,part_compo_props[felsic_granulites_idx]));
+	}
 
         // // --- Need to keep the acc. strains at 0.0 for MORB crust in the extension stage.
 	// //     NOTE: Comment this code block for the convergence and slab rollback stage.
