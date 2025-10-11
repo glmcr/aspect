@@ -44,8 +44,8 @@ namespace aspect
       // // --- apply the LUSI ad-hoc code that deals with
       // //     the variation of the thermal expansivity and diffusivity
       // //     of the SI materials.
-      //ViscoPlastic<dim>::apply_lusi_thermal_stuff(in,out);
-      
+      ViscoPlastic<dim>::apply_lusi_thermal_stuff(in,out);
+
       // // --- ***IMPORTANT*** Need to add one to the indices
       // //     since the material models properties arrays are always using
       // //     a background field at index 0 so the compositions indices
