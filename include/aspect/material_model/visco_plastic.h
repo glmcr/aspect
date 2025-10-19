@@ -28,6 +28,10 @@
 
 #include<deal.II/fe/component_mask.h>
 
+DEAL_II_DISABLE_EXTRA_DIAGNOSTICS
+#include <boost/random.hpp>
+DEAL_II_ENABLE_EXTRA_DIAGNOSTICS
+
 namespace aspect
 {
   namespace MaterialModel
@@ -185,6 +189,9 @@ namespace aspect
         void evaluate(const MaterialModel::MaterialModelInputs<dim> &in,
                       MaterialModel::MaterialModelOutputs<dim> &out) const override;
 
+        void apply_lusi_latent_heat_stuff(const MaterialModel::MaterialModelInputs<dim> &in,
+                                          MaterialModel::MaterialModelOutputs<dim> &out) const ;      
+
         void apply_lusi_thermal_stuff(const MaterialModel::MaterialModelInputs<dim> &in,
                                         MaterialModel::MaterialModelOutputs<dim> &out) const ;
 
@@ -264,6 +271,9 @@ namespace aspect
          */
         MaterialUtilities::PhaseFunction<dim> phase_function;
 
+        mutable boost::mt19937 random_number_generator;
+
+        //boost::random::uniform_real_distribution<double> uniform_distribution(0,1);
     };
 
   }

@@ -290,6 +290,9 @@ namespace aspect
 
         const unsigned int acc_ninit_plastic_strain_idx=
           this->Composition<dim>::introspection().compositional_index_for_name(ACC_NONINIT_PLASTIC_STRAIN_NID);
+
+        const unsigned int porosity_idx=
+          this->Composition<dim>::introspection().compositional_index_for_name(POROSITY_NID);        
 	
 	//--- pointer shortcut to the particle->get_properties()[data_position]
 	//    which allows to index the values inside it (not clean, but it works)
@@ -574,6 +577,8 @@ namespace aspect
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+
+            part_compo_props[porosity_idx] += (part_compo_props[porosity_idx]<MAX_SSZ_PM_POROSITY) ? SSZ_PM_POROSITY_INCR : 0.0;
             
             // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
 	    // //     but only if the acc. tot. strain is > 12.0
@@ -591,6 +596,8 @@ namespace aspect
 	  {
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
+
+             part_compo_props[porosity_idx] += (part_compo_props[porosity_idx]<MAX_MRB_PM_POROSITY) ? MRB_PM_POROSITY_INCR : 0.0;
 	  }	
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
@@ -601,6 +608,8 @@ namespace aspect
            const double previousSSZMatContent= part_compo_props[ssz_oc_crust_idx];
 
 	   lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
+
+           part_compo_props[porosity_idx]= 0.0;
 
            if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_oc_crust_idx] > 0.5 ) {
              // --- reset the accumulated strains to zero for this new ssz mat.
@@ -617,6 +626,8 @@ namespace aspect
            const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
 
 	   lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_oc_crust_idx, 0.0, 1.0);
+
+           part_compo_props[porosity_idx]= 0.0;
 
            if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_oc_crust_idx] > 0.5 ) {
              // --- reset the accumulated strains to zero for this new mrb mat.
@@ -637,6 +648,8 @@ namespace aspect
 	    //     to the SSZ type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
 
+            part_compo_props[porosity_idx]= 0.0;
+
             if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
               // --- reset the accumulated strains to zero for this new mrb mat.
               part_compo_props[acc_tot_strain_idx]= 0.0;
@@ -656,6 +669,8 @@ namespace aspect
 	    //     to the MRB type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
 
+            part_compo_props[porosity_idx]= 0.0;
+            
             if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
               // --- reset the accumulated strains to zero for this new ssz mat.
               part_compo_props[acc_tot_strain_idx]= 0.0;

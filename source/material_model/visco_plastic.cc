@@ -273,6 +273,40 @@ namespace aspect
     template <int dim>
     void
     ViscoPlastic<dim>::
+    apply_lusi_latent_heat_stuff(const MaterialModel::MaterialModelInputs<dim> &in,
+                                 MaterialModel::MaterialModelOutputs<dim> &out) const
+    {
+
+      //mutable boost::mt19937 random_number_generator;
+
+      if (this->introspection().compositional_name_exists("porosity") &&  this->get_timestep_number() > 0)
+        {
+          
+          const boost::random::uniform_real_distribution<double> uniform_distribution(0,1); 
+          
+          const unsigned int porosity_idx = this->introspection().compositional_index_for_name("porosity");
+
+          // --- Loop through all requested points
+          for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
+             {
+          
+               const double poro_value= in.composition[i][porosity_idx];
+
+               //boost::random::uniform_real_distribution<double> uniform_distribution(0,1);
+
+               const double rdn_fact= uniform_distribution(this->random_number_generator);
+
+               // --- Partial melting is always endothermic hence the minus sign here. 
+               out.entropy_derivative_temperature[i]= -(out.specific_heat[i]/in.temperature[i])*rdn_fact*poro_value;
+
+               out.entropy_derivative_temperature[i]= 0.0;
+             }
+        }
+    }
+
+    template <int dim>
+    void
+    ViscoPlastic<dim>::
     apply_lusi_thermal_stuff(const MaterialModel::MaterialModelInputs<dim> &in,
                                MaterialModel::MaterialModelOutputs<dim> &out) const
     {
