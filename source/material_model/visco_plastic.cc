@@ -279,12 +279,14 @@ namespace aspect
 
       //mutable boost::mt19937 random_number_generator;
 
-      if (this->introspection().compositional_name_exists("porosity") &&  this->get_timestep_number() > 0)
+      //if (this->introspection().compositional_name_exists("poro_strain") &&  this->get_timestep_number() > 0)
+      if  (this->simulator_is_past_initialization() &&
+           this->get_timestep_number() > 0 && this->introspection().compositional_name_exists("poro_strain"))
         {
           
           const boost::random::uniform_real_distribution<double> uniform_distribution(0,1); 
           
-          const unsigned int porosity_idx = this->introspection().compositional_index_for_name("porosity");
+          const unsigned int porosity_idx = this->introspection().compositional_index_for_name("poro_strain");
 
           // --- Loop through all requested points
           for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
