@@ -194,14 +194,14 @@ namespace aspect
 
           // --- need to use the poro_strain name string to fool the Aspect code in
           //     in order to avoid problems with the "porosity" name being used elsewhere in the code 
-          static constexpr const char* POROSITY_NID= "poro_strain";
+          static constexpr const char* PM_FRAC_NID= "pm_frac";
 
-          static constexpr const double MAX_SSZ_PM_POROSITY= 0.15;
+          static constexpr const double MAX_SSZ_PM_FRAC= 0.15;
 
-          static constexpr const double MAX_MRB_PM_POROSITY= 0.02;
+          static constexpr const double MAX_MRB_PM_FRAC= 0.02;
 
-          static constexpr const double SSZ_PM_POROSITY_INCR= MAX_SSZ_PM_POROSITY*1.e-5;
-          static constexpr const double MRB_PM_POROSITY_INCR= MAX_MRB_PM_POROSITY*1.e-5;
+          static constexpr const double SSZ_PM_FRAC_INCR= MAX_SSZ_PM_FRAC*1.e-5;
+          static constexpr const double MRB_PM_FRAC_INCR= MAX_MRB_PM_FRAC*1.e-5;
         
 	  // --- Surf T 273.25
 	  static constexpr const double SURF_TEMPERATURE_KELVINS= 273.25;
