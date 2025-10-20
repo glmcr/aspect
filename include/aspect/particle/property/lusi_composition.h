@@ -192,7 +192,9 @@ namespace aspect
 
           static constexpr const char* ACC_NONINIT_PLASTIC_STRAIN_NID= "noninitial_plastic_strain";
 
-          static constexpr const char* POROSITY_NID= "porosity";
+          // --- need to use the poro_strain name string to fool the Aspect code in
+          //     in order to avoid problems with the "porosity" name being used elsewhere in the code 
+          static constexpr const char* POROSITY_NID= "poro_strain";
 
           static constexpr const double MAX_SSZ_PM_POROSITY= 0.15;
 
