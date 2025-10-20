@@ -284,7 +284,7 @@ namespace aspect
            this->get_timestep_number() > 0 && this->introspection().compositional_name_exists("pm_frac"))
         {
           
-          const boost::random::uniform_real_distribution<double> uniform_distribution(0,1); 
+          //const boost::random::uniform_real_distribution<double> uniform_distribution(0,1); 
           
           const unsigned int pm_frac_idx = this->introspection().compositional_index_for_name("pm_frac");
 
@@ -295,11 +295,10 @@ namespace aspect
                const double pm_frac_value= in.composition[i][pm_frac_idx];
 
                //boost::random::uniform_real_distribution<double> uniform_distribution(0,1);
-
-               const double rdn_fact= uniform_distribution(this->random_number_generator);
+               //const double rdn_fact= uniform_distribution(this->random_number_generator);
 
                // --- Partial melting is always endothermic hence the minus sign here. 
-               out.entropy_derivative_temperature[i]= -(out.specific_heat[i]/in.temperature[i])*rdn_fact*pm_frac_value;
+               out.entropy_derivative_temperature[i]= -(out.specific_heat[i]/in.temperature[i])*pm_frac_value; //rdn_fact*pm_frac_value;
 
                out.entropy_derivative_pressure[i]= 0.0;
              }

@@ -28,9 +28,9 @@
 
 #include<deal.II/fe/component_mask.h>
 
-DEAL_II_DISABLE_EXTRA_DIAGNOSTICS
-#include <boost/random.hpp>
-DEAL_II_ENABLE_EXTRA_DIAGNOSTICS
+//DEAL_II_DISABLE_EXTRA_DIAGNOSTICS
+//#include <boost/random.hpp>
+//DEAL_II_ENABLE_EXTRA_DIAGNOSTICS
 
 namespace aspect
 {
@@ -271,8 +271,7 @@ namespace aspect
          */
         MaterialUtilities::PhaseFunction<dim> phase_function;
 
-        mutable boost::mt19937 random_number_generator;
-
+        //mutable boost::mt19937 random_number_generator;
         //boost::random::uniform_real_distribution<double> uniform_distribution(0,1);
     };
 
