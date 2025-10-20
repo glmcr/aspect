@@ -299,7 +299,7 @@ namespace aspect
                // --- Partial melting is always endothermic hence the minus sign here. 
                out.entropy_derivative_temperature[i]= -(out.specific_heat[i]/in.temperature[i])*rdn_fact*poro_value;
 
-               out.entropy_derivative_temperature[i]= 0.0;
+               out.entropy_derivative_pressure[i]= 0.0;
              }
         }
     }
