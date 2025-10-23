@@ -270,37 +270,37 @@ namespace aspect
         }
     }
 
-    template <int dim>
-    void
-    ViscoPlastic<dim>::
-    apply_lusi_latent_heat_stuff(const MaterialModel::MaterialModelInputs<dim> &in,
-                                 MaterialModel::MaterialModelOutputs<dim> &out) const //, std::string pm_frac_name) const
-    {
-      //mutable boost::mt19937 random_number_generator;
-      // ---
-      if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 &&
-           this->introspection().compositional_name_exists("pm_frac"))
-        {
+    // template <int dim>
+    // void
+    // ViscoPlastic<dim>::
+    // apply_lusi_latent_heat_stuff(const MaterialModel::MaterialModelInputs<dim> &in,
+    //                              MaterialModel::MaterialModelOutputs<dim> &out) const //, std::string pm_frac_name) const
+    // {
+    //   //mutable boost::mt19937 random_number_generator;
+    //   // ---
+    //   if  (this->simulator_is_past_initialization() && this->get_timestep_number() > 0 &&
+    //        this->introspection().compositional_name_exists("pm_frac"))
+    //     {
           
-          //const boost::random::uniform_real_distribution<double> uniform_distribution(0,1); 
+    //       //const boost::random::uniform_real_distribution<double> uniform_distribution(0,1); 
           
-          const unsigned int pm_frac_idx = this->introspection().compositional_index_for_name("pm_frac");
+    //       const unsigned int pm_frac_idx = this->introspection().compositional_index_for_name("pm_frac");
 
-          // --- Loop through all requested points
-          for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
-             { 
-               const double pm_frac_value= in.composition[i][pm_frac_idx];
+    //       // --- Loop through all requested points
+    //       for (unsigned int i=0; i < in.n_evaluation_points(); ++i)
+    //          { 
+    //            const double pm_frac_value= in.composition[i][pm_frac_idx];
 
-               //boost::random::uniform_real_distribution<double> uniform_distribution(0,1);
-               //const double rdn_fact= uniform_distribution(this->random_number_generator);
+    //            //boost::random::uniform_real_distribution<double> uniform_distribution(0,1);
+    //            //const double rdn_fact= uniform_distribution(this->random_number_generator);
 
-               // --- Partial melting is always endothermic hence the minus sign here. 
-               out.entropy_derivative_temperature[i]= -(out.specific_heat[i]/in.temperature[i])*pm_frac_value; //rdn_fact*pm_frac_value;
+    //            // --- Partial melting is always endothermic hence the minus sign here. 
+    //            out.entropy_derivative_temperature[i]= -(out.specific_heat[i]/in.temperature[i])*pm_frac_value; //rdn_fact*pm_frac_value;
 
-               out.entropy_derivative_pressure[i]= 0.0;
-             }
-        }
-    }
+    //            out.entropy_derivative_pressure[i]= 0.0;
+    //          }
+    //     }
+    // }
 
     template <int dim>
     void

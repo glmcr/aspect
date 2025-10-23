@@ -41,7 +41,7 @@ namespace aspect
       // --- Need to use the normal generic evaluate method of the ViscoPlastic super class
       ViscoPlastic<dim>::evaluate(in,out);
 
-      ViscoPlastic<dim>::apply_lusi_latent_heat_stuff(in,out);
+      //ViscoPlastic<dim>::apply_lusi_latent_heat_stuff(in,out);
 
       // // --- apply the LUSI ad-hoc code that deals with
       // //     the variation of the thermal expansivity and diffusivity

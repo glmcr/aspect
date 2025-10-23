@@ -1,0 +1,74 @@
+/*
+  Copyright (C) 2011 - 2024 by the authors of the ASPECT code.
+
+  This file is part of ASPECT.
+
+  ASPECT is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2, or (at your option)
+  any later version.
+
+  ASPECT is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with ASPECT; see the file LICENSE.  If not see
+  <http://www.gnu.org/licenses/>.
+*/
+
+
+#include <aspect/heating_model/latent_heat_lusi.h>
+
+namespace aspect
+{
+  namespace HeatingModel
+  {
+    template <int dim>
+    void
+    LatentHeatLusi<dim>::
+    evaluate (const MaterialModel::MaterialModelInputs<dim> &material_model_inputs,
+              const MaterialModel::MaterialModelOutputs<dim> &material_model_outputs,
+              HeatingModel::HeatingModelOutputs &heating_model_outputs) const
+    {
+      Assert(heating_model_outputs.heating_source_terms.size() == material_model_inputs.n_evaluation_points(),
+             ExcMessage ("Heating outputs need to have the same number of entries as the material model inputs."));
+
+      if  (this->introspection().compositional_name_exists("pm_frac"))
+        {
+
+          const unsigned int pm_frac_idx = this->introspection().compositional_index_for_name("pm_frac");
+
+          for (unsigned int q=0; q<heating_model_outputs.heating_source_terms.size(); ++q)
+            {
+              // --- assuming that the entropy_derivative_pressure is 0.0 here (for now)
+              heating_model_outputs.heating_source_terms[q] = 0.0; //material_model_inputs.temperature[q]
+                                                                   //* material_model_outputs.densities[q]
+                                                          //* material_model_outputs.entropy_derivative_pressure[q]
+                                                          //* (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q]);
+
+              // --- pm_frac compo means some presence of asth. partial melt fraction implying an on-going
+              //     endothermic reaction hence the minus sign for the entropy_derivative_temperature value
+              const double entropy_derivative_temperature=
+                -(material_model_outputs.specific_heat[q]/material_model_inputs.temperature[q])*material_model_inputs.composition[q][pm_frac_idx] ;
+
+              heating_model_outputs.lhs_latent_heat_terms[q] = - material_model_outputs.densities[q]
+                                                               * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
+                                                                 //* material_model_outputs.entropy_derivative_temperature[q];
+           }
+        }
+    }
+  }
+}
+
+// explicit instantiations
+namespace aspect
+{
+  namespace HeatingModel
+  {
+    ASPECT_REGISTER_HEATING_MODEL(LatentHeatLusi,
+                                  "latent heat lusi",
+                                  "Implementation of an ad-hoc model specific for the latent heat budget of the Laval U. subduction initiation study")
+  }
+}
