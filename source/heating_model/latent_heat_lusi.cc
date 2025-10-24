@@ -64,9 +64,9 @@ namespace aspect
               //     We then omit the minus sign because the p.m. velocity is assumed to be alwayd positive
               //     upwards and the pressure gradient is considered to be always negative here.
               heating_model_outputs.heating_source_terms[q] = material_model_inputs.composition[q][pm_frac_idx]
-                                                              * (material_model_outputs.thermal_expansion_coefficients[q]/material_model_outputs.densities[q])
+                                                              * material_model_outputs.thermal_expansion_coefficients[q] ///material_model_outputs.densities[q])
                                                               * (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q])
-                                                              * material_model_outputs.thermal_expansion_coefficients[q]
+                                                              //* material_model_outputs.densities[q]
                                                               * material_model_inputs.temperature[q];
               
               //heating_model_outputs.heating_source_terms[q] = - material_model_outputs.densities[q]
