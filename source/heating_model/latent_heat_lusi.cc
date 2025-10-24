@@ -43,7 +43,7 @@ namespace aspect
           for (unsigned int q=0; q<heating_model_outputs.heating_source_terms.size(); ++q)
             {
               // --- assuming that the entropy_derivative_pressure is 0.0 here (for now)
-              heating_model_outputs.heating_source_terms[q] = 0.0; //material_model_inputs.temperature[q]
+              //heating_model_outputs.heating_source_terms[q] = 0.0; //material_model_inputs.temperature[q]
                                                                    //* material_model_outputs.densities[q]
                                                           //* material_model_outputs.entropy_derivative_pressure[q]
                                                           //* (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q]);
@@ -53,9 +53,13 @@ namespace aspect
               const double entropy_derivative_temperature=
                 -(material_model_outputs.specific_heat[q]/material_model_inputs.temperature[q])*material_model_inputs.composition[q][pm_frac_idx] ;
 
-              heating_model_outputs.lhs_latent_heat_terms[q] = - material_model_outputs.densities[q]
-                                                               * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
+              // heating_model_outputs.lhs_latent_heat_terms[q] = - material_model_outputs.densities[q]
+              //                                                 * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
                                                                  //* material_model_outputs.entropy_derivative_temperature[q];
+
+              // --- Trying with the equation RHS 
+              heating_model_outputs.heating_source_terms[q] = - material_model_outputs.densities[q]
+                                                              * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
            }
         }
     }
