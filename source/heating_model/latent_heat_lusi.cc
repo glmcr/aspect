@@ -49,17 +49,28 @@ namespace aspect
                                                           //* (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q]);
 
               // --- pm_frac compo means some presence of asth. partial melt fraction implying an on-going
-              //     endothermic reaction hence the minus sign for the entropy_derivative_temperature value
-              const double entropy_derivative_temperature=
-                -(material_model_outputs.specific_heat[q]/material_model_inputs.temperature[q])*material_model_inputs.composition[q][pm_frac_idx] ;
+              //     endothermic reaction hence the plus sign for the entropy_derivative_temperature value
+              //     (seems that the matrix assembly code is inconsistent with the energy equation at the
+              //     end of section 2.1 of the manual for the LHS term)
+              //const double entropy_derivative_temperature=
+              //  (material_model_outputs.specific_heat[q]/material_model_inputs.temperature[q])*material_model_inputs.composition[q][pm_frac_idx] ;
 
-              // heating_model_outputs.lhs_latent_heat_terms[q] = - material_model_outputs.densities[q]
+              // heating_model_outputs.lhs_latent_heat_terms[q] = material_model_outputs.densities[q]
               //                                                 * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
                                                                  //* material_model_outputs.entropy_derivative_temperature[q];
 
-              // --- Trying with the equation RHS 
-              heating_model_outputs.heating_source_terms[q] = - material_model_outputs.densities[q]
-                                                              * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
+              // --- Trying with the equation RHS instead and using dS/dP = -alpha/density relation here but
+              //     since p.m. reaction is endothermic it must cause a cooling of the effective temperature.
+              //     We then omit the minus sign because the p.m. velocity is assumed to be alwayd positive
+              //     upwards and the pressure gradient is considered to be always negative here.
+              heating_model_outputs.heating_source_terms[q] = material_model_inputs.composition[q][pm_frac_idx]
+                                                              * (material_model_outputs.thermal_expansion_coefficients[q]/material_model_outputs.densities[q])
+                                                              * (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q])
+                                                              * material_model_outputs.thermal_expansion_coefficients[q]
+                                                              * material_model_inputs.temperature[q];
+              
+              //heating_model_outputs.heating_source_terms[q] = - material_model_outputs.densities[q]
+              //                                               * material_model_inputs.temperature[q]; // * entropy_derivative_temperature; 
            }
         }
     }
