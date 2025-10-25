@@ -70,8 +70,8 @@ namespace aspect
               heating_model_outputs.heating_source_terms[q] = (1.0 - material_model_inputs.composition[q][pm_frac_idx])
                                                               * material_model_outputs.thermal_expansion_coefficients[q]
                                                               * material_model_inputs.temperature[q]
-                                                              * (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q]);
-                                                              //* 50.0
+                * (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q]) //;
+                * 50.0 ;
               //heating_model_outputs.heating_source_terms[q] = - material_model_outputs.densities[q]
               //                                               * material_model_inputs.temperature[q]; // * entropy_derivative_temperature; 
            }
