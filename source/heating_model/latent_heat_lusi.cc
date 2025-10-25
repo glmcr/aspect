@@ -55,7 +55,7 @@ namespace aspect
               //const double entropy_derivative_temperature=
               //  (material_model_outputs.specific_heat[q]/material_model_inputs.temperature[q])*material_model_inputs.composition[q][pm_frac_idx] ;
 
-              // heating_model_outputs.lhs_latent_heat_terms[q] = material_model_outputs.densities[q]
+              heating_model_outputs.lhs_latent_heat_terms[q] = 0.0; //material_model_outputs.densities[q]
               //                                                 * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
                                                                  //* material_model_outputs.entropy_derivative_temperature[q];
 
