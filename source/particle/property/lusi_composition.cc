@@ -582,8 +582,8 @@ namespace aspect
               {
                 part_compo_props[pm_frac_idx] += SSZ_PM_FRAC_INCR ;
 
-                // --- Remove the part_compo_props[pm_frac_idx] from the part_compo_props[pm_ssz_asth_mtl_idx] for mass conserv.
-                part_compo_props[pm_ssz_asth_mtl_idx] -= part_compo_props[pm_frac_idx];
+                // --- Remove the SSZ_PM_FRAC_INCR from the part_compo_props[pm_ssz_asth_mtl_idx] for mass conserv.
+                part_compo_props[pm_ssz_asth_mtl_idx] -= SSZ_PM_FRAC_INCR ;
               }
             
             // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
@@ -607,8 +607,8 @@ namespace aspect
               {
                 part_compo_props[pm_frac_idx] += MRB_PM_FRAC_INCR;
 
-                // --- Remove the part_compo_props[pm_frac_idx] from the part_compo_props[pm_mrb_asth_mtl_idx] for mass conserv.
-                part_compo_props[pm_mrb_asth_mtl_idx] -= part_compo_props[pm_frac_idx];
+                // --- Remove the MRB_PM_FRAC_INCR from the part_compo_props[pm_mrb_asth_mtl_idx] for mass conserv.
+                part_compo_props[pm_mrb_asth_mtl_idx] -= MRB_PM_FRAC_INCR; 
               }
 	  }	
 	
