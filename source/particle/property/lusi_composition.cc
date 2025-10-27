@@ -639,7 +639,7 @@ namespace aspect
            const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
 
 	   lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_oc_crust_idx, 0.0, 1.0);
-           lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_oc_crust_idx, 0.0, 1.0);
+           lusiMaterialChange(part_compo_props, pm_frac_idx, mrb_oc_crust_idx, 0.0, 1.0);
 
            //part_compo_props[pm_frac_idx]= 0.0;
 
