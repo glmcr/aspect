@@ -500,7 +500,7 @@ namespace aspect
         //const double horiz_velo_absv= std::fabs(horiz_velo);
         
 	// // --- Get the vertical velocity at the marker position
-	//const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
 
         //const double vertical_velo_absv= std::fabs(vertical_velo);
 	
@@ -576,8 +576,9 @@ namespace aspect
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
             
             // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
-	    // //     but only if the acc. tot. strain is > 12.0
-            if (part_compo_props[acc_tot_strain_idx]>12.0)
+	    // //     but only if the marker vertical velocity is positive
+            //if (part_compo_props[acc_tot_strain_idx]>12.0)
+            if ( vertical_velo > 0.0) 
                {         
 	         lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
                }
