@@ -576,16 +576,19 @@ namespace aspect
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
             
             // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
-	    // //     but only if the marker vertical velocity is positive
+	    // //     AND also the oc. lithos. mantle MORB to partially melted SSZ asthenosphere but only
+            // //     if the marker vertical velocity is positive 
             //if (part_compo_props[acc_tot_strain_idx]>12.0)
             if ( vertical_velo > 0.0) 
-               {         
-	         lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
+               {
+                 // ---  p.m. MORB asth. to p.m. ssz asth.
+	         lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+                 lusiMaterialChange(part_compo_props, mrb_lith_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
                }
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
-	//     transforms to partially melted MORB asthenosphere (no MRB melt in the convergence context)
+	//     transforms to partially melted MORB asthenosphere (no MRB melt creation in the convergence context)
         if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_mrb_type)
@@ -647,8 +650,9 @@ namespace aspect
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
         //     2025-09-06: removed the dependency on the vertical velo magnitude -> create_new_olm_mrb
+        //     2025-10-28: We now allow the transformation of the  MRB oc. lith. mantle also in the convergence context.
 	if ((asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage ) //&& create_new_olm_mrb)
+	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) ) // && in_extension_stage ) //&& create_new_olm_mrb)
 	  {
 
             const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
