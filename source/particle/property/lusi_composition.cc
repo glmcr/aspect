@@ -575,14 +575,13 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
             
-            // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
-	    // //     AND also the oc. lithos. mantle MORB to partially melted SSZ asthenosphere but only
+            // // --- Directly transform the oc. lithos. mantle MORB to partially melted SSZ asthenosphere but only
             // //     if the marker vertical velocity is positive 
             //if (part_compo_props[acc_tot_strain_idx]>12.0)
             if ( vertical_velo > 0.0) 
                {
                  // ---  p.m. MORB asth. to p.m. ssz asth.
-	         lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	         //lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
                  lusiMaterialChange(part_compo_props, mrb_lith_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
                }
 	  }
@@ -760,9 +759,10 @@ namespace aspect
 	  {
             lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
           }
-	else // --- heated asth OLM hybrid (if any) -> asth
+	else // --- heated asth OLM hybrid (if any) and p.m. mrb morb (if any) -> asth
 	  {
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, asth_mtl_idx, 0.0, 1.0);
 	  }
 
         //// --- Prograde only oc. seds. (i.e. mainly qtz) -> coesite transition.
