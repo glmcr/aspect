@@ -580,8 +580,11 @@ namespace aspect
             //if (part_compo_props[acc_tot_strain_idx]>12.0)
             if ( vertical_velo > 0.0) 
                {
-                 // ---  p.m. MORB asth. to p.m. ssz asth.
+                 // ---  p.m. MORB asth. to p.m. ssz asth. (not activated since would occur at unwanted locations
+                 //      when the convergence begins because we can still have some residual upwelling going on)
 	         //lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+
+                 // ---  Direct transf. of oc. lithos. mantle MORB (if any) to partially melted SSZ asthenosphere
                  lusiMaterialChange(part_compo_props, mrb_lith_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
                }
 	  }
