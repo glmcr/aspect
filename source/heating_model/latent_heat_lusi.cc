@@ -59,21 +59,40 @@ namespace aspect
               //                                                 * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
                                                                  //* material_model_outputs.entropy_derivative_temperature[q];
 
-              // --- Trying with the equation RHS instead and using dS/dP = -alpha/density relation here but
-              //     since p.m. reaction is endothermic it must cause a cooling of the effective temperature.
-              //     We then omit the minus sign because the p.m. velocity is assumed to be always positive
-              //     upwards and the pressure gradient is considered to be always negative here because of
-              //     the upward displacement of the p.m. compo. The hardcoded 50.0 is the positive
-              //     approx. constant value of the delta entropy for the p.m. of the asth. taken from Connolly 2009
+              // --- Apply the latent heat consumption (i.e. effective T cooling ) only if the vertical velo
+              //     is upward (implying decompression). The hardcoded 50.0 is the positive
+              //     approx. constant value of the delta specific entropy (i.e. S/Kg) for the p.m. of the asth. taken from Connolly 2009
               //     paper (The geodynamic equation of state: What and how, G3 fig. 7 p. ) but it should not
-              //     be a constant if we would want to have something more realistic.  
-              heating_model_outputs.heating_source_terms[q] = material_model_inputs.composition[q][pm_frac_idx]
-                                                              * material_model_outputs.thermal_expansion_coefficients[q]
-                                                              * material_model_inputs.temperature[q]
-                * (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q]) * 50.0;
+              //     be a constant if we would want to have something more realistic.                
+              if (material_model_inputs.velocity[q][dim-1] > 0.0)
+                 {
 
-              //heating_model_outputs.heating_source_terms[q] = - material_model_outputs.densities[q]
-              //                                               * material_model_inputs.temperature[q]; // * entropy_derivative_temperature; 
+                   // --- Do not use the overloaded vector operator for the dot prod. calculation needlessly
+                   const double velo_gravity_dot_prod= material_model_inputs.velocity[q][dim-1]
+                                                       * this->get_gravity_model().gravity_vector(material_model_inputs.position[q])[dim-1];
+
+                   // ---   ->        ->   ->
+                   //      grad P ~= velo . g * density
+                   
+                   heating_model_outputs.heating_source_terms[q] = material_model_outputs.densities[q]
+                                                                   * material_model_outputs.densities[q]
+                                                                   * material_model_inputs.temperature[q]
+                                                                   * 50.0 * material_model_inputs.composition[q][pm_frac_idx] * velo_gravity_dot_prod ;
+                 }
+                 
+              // // --- Trying with the equation RHS instead and using dS/dP = -alpha/density relation here but
+              // //     since p.m. reaction is endothermic it must cause a cooling of the effective temperature.
+              // //     We then omit the minus sign because the p.m. velocity is assumed to be always positive
+              // //     upwards and the pressure gradient is considered to be always negative here because of
+              // //     the upward displacement of the p.m. compo. The hardcoded 50.0 is the positive
+              // //     approx. constant value of the delta entropy for the p.m. of the asth. taken from Connolly 2009
+              // //     paper (The geodynamic equation of state: What and how, G3 fig. 7 p. ) but it should not
+              // //     be a constant if we would want to have something more realistic.    
+              // heating_model_outputs.heating_source_terms[q] = material_model_inputs.composition[q][pm_frac_idx]
+              //                                                 * material_model_outputs.thermal_expansion_coefficients[q]
+              //                                                 * material_model_inputs.temperature[q]
+              //   * (material_model_inputs.velocity[q] * material_model_inputs.pressure_gradient[q]) * 50.0;
+ 
            }
         }
     }
