@@ -68,16 +68,26 @@ namespace aspect
                  {
 
                    // --- Do not use the overloaded vector operator for the dot prod. calculation needlessly
+                   //     and assumiing here that the value of
+                   //    this->get_gravity_model().gravity_vector(material_model_inputs.position[q])[dim-1]
+                   //     is -9.81
                    const double velo_gravity_dot_prod= material_model_inputs.velocity[q][dim-1]
                                                        * this->get_gravity_model().gravity_vector(material_model_inputs.position[q])[dim-1];
 
                    // ---   ->        ->   ->
                    //      grad P ~= velo . g * density
-                   
+                   //
+                   //      To parametrize the effect of the partial melting of the asth. we simply boost the thermal exp. by 3 orders of
+                   //      magnitude in the adabiatic heating-cooling formulat here as a test for a more efficient cooling of the p.m.
+                   //      material which we consider as a mixture of the residue (i.e. new OLM material) and p.m. asth pockets to
+                   //      decrease its effective T towards the solidus to get higher viscosities (and slower velocities at the same time) .
+                   //      With an high (~%15 fraction) p.m. material concentration we then have a more efficient cooling and it is also
+                   //      more efficient if the vertical velo value is large (> ~10cm/y)
+                   //  
                    heating_model_outputs.heating_source_terms[q] = material_model_outputs.densities[q]
-                                                                   * material_model_outputs.densities[q]
                                                                    * material_model_inputs.temperature[q]
-                                                                   * 50.0 * material_model_inputs.composition[q][pm_frac_idx] * velo_gravity_dot_prod ;
+                                                                   * 10e3 * material_model_outputs.thermal_expansion_coefficients[q] 
+                                                                   * material_model_inputs.composition[q][pm_frac_idx] * velo_gravity_dot_prod ;
                  }
                  
               // // --- Trying with the equation RHS instead and using dS/dP = -alpha/density relation here but

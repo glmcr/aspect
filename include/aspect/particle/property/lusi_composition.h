@@ -200,8 +200,8 @@ namespace aspect
 
           static constexpr const double MAX_MRB_PM_FRAC= 0.02;
 
-          static constexpr const double SSZ_PM_FRAC_INCR= MAX_SSZ_PM_FRAC*1.e-7;
-          static constexpr const double MRB_PM_FRAC_INCR= MAX_MRB_PM_FRAC*1.e-7;
+          static constexpr const double SSZ_PM_FRAC_INCR= 1.e-3; //MAX_SSZ_PM_FRAC*1.e-3;
+          static constexpr const double MRB_PM_FRAC_INCR= 1.e-5; //MAX_MRB_PM_FRAC*1.e-5;
         
 	  // --- Surf T 273.25
 	  static constexpr const double SURF_TEMPERATURE_KELVINS= 273.25;
