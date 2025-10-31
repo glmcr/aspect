@@ -35,7 +35,7 @@ namespace aspect
       Assert(heating_model_outputs.heating_source_terms.size() == material_model_inputs.n_evaluation_points(),
              ExcMessage ("Heating outputs need to have the same number of entries as the material model inputs."));
 
-      if  (this->introspection().compositional_name_exists("pm_frac") && this->get_timestep_number() > 0 )
+      if  (this->introspection().compositional_name_exists("pm_frac")) // && this->get_timestep_number() > 0 )
         {
 
           const unsigned int pm_frac_idx = this->introspection().compositional_index_for_name("pm_frac");
