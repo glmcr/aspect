@@ -55,9 +55,8 @@ namespace aspect
               //const double entropy_derivative_temperature=
               //  (material_model_outputs.specific_heat[q]/material_model_inputs.temperature[q])*material_model_inputs.composition[q][pm_frac_idx] ;
 
-              heating_model_outputs.lhs_latent_heat_terms[q] = 0.0; //material_model_outputs.densities[q]
-              //                                                 * material_model_inputs.temperature[q] * entropy_derivative_temperature; 
-                                                                 //* material_model_outputs.entropy_derivative_temperature[q];
+              heating_model_outputs.lhs_latent_heat_terms[q]=
+                 heating_model_outputs.heating_source_terms[q]= 0.0;
 
               // --- Apply the latent heat consumption (i.e. effective T cooling ) only if the vertical velo
               //     is upward (implying decompression). The hardcoded 50.0 is the positive
