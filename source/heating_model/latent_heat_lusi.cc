@@ -64,7 +64,7 @@ namespace aspect
               //     approx. constant value of the delta specific entropy (i.e. S/Kg) for the p.m. of the asth. taken from Connolly 2009
               //     paper (The geodynamic equation of state: What and how, G3 fig. 7 p. ) but it should not
               //     be a constant if we would want to have something more realistic.                
-              if (material_model_inputs.velocity[q][dim-1] > 0.0)
+              if (material_model_inputs.velocity[q][dim-1] > 0.0  && this->get_timestep_number() > 0)
                  {
 
                    // --- Do not use the overloaded vector operator for the dot prod. calculation needlessly
@@ -78,7 +78,7 @@ namespace aspect
                    //      grad P ~= velo . g * density
                    //
                    //      To parametrize the effect of the partial melting of the asth. we simply boost the thermal exp. by 3 orders of
-                   //      magnitude in the adabiatic heating-cooling formulat here as a test for a more efficient cooling of the p.m.
+                   //      magnitude in the adabiatic heating-cooling formula here as a test for a more efficient cooling of the p.m.
                    //      material which we consider as a mixture of the residue (i.e. new OLM material) and p.m. asth pockets to
                    //      decrease its effective T towards the solidus to get higher viscosities (and slower velocities at the same time) .
                    //      With an high (~%15 fraction) p.m. material concentration we then have a more efficient cooling and it is also
@@ -86,7 +86,7 @@ namespace aspect
                    //  
                    heating_model_outputs.heating_source_terms[q] = material_model_outputs.densities[q]
                                                                    * material_model_inputs.temperature[q]
-                                                                   * 10e3 * material_model_outputs.thermal_expansion_coefficients[q] 
+                                                                   * 1e3 * material_model_outputs.thermal_expansion_coefficients[q] 
                                                                    * material_model_inputs.composition[q][pm_frac_idx] * velo_gravity_dot_prod ;
                  }
                  
