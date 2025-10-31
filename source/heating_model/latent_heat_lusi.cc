@@ -35,7 +35,7 @@ namespace aspect
       Assert(heating_model_outputs.heating_source_terms.size() == material_model_inputs.n_evaluation_points(),
              ExcMessage ("Heating outputs need to have the same number of entries as the material model inputs."));
 
-      if  (this->introspection().compositional_name_exists("pm_frac"))
+      if  (this->introspection().compositional_name_exists("pm_frac") && this->get_timestep_number() > 0 )
         {
 
           const unsigned int pm_frac_idx = this->introspection().compositional_index_for_name("pm_frac");
@@ -64,7 +64,7 @@ namespace aspect
               //     approx. constant value of the delta specific entropy (i.e. S/Kg) for the p.m. of the asth. taken from Connolly 2009
               //     paper (The geodynamic equation of state: What and how, G3 fig. 7 p. ) but it should not
               //     be a constant if we would want to have something more realistic.                
-              if (material_model_inputs.velocity[q][dim-1] > 0.0  && this->get_timestep_number() > 0)
+              if (material_model_inputs.velocity[q][dim-1] > 0.0)
                  {
 
                    // --- Do not use the overloaded vector operator for the dot prod. calculation needlessly
