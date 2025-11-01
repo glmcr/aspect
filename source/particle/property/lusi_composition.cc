@@ -578,12 +578,18 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 
-            if (part_compo_props[pm_frac_idx]<MAX_SSZ_PM_FRAC)
+            if (part_compo_props[pm_frac_idx]<MAX_SSZ_PM_FRAC) // && part_compo_props[pm_ssz_asth_mtl_idx] > SSZ_PM_FRAC_INCR)
               {
-                part_compo_props[pm_frac_idx] += SSZ_PM_FRAC_INCR ;
 
+                const double pm_frac_compo_incr= SSZ_PM_FRAC_INCR * part_compo_props[pm_ssz_asth_mtl_idx];
+                  
+                //OKAY part_compo_props[pm_frac_idx] += SSZ_PM_FRAC_INCR ;
+                part_compo_props[pm_frac_idx] += pm_frac_compo_incr;
+                  
                 // --- Remove the SSZ_PM_FRAC_INCR from the part_compo_props[pm_ssz_asth_mtl_idx] for mass conserv.
-                part_compo_props[pm_ssz_asth_mtl_idx] -= SSZ_PM_FRAC_INCR ;
+                // OKAY part_compo_props[pm_ssz_asth_mtl_idx] -= SSZ_PM_FRAC_INCR ;
+                part_compo_props[pm_ssz_asth_mtl_idx] -= pm_frac_compo_incr;  
+                
               }
             
             // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
