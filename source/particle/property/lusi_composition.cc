@@ -600,8 +600,10 @@ namespace aspect
 	  } // --- pm asth -> ssz oc. crust.
 	
 	// --- (p,T) conditions for which upwelling MORB asth. partial melts transforms to MORB crust.
+        //     2025-11-01: Allow transf. of  partially melted MRB asth. transforms to MRB crust also
+        //                 in the convergence context        
         if ( (asth2MRBCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here) ) && in_extension_stage)
+	      asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here) ) ) // && in_extension_stage)
 	  {
 
            const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
@@ -636,8 +638,10 @@ namespace aspect
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
         //     2025-09-06: removed the dependency on the vertical velo magnitude -> create_new_olm_mrb
+        //     2025-11-01: Allow transf. of  partially melted MRB asth. transforms to MRB oc. lith. mantle also
+        //                 in the convergence context
 	if ((asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage ) //&& create_new_olm_mrb)
+	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) ) // && in_extension_stage ) //&& create_new_olm_mrb)
 	  {
 
             const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
