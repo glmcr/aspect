@@ -587,7 +587,8 @@ namespace aspect
                 part_compo_props[pm_frac_idx] += pm_frac_compo_incr;
                   
                 // --- Remove the SSZ_PM_FRAC_INCR from the part_compo_props[pm_ssz_asth_mtl_idx] for mass conserv.
-                // OKAY part_compo_props[pm_ssz_asth_mtl_idx] -= SSZ_PM_FRAC_INCR ;
+                // OKAY but could produce compos < 0.0 ifpart_compo_props[pm_ssz_asth_mtl_idx] is < SSZ_PM_FRAC_INCR
+                // part_compo_props[pm_ssz_asth_mtl_idx] -= SSZ_PM_FRAC_INCR ;
                 part_compo_props[pm_ssz_asth_mtl_idx] -= pm_frac_compo_incr;  
                 
               }
