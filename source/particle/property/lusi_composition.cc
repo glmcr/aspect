@@ -503,7 +503,7 @@ namespace aspect
         //const double horiz_velo_absv= std::fabs(horiz_velo);
         
 	// // --- Get the vertical velocity at the marker position
-	//const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
 
         //const double vertical_velo_absv= std::fabs(vertical_velo);
 	
@@ -527,7 +527,7 @@ namespace aspect
 
         // --- to control the transformation of the p.m. morb asth, and hyb. asth. to the p.m. ssz asth.
         //     (no such control for the asth. per se)
-        //const bool ssz_decompression= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD); // && (vertical_velo_absv > horiz_velo_absv)) ? true : false;
+        const bool ssz_decompression= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD); // && (vertical_velo_absv > horiz_velo_absv)) ? true : false;
 
 	// --- Serpentinization parametrization
 	bool metam_fluids_contact_with_olmMRB= false;
@@ -593,16 +593,20 @@ namespace aspect
                 
               }
             
-            // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
-	    // //     but only if the acc. tot. strain is > 12.0
-            if (part_compo_props[acc_tot_strain_idx]>12.0)
-               {         
-	         lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
+            // // --- Directly transform the oc. lithos. mantle MORB to partially melted SSZ asthenosphere but only
+            // //     if the marker vertical velocity is positive 
+            //if (part_compo_props[acc_tot_strain_idx]>12.0)
+            //if ( vertical_velo > 0.0)
+            if (ssz_decompression)
+               {
+                 // ---  Direct transf. of p.m. mrb asth (if any) and-or oc. lithos. mantle MORB (if any) to partially melted SSZ asthenosphere
+                 lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
+                 //lusiMaterialChange(part_compo_props, mrb_lith_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
                }
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
-	//     transforms to partially melted MORB asthenosphere (no MRB melt in the convergence context)
+	//     transforms to partially melted MORB asthenosphere (no MRB melt creation in the convergence context)
         if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_mrb_type)
@@ -639,8 +643,9 @@ namespace aspect
 	  } // --- pm asth -> ssz oc. crust.
 	
 	// --- (p,T) conditions for which upwelling MORB asth. partial melts transforms to MORB crust.
+        //     2025-11-01: We now allow the transformation of MORB asth. partial melts to the MRB crust also in the convergence context.
         if ( (asth2MRBCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	      asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here) ) && in_extension_stage)
+	      asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here) ) ) //&& in_extension_stage)
 	  {
 
            const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
@@ -681,8 +686,9 @@ namespace aspect
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
         //     2025-09-06: removed the dependency on the vertical velo magnitude -> create_new_olm_mrb
+        //     2025-10-28: We now allow the transformation of the partially melted MRB asth. to the MRB oc. lith. mantle also in the convergence context.
 	if ((asth2MRBOlmPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
-	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) && in_extension_stage ) //&& create_new_olm_mrb)
+	     asth2MRBOlmPTTri2.ptInside(pressureInMPa_here,temperature_here)) ) // && in_extension_stage ) //&& create_new_olm_mrb)
 	  {
 
             const double previousMRBMatContent= part_compo_props[mrb_lith_mtl_idx];
@@ -793,9 +799,10 @@ namespace aspect
 	  {
             lusiMaterialChange(part_compo_props, asth_mtl_idx, asth_olm_hyb_mat_idx, 0.0, 1.0);
           }
-	else // --- heated asth OLM hybrid (if any) -> asth
+	else // --- heated asth OLM hybrid (if any) -> asth.
 	  {
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, asth_mtl_idx, 0.0, 1.0);
+            //lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, asth_mtl_idx, 0.0, 1.0);
 	  }
 
         //// --- Prograde only oc. seds. (i.e. mainly qtz) -> coesite transition.
