@@ -670,13 +670,24 @@ namespace aspect
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
 
+            // --- Only convert the pm_frac compo to ssz_lith_mtl_idx if
+            //     we have part_compo_props[pm_ssz_asth_mtl_idx] > 0.0 here
+            //     to avoid producing ssz_lith_mtl_idx at the beginning of
+            //     the convergence stage
+            if (part_compo_props[pm_ssz_asth_mtl_idx] > 0.0)
+              {
+                lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+              }
+            
 	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	    //     to the SSZ type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
-            lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+            //lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
 
             //part_compo_props[pm_frac_idx]= 0.0;
 
+            // --- NOTE:  part_compo_props[ssz_lith_mtl_idx] has been modified by the call
+            //            to the lusiMaterialChange method
             if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
               // --- reset the accumulated strains to zero for this new mrb mat.
               part_compo_props[acc_tot_strain_idx]= 0.0;
@@ -700,6 +711,8 @@ namespace aspect
 
             //part_compo_props[pm_frac_idx]= 0.0;
             
+            // --- NOTE:  part_compo_props[mrb_lith_mtl_idx] has been modified by the call
+            //            to the lusiMaterialChange method.          
             if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
               // --- reset the accumulated strains to zero for this new ssz mat.
               part_compo_props[acc_tot_strain_idx]= 0.0;
