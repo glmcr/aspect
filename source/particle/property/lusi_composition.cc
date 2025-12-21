@@ -595,7 +595,10 @@ namespace aspect
             
             // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
 	    // //     but only if the acc. tot. strain is > 12.0
-            if (part_compo_props[acc_tot_strain_idx]>12.0)
+            //if (part_compo_props[acc_tot_strain_idx]>12.0_
+            // --- Now (2025-12-21) transform the p.m. MORB asth to p.m. SSZ asth if its
+            //     compo % is smaller than the p.m. SSZ asth compo %
+            if (part_compo_props[pm_ssz_asth_mtl_idx] > part_compo_props[pm_mrb_asth_mtl_idx])
                {         
 	         lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
                }
