@@ -499,13 +499,12 @@ namespace aspect
 	}
 
 	// // --- Get the horizontal velocity at the marker position
-	//const double horiz_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[0]];
-        //const double horiz_velo_absv= std::fabs(horiz_velo);
+	const double horiz_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[0]];
+        const double horiz_velo_absv= std::fabs(horiz_velo);
         
 	// // --- Get the vertical velocity at the marker position
-	//const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
-
-        //const double vertical_velo_absv= std::fabs(vertical_velo);
+	const double vertical_velo= solution[this->Composition<dim>::introspection().component_indices.velocities[dim-1]];
+        const double vertical_velo_absv= std::fabs(vertical_velo);
 	
 	// // --- Determine if the vertical velo allows the pm asth. of ssz type.
 	// const bool pm_asth_ssz_vvelo_ok= (vertical_velo > ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD) ? true: false;
@@ -700,8 +699,16 @@ namespace aspect
 	    // --- Transfer particle part. melted mrb asth. material (could be 0.0) concentration to
 	    //     to the MRB type of oc. lith. mantle.	    
 	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
-            lusiMaterialChange(part_compo_props, pm_frac_idx, mrb_lith_mtl_idx, 0.0, 1.0);
 
+            // --- transform the pm_frac to  the MRB type of oc. lith. mantle only if the
+            //     abs. val. of the marker horiz velo is larger than the abs. value of the
+            //     vertical velo. OR if the vertical_velo < 0.0 regardless of the marker
+            //     horiz velo value.
+            if ((horiz_velo_absv > vertical_velo_absv) || vertical_velo < 0.0)
+              {
+                lusiMaterialChange(part_compo_props, pm_frac_idx, mrb_lith_mtl_idx, 0.0, 1.0);
+              }
+            
             //part_compo_props[pm_frac_idx]= 0.0;
             
             if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
