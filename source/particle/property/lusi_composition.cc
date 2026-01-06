@@ -698,24 +698,26 @@ namespace aspect
 
 	    // --- Transfer particle part. melted mrb asth. material (could be 0.0) concentration to
 	    //     to the MRB type of oc. lith. mantle.	    
-	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
+	    //lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
 
-            // --- transform the pm_frac to  the MRB type of oc. lith. mantle only if the
+            // --- transform the  part. melted mrb asth. material and pm_frac to  the MRB type of oc. lith. mantle only if the
             //     abs. val. of the marker horiz velo is larger than the abs. value of the
             //     vertical velo. OR if the vertical_velo < 0.0 regardless of the marker
             //     horiz velo value.
             if ((horiz_velo_absv > vertical_velo_absv) || vertical_velo < 0.0)
               {
+                
+                lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
                 lusiMaterialChange(part_compo_props, pm_frac_idx, mrb_lith_mtl_idx, 0.0, 1.0);
-              }
-            
+              
             //part_compo_props[pm_frac_idx]= 0.0;
             
-            if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
-              // --- reset the accumulated strains to zero for this new ssz mat.
-              part_compo_props[acc_tot_strain_idx]= 0.0;
-              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-            }
+                if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_lith_mtl_idx] > 0.5 ) {
+                  // --- reset the accumulated strains to zero for this new olm mat.
+                  part_compo_props[acc_tot_strain_idx]= 0.0;
+                  part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+                }
+              }
 	  } // --- pm mrb asth -> rmrb  oc. lith mantle
 
 	// --- p,T conditions under which oc. crust transforms to greenschists facies
