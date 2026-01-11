@@ -28,7 +28,6 @@
 #include <aspect/particle/utilities_lusi.h>
 #include <aspect/particle/property/lusi_composition.h>
 #include <aspect/initial_composition/interface.h>
-//#include <aspect/particle/property/viscoplastic_strain_invariants.h>
 
 namespace aspect
 {
