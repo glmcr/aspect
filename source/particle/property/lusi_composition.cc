@@ -18,6 +18,9 @@
  <http://www.gnu.org/licenses/>.
  */
 
+#include <random>
+#include <chrono>
+
 #include <aspect/geometry_model/box.h>
 #include <aspect/geometry_model/two_merged_boxes.h>
 #include <aspect/boundary_velocity/interface.h>
@@ -206,6 +209,9 @@ namespace aspect
         //std::vector<Tensor<1,dim>> dummy; 
 
         //Composition<dim>::update_particle_property(data_position, solution, gradients, particle);
+
+        std::default_random_engine norm_dist_generator( std::chrono::system_clock::now().time_since_epoch().count() );
+        std::normal_distribution<double> norm_dist(0.0, 0.2);
 
 	//// --- Example of access to another particle property (somehwat a hack but it works)
 	//const double simAgeInYears= this->get_time()/year_in_seconds;
@@ -577,20 +583,23 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 
-            if (part_compo_props[pm_frac_idx]<MAX_SSZ_PM_FRAC) // && part_compo_props[pm_ssz_asth_mtl_idx] > SSZ_PM_FRAC_INCR)
+             // --- Allow a low percentage (~%5) of pm_mrb_asth_mtl_idx to be pm_frac
+            //    (lower th. cond. and lower density)
+            if (std::fabs(norm_dist(norm_dist_generator)) < 0.0125)
               {
-
-                const double pm_frac_compo_incr= SSZ_PM_FRAC_INCR * part_compo_props[pm_ssz_asth_mtl_idx];
-                  
-                //OKAY part_compo_props[pm_frac_idx] += SSZ_PM_FRAC_INCR ;
-                part_compo_props[pm_frac_idx] += pm_frac_compo_incr;
-                  
-                // --- Remove the SSZ_PM_FRAC_INCR from the part_compo_props[pm_ssz_asth_mtl_idx] for mass conserv.
-                // OKAY but could produce compos < 0.0 ifpart_compo_props[pm_ssz_asth_mtl_idx] is < SSZ_PM_FRAC_INCR
-                // part_compo_props[pm_ssz_asth_mtl_idx] -= SSZ_PM_FRAC_INCR ;
-                part_compo_props[pm_ssz_asth_mtl_idx] -= pm_frac_compo_incr;  
-                
+                lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, pm_frac_idx, 0.0, 1.0);
               }
+            
+            // if (part_compo_props[pm_frac_idx]<MAX_SSZ_PM_FRAC) // && part_compo_props[pm_ssz_asth_mtl_idx] > SSZ_PM_FRAC_INCR)
+            //   {
+            //     const double pm_frac_compo_incr= SSZ_PM_FRAC_INCR * part_compo_props[pm_ssz_asth_mtl_idx];
+            //     //OKAY part_compo_props[pm_frac_idx] += SSZ_PM_FRAC_INCR ;
+            //     part_compo_props[pm_frac_idx] += pm_frac_compo_incr;
+            //     // --- Remove the SSZ_PM_FRAC_INCR from the part_compo_props[pm_ssz_asth_mtl_idx] for mass conserv.
+            //     // OKAY but could produce compos < 0.0 ifpart_compo_props[pm_ssz_asth_mtl_idx] is < SSZ_PM_FRAC_INCR
+            //     // part_compo_props[pm_ssz_asth_mtl_idx] -= SSZ_PM_FRAC_INCR ;
+            //     part_compo_props[pm_ssz_asth_mtl_idx] -= pm_frac_compo_incr;  
+            //   }
             
             // // --- Transform also the p.m. MORB asth. (if any) to partially melted SSZ asthenosphere
 	    // //     but only if the acc. tot. strain is > 12.0
@@ -604,7 +613,7 @@ namespace aspect
 	  }
 
 	// --- (p,T) and upwelling conditions for which the upwelling "dry" asth. and the hyb. asth. mat.
-	//     transforms to partially melted MORB asthenosphere (no MRB melt in the convergence context)
+	//     transforms to partially melted MORB asthenosphere (no MRB melt created in the convergence context)
         if ( (pmMrbAsthPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri2.ptInside(pressureInMPa_here,temperature_here) ||
               pmMrbAsthPTTri3.ptInside(pressureInMPa_here,temperature_here) ) && pm_asth_mrb_type)
@@ -612,13 +621,19 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 
-            if (part_compo_props[pm_frac_idx]<MAX_MRB_PM_FRAC)
+            // --- Allow a low percentage (~%1) of pm_mrb_asth_mtl_idx to be pm_frac
+            //    (lower th. cond. and lower density)
+            if (std::fabs(norm_dist(norm_dist_generator)) < 0.0025)
               {
-                part_compo_props[pm_frac_idx] += MRB_PM_FRAC_INCR;
-
-                // --- Remove the MRB_PM_FRAC_INCR from the part_compo_props[pm_mrb_asth_mtl_idx] for mass conserv.
-                part_compo_props[pm_mrb_asth_mtl_idx] -= MRB_PM_FRAC_INCR; 
+                lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_frac_idx, 0.0, 1.0);
               }
+            
+            // if (part_compo_props[pm_frac_idx]<MAX_MRB_PM_FRAC)
+            //   {
+            //     part_compo_props[pm_frac_idx] += MRB_PM_FRAC_INCR;
+            //     // --- Remove the MRB_PM_FRAC_INCR from the part_compo_props[pm_mrb_asth_mtl_idx] for mass conserv.
+            //     part_compo_props[pm_mrb_asth_mtl_idx] -= MRB_PM_FRAC_INCR; 
+            //   }
 	  }	
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
@@ -667,12 +682,12 @@ namespace aspect
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
 
-            // --- Avoid production of ssz_lith_mtl_idx with pm_frac at the
-            //     beginning of the convergence stage when part_compo_props[ssz_lith_mtl_idx] is 0.0 
-            if (part_compo_props[ssz_lith_mtl_idx] > 0.0)
-              {
-                lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
-              }
+            // // --- Avoid production of ssz_lith_mtl_idx with pm_frac at the
+            // //     beginning of the convergence stage when part_compo_props[ssz_lith_mtl_idx] is 0.0 
+            // if (part_compo_props[ssz_lith_mtl_idx] > 0.0)
+            //   {
+            //     lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+            //   }
 
 	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
 	    //     to the SSZ type of oc. lith. mantle.	    
@@ -708,7 +723,7 @@ namespace aspect
               {
                 
                 lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
-                lusiMaterialChange(part_compo_props, pm_frac_idx, mrb_lith_mtl_idx, 0.0, 1.0);
+                //lusiMaterialChange(part_compo_props, pm_frac_idx, mrb_lith_mtl_idx, 0.0, 1.0);
               
             //part_compo_props[pm_frac_idx]= 0.0;
             
