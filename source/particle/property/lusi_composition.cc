@@ -582,9 +582,9 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
 
-             // --- Allow a low percentage (~%5) of pm_mrb_asth_mtl_idx to be pm_frac
-            //    (lower th. cond. and lower density)
-            if (std::fabs(norm_dist(norm_dist_generator)) < 0.0125)
+             // --- Allow a low percentage (~%5) of pm_mrb_asth_mtl_idx to become pm_frac
+            //      (lower th. cond. and lower density) and IF vertical_velo_absv > horiz_velo_absv
+            if ( (std::fabs(norm_dist(norm_dist_generator)) < 0.0125) && (vertical_velo_absv > horiz_velo_absv))
               {
                 lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, pm_frac_idx, 0.0, 1.0);
               }
@@ -621,8 +621,8 @@ namespace aspect
 	    lusiMaterialChange(part_compo_props, asth_olm_hyb_mat_idx, pm_mrb_asth_mtl_idx, 0.0, 1.0);
 
             // --- Allow a low percentage (~%1) of pm_mrb_asth_mtl_idx to be pm_frac
-            //    (lower th. cond. and lower density)
-            if (std::fabs(norm_dist(norm_dist_generator)) < 0.0025)
+            //    (lower th. cond. and lower density) and IF vertical_velo_absv > horiz_velo_absv
+            if ( (std::fabs(norm_dist(norm_dist_generator)) < 0.0025) && (vertical_velo_absv > horiz_velo_absv))
               {
                 lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_frac_idx, 0.0, 1.0);
               }
