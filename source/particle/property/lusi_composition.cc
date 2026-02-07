@@ -614,30 +614,34 @@ namespace aspect
 
             if (part_compo_props[pm_frac_idx]<MAX_MRB_PM_FRAC)
               {
-                part_compo_props[pm_frac_idx] += MRB_PM_FRAC_INCR;
+                const double pm_frac_compo_incr= MRB_PM_FRAC_INCR * part_compo_props[pm_mrb_asth_mtl_idx];
+                
+                //part_compo_props[pm_frac_idx] += MRB_PM_FRAC_INCR;
+                part_compo_props[pm_frac_idx] += pm_frac_compo_incr;
 
                 // --- Remove the MRB_PM_FRAC_INCR from the part_compo_props[pm_mrb_asth_mtl_idx] for mass conserv.
-                part_compo_props[pm_mrb_asth_mtl_idx] -= MRB_PM_FRAC_INCR; 
+                //part_compo_props[pm_mrb_asth_mtl_idx] -= MRB_PM_FRAC_INCR;
+                part_compo_props[pm_mrb_asth_mtl_idx] -= pm_frac_compo_incr;
               }
-	  }	
+	  }
 	
 	// --- (p,T) conditions for which upwelling SSZ asth. partial melts transforms to SSZ crust.
         if ( (asth2SSZCrustPTTri1.ptInside(pressureInMPa_here,temperature_here) ||
 	      asth2SSZCrustPTTri2.ptInside(pressureInMPa_here,temperature_here)) && !in_extension_stage)
 	  {
 
-           const double previousSSZMatContent= part_compo_props[ssz_oc_crust_idx];
+            const double previousSSZMatContent= part_compo_props[ssz_oc_crust_idx];
 
-	   lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
-           lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_oc_crust_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_oc_crust_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_oc_crust_idx, 0.0, 1.0);
 
-           //part_compo_props[pm_frac_idx]= 0.0;
+            //part_compo_props[pm_frac_idx]= 0.0;
 
-           if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_oc_crust_idx] > 0.5 ) {
-             // --- reset the accumulated strains to zero for this new ssz mat.
-             part_compo_props[acc_tot_strain_idx]= 0.0;
-             part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-           }
+            if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_oc_crust_idx] > 0.5 ) {
+              // --- reset the accumulated strains to zero for this new ssz mat.
+              part_compo_props[acc_tot_strain_idx]= 0.0;
+              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+            }
 	  } // --- pm asth -> ssz oc. crust.
 	
 	// --- (p,T) conditions for which upwelling MORB asth. partial melts transforms to MORB crust.
@@ -645,18 +649,18 @@ namespace aspect
 	      asth2MRBCrustPTTri2.ptInside(pressureInMPa_here,temperature_here) ) && in_extension_stage)
 	  {
 
-           const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
+            const double previousMRBMatContent= part_compo_props[mrb_oc_crust_idx];
 
-	   lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_oc_crust_idx, 0.0, 1.0);
-           lusiMaterialChange(part_compo_props, pm_frac_idx, mrb_oc_crust_idx, 0.0, 1.0);
+	    lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_oc_crust_idx, 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, pm_frac_idx, mrb_oc_crust_idx, 0.0, 1.0);
 
-           //part_compo_props[pm_frac_idx]= 0.0;
+            //part_compo_props[pm_frac_idx]= 0.0;
 
-           if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_oc_crust_idx] > 0.5 ) {
-             // --- reset the accumulated strains to zero for this new mrb mat.
-             part_compo_props[acc_tot_strain_idx]= 0.0;
-             part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-           }
+            if ( previousMRBMatContent < 0.5 && part_compo_props[mrb_oc_crust_idx] > 0.5 ) {
+              // --- reset the accumulated strains to zero for this new mrb mat.
+              part_compo_props[acc_tot_strain_idx]= 0.0;
+              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+            }
 	  } // --- pm mrb asth -> mrb oc. crust.
 
 	// --- (p,T) conditions for which upwelling partially melted SSZ asth. transforms to SSZ oc. lith. mantle
@@ -667,26 +671,29 @@ namespace aspect
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
 
-            // --- Avoid production of ssz_lith_mtl_idx with pm_frac at the
-            //     beginning of the convergence stage when part_compo_props[ssz_lith_mtl_idx] is 0.0 
-            if (part_compo_props[ssz_lith_mtl_idx] > 0.0)
+            if ((horiz_velo_absv > vertical_velo_absv) || vertical_velo < 0.0)
               {
-                lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+                // --- Avoid production of ssz_lith_mtl_idx with pm_frac at the
+                //     beginning of the convergence stage when part_compo_props[ssz_lith_mtl_idx] is 0.0 
+                if (part_compo_props[ssz_lith_mtl_idx] > 0.0)
+                  {
+                   lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+                  }
+
+	        // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
+	        //     to the SSZ type of oc. lith. mantle.	    
+	        lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+                //lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+                //part_compo_props[pm_frac_idx]= 0.0;
+
+                if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 )
+                  {
+                    // --- reset the accumulated strains to zero for this new mrb mat.
+                    part_compo_props[acc_tot_strain_idx]= 0.0;
+                    part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+                  }  
               }
-
-	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
-	    //     to the SSZ type of oc. lith. mantle.	    
-	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
-            //lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
-
-            //part_compo_props[pm_frac_idx]= 0.0;
-
-            if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
-              // --- reset the accumulated strains to zero for this new mrb mat.
-              part_compo_props[acc_tot_strain_idx]= 0.0;
-              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-            }
-	  } // --- pm mrb asth -> mrb  oc. lith mantle
+	  } // --- pm ssz asth -> mrb  ssz oc. lith mantle
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
         //     2025-09-06: removed the dependency on the vertical velo magnitude -> create_new_olm_mrb
@@ -700,7 +707,7 @@ namespace aspect
 	    //     to the MRB type of oc. lith. mantle.	    
 	    //lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, mrb_lith_mtl_idx, 0.0, 1.0);
 
-            // --- transform the  part. melted mrb asth. material and pm_frac to  the MRB type of oc. lith. mantle only if the
+            // --- transform the part. melted mrb asth. material and pm_frac to the MRB type of oc. lith. mantle only if the
             //     abs. val. of the marker horiz velo is larger than the abs. value of the
             //     vertical velo. OR if the vertical_velo < 0.0 regardless of the marker
             //     horiz velo value.
