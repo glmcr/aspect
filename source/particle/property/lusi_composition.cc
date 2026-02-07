@@ -615,7 +615,7 @@ namespace aspect
             //     compo % is smaller than the p.m. SSZ asth compo %
             if (part_compo_props[pm_ssz_asth_mtl_idx] > part_compo_props[pm_mrb_asth_mtl_idx])
                {         
-	         lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx,  pm_ssz_asth_mtl_idx, 0.0, 1.0);
+	         lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
                }
 	  }
 
@@ -702,20 +702,23 @@ namespace aspect
             //   {
             //     lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
             //   }
+            
+            if ((horiz_velo_absv > vertical_velo_absv) || vertical_velo < 0.0)
+              {      
+	        // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
+	        //     to the SSZ type of oc. lith. mantle.	    
+	        lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+                //lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
 
-	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
-	    //     to the SSZ type of oc. lith. mantle.	    
-	    lusiMaterialChange(part_compo_props, pm_ssz_asth_mtl_idx, ssz_lith_mtl_idx, 0.0, 1.0);
-            //lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+                //part_compo_props[pm_frac_idx]= 0.0;
 
-            //part_compo_props[pm_frac_idx]= 0.0;
-
-            if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
-              // --- reset the accumulated strains to zero for this new mrb mat.
-              part_compo_props[acc_tot_strain_idx]= 0.0;
-              part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
-            }
-	  } // --- pm mrb asth -> mrb  oc. lith mantle
+                if ( previousSSZMatContent < 0.5 && part_compo_props[ssz_lith_mtl_idx] > 0.5 ) {
+                  // --- reset the accumulated strains to zero for this new mrb mat.
+                  part_compo_props[acc_tot_strain_idx]= 0.0;
+                  part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
+                }
+              }
+	  } // --- pm ssz asth -> ssz  oc. lith mantle
 	
 	// --- (p,T) conditions for which upwelling partially melted MRB asth. transforms to MRB oc. lith. mantle
         //     2025-09-06: removed the dependency on the vertical velo magnitude -> create_new_olm_mrb
