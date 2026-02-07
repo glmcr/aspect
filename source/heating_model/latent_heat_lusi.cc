@@ -85,7 +85,8 @@ namespace aspect
                    //  
                    heating_model_outputs.heating_source_terms[q] = material_model_outputs.densities[q]
                                                                    * material_model_inputs.temperature[q]
-                                                                   * 1e3 * material_model_outputs.thermal_expansion_coefficients[q] 
+                                                                   * 5.e2 * material_model_outputs.thermal_expansion_coefficients[q]
+                                                                   // too large * 1e3 * material_model_outputs.thermal_expansion_coefficients[q] 
                                                                    * material_model_inputs.composition[q][pm_frac_idx] * velo_gravity_dot_prod ;
                  }
                  
