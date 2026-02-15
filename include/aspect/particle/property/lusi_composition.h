@@ -518,13 +518,15 @@ namespace aspect
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
       //sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.5e9, 1823.0);   // --- 15kb, 1550C
-      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1823.0); // --- 47Kb, 1550C
+      //sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1823.0); // --- 47Kb, 1550C
+      sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*4.7e9, 1655.0); // --- 47Kb, 1382C
       //sszMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*5.0e9, 2023.0); // --- 50Kb, 1750C
       // 1st values, 10Kb & 1500C szMtcPT3(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.0e9, 1773.0);
 
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
-      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1394.0);  //  1121C
+      sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1388.0);  //  1115C
+      //sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1394.0);  //  1121C
       //sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1403.0); // --- 1130C  
       // 1st value, 1200C sszMtcPT4(PTStateMarker::PASCALS_2_MEGA_PASCALS*LUSIComposition<dim>::MOHO_PRESSURE_PASCALS, 1473.0);     
 
@@ -539,7 +541,8 @@ namespace aspect
       template <int dim>
       const PTStateMarker LUSIComposition<dim>::
       //sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*1.0e9, 1612.0);
-      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1612.0); // --- 25Kb, 1340C  
+      //sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*2.5e9, 1612.0); // --- 25Kb, 1340C
+      sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*3.0e9, 1552.0 ); // --- 30Kb, 1280C  
       // --- 1st values 5kb, 1300C sszMtcPT7(PTStateMarker::PASCALS_2_MEGA_PASCALS*0.5e9, LUSIComposition<dim>::LAB_TEMPERATURE_KELVINS);     
 
       template <int dim>
