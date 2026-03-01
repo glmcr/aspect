@@ -191,9 +191,20 @@ namespace aspect
           static constexpr const char* ACC_TOTAL_STRAIN_NID= "total_strain";
 
           static constexpr const char* ACC_NONINIT_PLASTIC_STRAIN_NID= "noninitial_plastic_strain";
+
+          // --- need to use the poro_strain name string to fool the Aspect code in
+          //     in order to avoid problems with the "porosity" name being used elsewhere in the code 
+          static constexpr const char* PM_FRAC_NID= "pm_frac";
+
+          static constexpr const double MAX_SSZ_PM_FRAC= 0.15;
+
+          static constexpr const double MAX_MRB_PM_FRAC= 0.02;
+
+          static constexpr const double SSZ_PM_FRAC_INCR= 1.e-3; //MAX_SSZ_PM_FRAC*1.e-3;
+          static constexpr const double MRB_PM_FRAC_INCR= 1.e-5; //MAX_MRB_PM_FRAC*1.e-5;
         
 	  // --- Surf T 273.25
-	 static constexpr const double SURF_TEMPERATURE_KELVINS= 273.25;
+	  static constexpr const double SURF_TEMPERATURE_KELVINS= 273.25;
 
 	  // --- Surf pressure (atmos. pressure at sea level
 	  static constexpr const double SURF_ATMOS_PRESSURE_PASCALS= 101500.0;
