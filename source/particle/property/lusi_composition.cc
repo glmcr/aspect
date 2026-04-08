@@ -668,11 +668,11 @@ namespace aspect
 
             const double previousSSZMatContent= part_compo_props[ssz_lith_mtl_idx];
 
-            // --- Avoid production of ssz_lith_mtl_idx with pm_frac at the
-            //     beginning of the convergence stage when part_compo_props[ssz_lith_mtl_idx] is 0.0 
-            if (part_compo_props[ssz_lith_mtl_idx] > 0.0)
+            // --- Avoid transformation of pm_frac to pm_ssz_asth_mtl_idx at the
+            //     beginning of the convergence stage when part_compo_props[pm_ssz_asth_mtl_idx] is less than 0.001 
+            if (part_compo_props[pm_ssz_asth_mtl_idx] > 0.001)
               {
-                lusiMaterialChange(part_compo_props, pm_frac_idx, ssz_lith_mtl_idx, 0.0, 1.0);
+                lusiMaterialChange(part_compo_props, pm_frac_idx, pm_ssz_asth_mtl_idx, 0.0, 1.0);
               }
 
 	    // --- Transfer particle part. melted ssz asth. material (could be 0.0) concentration to
