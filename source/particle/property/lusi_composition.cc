@@ -337,6 +337,9 @@ namespace aspect
 	//     part_compo_props[acc_tot_strain_idx]=
 	//       part_compo_props[acc_ninit_plastic_strain_idx]= 0.0;
 	//   }
+
+        // --- assuming 2D here so y is the vertical axis here
+        const double yPositionMetersFromBottom= particle->get_location()[1];
 	
 	//--- Now check if the marker distance from the sides is far enough
 	//    to allow metam. changes because it seems that we have some unwanted
@@ -388,7 +391,18 @@ namespace aspect
 	//const Tensor<1,dim> bnd_velos= bndFunctionObj.boundary_velocity(0,particle->get_location());
 
         bool in_extension_stage= (rigth_bnd_velos[0] > 0.0 || left_bnd_velos[0] < 0.0) ? true : false;
-	
+
+         // --- all the materials (OLM MORB, eclogites and p.m. asth MORB) of the subducted plate are
+         //     artificially transformed to asthenosphere at depths >= SOFT_SUBDUCT_PLATE_DEPTH_METERS to avoid
+         //     (or at least to reduce) the mechanical effect(s) of the plate leaning on the bottom for its
+         //     rollback evolution. We only want the slab pull effect(s) here.
+         if (!in_extension_stage && ((gridYExtent - yPositionMetersFromBottom) >= SOFT_SUBDUCT_PLATE_DEPTH_METERS ))
+           {
+             lusiMaterialChange(part_compo_props, pm_mrb_asth_mtl_idx, asth_mtl_idx, 0.0, 1.0);
+             lusiMaterialChange(part_compo_props, mrb_lith_mtl_idx, asth_mtl_idx, 0.0, 1.0);
+             lusiMaterialChange(part_compo_props, eclogites_idx, asth_mtl_idx, 0.0, 1.0);
+           }
+       
 	// bool extension_stage= false;
 	// if (xPositionMeters < gridXExtent/2.0) {
 	//   // --- Left side of the domain box, x velo should be negative for the extension stage
