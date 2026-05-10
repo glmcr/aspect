@@ -251,6 +251,14 @@ namespace aspect
 
           // --- same  0.02m/y in m/s for ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD
           static constexpr const double ASTH_PARTIAL_MELT_SSZ_TYPE_VEL_THRESHOLD= ASTH_PARTIAL_MELT_MRB_TYPE_VEL_THRESHOLD;
+
+          // --- All the materials (OLM MORB, eclogites and p.m. asth MORB)
+          //     of the subducted plate are artificially transformed to asthenosphere
+          //     at depths >= SOFT_SUBDUCT_PLATE_DEPTH_METERS to avoid (or at least
+          //     to reduce) the mechanical effect(s) of the plate leaning on the bottom
+          //     for its rollback evolution. We only want the slab pull effect(s) in this case
+          static constexpr const double SOFT_SUBDUCT_PLATE_DEPTH_METERS= 670000.0;  
+        
 	
            // ---  (p,T) tri. zone where asth. in partial SSZ melting state forms
            //      SSZ oc. crust 
