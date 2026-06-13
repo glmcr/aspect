@@ -85,20 +85,26 @@ namespace aspect
 
             SymmetricTensor<2,dim> compressive_stress = in.pressure[q] * unit_symmetric_tensor<dim>();
 
-            if (this->get_parameters().enable_elasticity)
-              {
-                const auto elastic_additional_out =
-                  out.template get_additional_output_object<MaterialModel::ElasticAdditionalOutputs<dim>>();
+            // --- NOTE: G. Mercier 2026-06-13. Temp. hack to get the code to compile
+            //           We do not need elasticity for our SI simulations but we need
+            //           to signal the error here in case we would want to use elasticity
+            //           at some point.
+            AssertThrow(this->get_parameters().enable_elasticity == false,
+                        ExcMessage("Cannot use elasticity for now for Laval U. SI simulations !!"));
 
-                Assert(elastic_additional_out != nullptr,
-                       ExcMessage("Elastic Additional Outputs are needed for the 'maximum horizontal compressive stress' postprocessor, but they have not been created."));
-
-                compressive_stress -= elastic_additional_out->deviatoric_stress[q];
-              }
-            else
-              {
+            // --- uncomment this if-else block if elasticity need to be used.
+            //if (this->get_parameters().enable_elasticity)
+            //  { 
+            //    const auto elastic_additional_out =
+            //       out.template get_additional_output_object<MaterialModel::ElasticAdditionalOutputs<dim>>()
+            //    Assert(elastic_additional_out != nullptr,
+            //           ExcMessage("Elastic Additional Outputs are needed for the 'maximum horizontal compressive stress' postprocessor, but they have not been created."));
+            //    compressive_stress -= elastic_additional_out->deviatoric_stress[q];
+            //  }
+            //else
+            //  {
                 compressive_stress -= 2. * eta * deviatoric_strain_rate;
-              }
+            //  }
 
             // serialize symmetric tensor into the vector using Utilities helper
             Utilities::Tensors::unroll_symmetric_tensor_into_array<dim>(compressive_stress,
