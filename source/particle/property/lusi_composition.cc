@@ -691,7 +691,10 @@ namespace aspect
 	   lusiMaterialChange(part_compo_props, oc_seds_idx, greenschists_idx , 0.0, 1.0);
            lusiMaterialChange(part_compo_props, mrb_oc_crust_idx, greenschists_idx , 0.0, 1.0);
            lusiMaterialChange(part_compo_props, ssz_oc_crust_idx, greenschists_idx , 0.0, 1.0);
-	  
+
+           // --- also allow the blueschists to transform to greenschists (retrograde in P but prograde in T)
+           lusiMaterialChange(part_compo_props, blueschists_idx, greenschists_idx , 0.0, 1.0);
+           
            // part_compo_props[greenschists_idx] += part_compo_props[oc_crust_idx];
            // part_compo_props[greenschists_idx]=
            //     std::max(0.0,std::min(1.0,part_compo_props[greenschists_idx]));	   
@@ -712,6 +715,10 @@ namespace aspect
             // --- Also transform upp and low cont. crust to felsic amphi here.
             lusiMaterialChange(part_compo_props, cont_low_crust_idx, felsic_amphibolites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, cont_upp_crust_idx, felsic_amphibolites_idx, 0.0, 1.0);
+
+            // --- also allow the blueschists & eclogites to transform to amphibolites (retrograde in P but prograde in T)
+            lusiMaterialChange(part_compo_props, blueschists_idx, amphibolites_idx , 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, eclogites_idx, amphibolites_idx , 0.0, 1.0);
 	  }
 
 	// --- p,T conditions under which oc. crust, greenschists and amphibolites transform
@@ -730,6 +737,10 @@ namespace aspect
             lusiMaterialChange(part_compo_props, cont_low_crust_idx, felsic_granulites_idx, 0.0, 1.0);
             lusiMaterialChange(part_compo_props, cont_upp_crust_idx, felsic_granulites_idx, 0.0, 1.0);            
 
+            // --- also allow the blueschists & eclogites to transform to granulites (retrograde in P but prograde in T)
+            lusiMaterialChange(part_compo_props, blueschists_idx, granulites_idx , 0.0, 1.0);
+            lusiMaterialChange(part_compo_props, eclogites_idx, granulites_idx , 0.0, 1.0);
+            
 	    //// --- Parametrization of the amphibolite facies materials partial melting
 	    ////    (%5 partial melt, other materials that amphibolite should be at %0.0
 	    ////    presence at those (p,T) conditions but we nevertheless convert them to
